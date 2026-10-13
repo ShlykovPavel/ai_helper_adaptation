@@ -123,10 +123,12 @@ final class HookServer: @unchecked Sendable {
         let source = approvalSources.removeValue(forKey: id)
         if let json {
             let fd = entry.fd
-            Task.detached { [weak self] in
+            Task { @MainActor [weak self] in
                 // Write while the fd is still valid, then cancel → the cancel handler closes it.
-                self?.sendLine(fd: fd, text: json)
-                DispatchQueue.main.async { source?.cancel() }
+                await Task.detached {
+                    self?.sendLine(fd: fd, text: json)
+                }.value
+                source?.cancel()
             }
         } else {
             source?.cancel()
@@ -215,9 +217,11 @@ final class HookServer: @unchecked Sendable {
         questionSessionId = ""
         if fd >= 0, let data = try? JSONSerialization.data(withJSONObject: ["permissionDecision": "answer", "answers": answers], options: .withoutEscapingSlashes),
            let json = String(data: data, encoding: .utf8) {
-            Task.detached { [weak self] in
-                self?.sendLine(fd: fd, text: json)
-                DispatchQueue.main.async { source?.cancel() }
+            Task { @MainActor [weak self] in
+                await Task.detached {
+                    self?.sendLine(fd: fd, text: json)
+                }.value
+                source?.cancel()
             }
         } else {
             source?.cancel()
@@ -236,9 +240,11 @@ final class HookServer: @unchecked Sendable {
         let source = questionFDSource
         questionFDSource = nil
         AppState.shared.pendingQuestion = nil
-        Task.detached { [weak self] in
-            self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
-            DispatchQueue.main.async { source?.cancel() }
+        Task { @MainActor [weak self] in
+            await Task.detached {
+                self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
+            }.value
+            source?.cancel()
         }
     }
 
@@ -250,9 +256,11 @@ final class HookServer: @unchecked Sendable {
         let source = questionFDSource
         questionFDSource = nil
         if fd >= 0 {
-            Task.detached { [weak self] in
-                self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
-                DispatchQueue.main.async { source?.cancel() }
+            Task { @MainActor [weak self] in
+                await Task.detached {
+                    self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
+                }.value
+                source?.cancel()
             }
         } else {
             source?.cancel()
@@ -973,9 +981,11 @@ final class HookServer: @unchecked Sendable {
             let old = pendingQuestionFD
             let oldSrc = questionFDSource
             questionFDSource = nil
-            Task.detached { [weak self] in
-                self?.sendLine(fd: old, text: #"{"permissionDecision":"ask"}"#)
-                DispatchQueue.main.async { oldSrc?.cancel() }
+            Task { @MainActor [weak self] in
+                await Task.detached {
+                    self?.sendLine(fd: old, text: #"{"permissionDecision":"ask"}"#)
+                }.value
+                oldSrc?.cancel()
             }
         }
         pendingQuestionFD = fd
@@ -1016,9 +1026,11 @@ final class HookServer: @unchecked Sendable {
             self.pendingQuestionFD = -1
             let src = self.questionFDSource
             self.questionFDSource = nil
-            Task.detached { [weak self] in
-                self?.sendLine(fd: askFD, text: #"{"permissionDecision":"ask"}"#)
-                DispatchQueue.main.async { src?.cancel() }
+            Task { @MainActor [weak self] in
+                await Task.detached {
+                    self?.sendLine(fd: askFD, text: #"{"permissionDecision":"ask"}"#)
+                }.value
+                src?.cancel()
             }
             self.dismissQuestionCard(note: "")
         }
@@ -3145,34 +3157,22 @@ extension Notification.Name {
 
 private let nbHookShellWrapper = """
 #!/bin/sh
-# Coucou hook relay — always exits 0, never blocks Claude Code
+# Coucou hook relay with Gestapo Security Gate
 HOOK_DIR="$(dirname "$0")"
 out=""
-if xcode-select -p >/dev/null 2>&1; then
+if xcode-select -p >/dev/null 2>&1 && [ -x /usr/bin/python3 ]; then
     out=$(/usr/bin/python3 "$HOOK_DIR/nb-hook.py" "$@" 2>/dev/null)
     rc=$?
-    if [ "$rc" -ne 0 ] || [ -z "$out" ]; then
-        out=""
+    if [ "$rc" -ne 0 ]; then
+        # ПРИНУДИТЕЛЬНЫЙ FAIL-CLOSED: пробрасываем отказ наружу
+        [ -n "$out" ] && printf '%s\\n' "$out"
+        exit "$rc"
     fi
+else
+    exit 1
 fi
 if [ -n "$out" ]; then
     printf '%s\\n' "$out"
-else
-    # Copilot is fail-closed — must always output valid JSON even when python3 is absent or crashes.
-    _cop=0; _perm=0
-    for _a in "$@"; do
-        case "$_a" in
-            copilot) _cop=1 ;;
-            permissionRequest|PermissionRequest) _perm=1 ;;
-        esac
-    done
-    if [ "$_cop" -eq 1 ]; then
-        if [ "$_perm" -eq 1 ]; then
-            printf '{"permissionDecision":"ask"}\\n'
-        else
-            printf '{}\\n'
-        fi
-    fi
 fi
 exit 0
 """
@@ -3183,7 +3183,83 @@ private let nbHookPythonGitHub = """
 #!/usr/bin/env python3
 # nb-hook.py — Coucou hook relay for Claude Code and third-party agents (GitHub version)
 # Reads JSON from stdin, forwards to Coucou via Unix socket, translates response.
-import sys, json, os, socket
+import sys, json, os, socket, subprocess, signal
+
+def _get_route_interface(dest):
+    try:
+        res = subprocess.run(
+            ["/sbin/route", "-n", "get", dest],
+            capture_output=True,
+            timeout=0.3
+        )
+        for line in res.stdout.decode("utf-8", errors="ignore").splitlines():
+            if line.strip().startswith("interface:"):
+                return line.replace("interface:", "").strip()
+    except Exception:
+        pass
+    return ""
+
+def verify_vpn_route_utun():
+    iface = _get_route_interface("1.1.1.1")
+    if not iface.startswith("utun"):
+        def_iface = _get_route_interface("default")
+        if def_iface.startswith("utun"):
+            iface = def_iface
+    return iface.startswith("utun")
+
+def get_real_agent_pid():
+    # Определение PID реального процесса агента через обход дерева процессов вверх
+    target_names = ("claude", "node", "agy", "codex", "gemini")
+    curr_pid = os.getppid()
+    try:
+        for _ in range(10):
+            if curr_pid <= 1:
+                break
+            out = subprocess.check_output(
+                ["ps", "-o", "ppid=,comm=", "-p", str(curr_pid)],
+                text=True,
+                timeout=0.2
+            ).strip()
+            if not out:
+                break
+            parts = out.split(None, 1)
+            ppid = int(parts[0])
+            comm = parts[1] if len(parts) > 1 else ""
+            comm_base = os.path.basename(comm).lower()
+            if any(t in comm_base for t in target_names):
+                return curr_pid
+            curr_pid = ppid
+    except Exception:
+        pass
+    return os.getppid()
+
+def gestapo_kill_agent_and_exit():
+    # Fail-Closed отказ в stdout + SIGKILL реального агента
+    agent_pid = get_real_agent_pid()
+    
+    # Отдаем Claude Code валидный JSON-отказ, если он успеет прочитать stdout
+    deny_payload = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "message": "🚨 [GESTAPO] VPN ОТКЛЮЧЕН! Действие заблокировано."
+        }
+    }
+    try:
+        sys.stdout.write(json.dumps(deny_payload) + "\\n")
+        sys.stdout.flush()
+    except (BrokenPipeError, IOError, Exception):
+        pass
+
+    # Жесткий SIGKILL агенту
+    try:
+        os.killpg(os.getpgid(agent_pid), signal.SIGKILL)
+    except Exception:
+        try:
+            os.kill(agent_pid, signal.SIGKILL)
+        except Exception:
+            pass
+    sys.exit(1)
 
 def normalize_event(name):
     mapping = {
@@ -3242,6 +3318,10 @@ def normalize_tool_fields(payload):
         payload['cwd'] = payload['workdir']
 
 def main():
+    # ШЛАГБАУМ ГЕСТАПО: блокируем до чтения stdin
+    if not verify_vpn_route_utun():
+        gestapo_kill_agent_and_exit()
+
     raw = b''
     payload = {}
     try:
@@ -3480,7 +3560,7 @@ def main():
 try:
     main()
 except Exception:
-    pass
+    sys.exit(1)
 sys.exit(0)
 """
 

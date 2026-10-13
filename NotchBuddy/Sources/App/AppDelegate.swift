@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var demoMenuItem: NSMenuItem?
 
     func applicationWillTerminate(_ notification: Notification) {
+        GestapoWatchdog.shared.stop()
         DemoEngine.shared.stop()
         HotKeyCenter.shared.unregisterAll()
     }
@@ -189,6 +190,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         islandController?.showWindow(nil)
         islandController?.fsm.launch()
         HookServer.shared.start()
+        GestapoWatchdog.shared.start()
         #if !APPSTORE
         _ = VoiceEngine.shared  // registers system observers; starts mic only if the user enabled voice
         #endif
@@ -203,16 +205,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                                name: .openFullSettings, object: nil)
         // After the greeting ends, fly Mochi back to the desktop if it was there at last quit
         NotificationCenter.default.addObserver(forName: .greetComplete, object: nil, queue: .main) { [weak self] _ in
-            DesktopMochiController.shared.launchFlyIfNeeded()
-            self?.checkMondayRecap()
+            MainActor.assumeIsolated {
+                DesktopMochiController.shared.launchFlyIfNeeded()
+                self?.checkMondayRecap()
+            }
         }
         // Check for Monday recap on wake and when a new session/prompt arrives
         NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification,
                                                           object: nil, queue: .main) { [weak self] _ in
-            self?.checkMondayRecap()
+            MainActor.assumeIsolated {
+                self?.checkMondayRecap()
+            }
         }
         NotificationCenter.default.addObserver(forName: .checkMondayRecap, object: nil, queue: .main) { [weak self] _ in
-            self?.checkMondayRecap()
+            MainActor.assumeIsolated {
+                self?.checkMondayRecap()
+            }
         }
         #if !APPSTORE
         _ = MusicController.shared

@@ -8,12 +8,13 @@ enum IslandMode: String, CaseIterable {
 
 // MARK: - Island View
 
-enum IslandView: String, CaseIterable {
+enum IslandView: String, CaseIterable, Sendable {
     case overview, empty, approval, question, error, finished
     case confused, upload, uploading, choose, mail, prompt
     case searching, result, note, settings, greeting, wardrobe, recap
     case listening    // voice wake detected — "À l'écoute…" with live transcript
     case voiceResult  // voice command executed — "✓ Musique lancée" for ~2 s
+    case securityPanic // Режим тревоги ИБ
 }
 
 // MARK: - Bot State
@@ -237,6 +238,8 @@ enum IslandConst {
         .listening:    ViewLayout(height: 160, botX: 68,  botY: nil, botDiameter: 58, agentMode: .none),
         // Voice result: same layout as listening — Mochi on left, ✓/✗ on right
         .voiceResult:  ViewLayout(height: 160, botX: 68,  botY: nil, botDiameter: 58, agentMode: .none),
+        // Security panic: alarm card with Mochi on left, red warning on right
+        .securityPanic: ViewLayout(height: 160, botX: 62, botY: nil, botDiameter: 58, agentMode: .none),
     ]
 
     // Project colors — keyed by lowercase display name or slug
@@ -274,5 +277,6 @@ enum IslandConst {
         .searching: "rgba(99,102,241,0.5)",
         .result:    "rgba(52,211,153,0.22)",
         .prompt:    "rgba(99,102,241,0.22)",
+        .securityPanic: "rgba(244,80,94,0.7)",
     ]
 }

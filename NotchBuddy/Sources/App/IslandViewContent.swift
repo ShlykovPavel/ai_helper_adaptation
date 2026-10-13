@@ -39,6 +39,44 @@ struct IslandViewContent: View {
             #else
             EmptyView()
             #endif
+        case .securityPanic:
+            SecurityPanicView(state: state)
+        }
+    }
+}
+
+// MARK: - Gestapo Security Panic View
+
+struct SecurityPanicView: View {
+    @ObservedObject var state: AppState
+
+    var body: some View {
+        ZStack {
+            CardBackground(wash: .red)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.shield.fill")
+                        .foregroundColor(Color(hex: "#FF5460"))
+                        .font(.system(size: 13, weight: .bold))
+                    Text("GESTAPO SECURITY ALARM")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(Color(hex: "#FF5460"))
+                }
+                Text(state.securityAlarmText)
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(hex: "#F5F6F8").opacity(0.9))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                HStack(spacing: 8) {
+                    PrimaryButton("Сбросить тревогу") {
+                        state.resetSecurityAlert()
+                    }
+                }
+            }
+            .padding(.leading, 116)
+            .padding(.trailing, 16)
+            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }

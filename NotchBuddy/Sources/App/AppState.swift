@@ -10,6 +10,23 @@ final class AppState: ObservableObject {
     // Island state
     @Published var mode: IslandMode = .hidden
     @Published var view: IslandView = .overview
+    @Published var securityAlarmText: String = ""
+
+    func triggerSecurityPanic(message: String) {
+        self.securityAlarmText = message
+        self.stateOverride = .error
+        self.view = .securityPanic
+        self.mode = .expanded
+    }
+
+    func resetSecurityAlert() {
+        self.securityAlarmText = ""
+        self.stateOverride = nil
+        if self.view == .securityPanic {
+            self.view = .overview
+            self.mode = .compact
+        }
+    }
 
     // Tasks
     @Published var tasks: [AgentTask] = []

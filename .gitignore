@@ -4,6 +4,8 @@ NotchBuddy/NotchBuddy.xcodeproj/project.xcworkspace/xcuserdata/
 NotchBuddy/NotchBuddy.xcodeproj/xcuserdata/
 NotchBuddy/NotchBuddy.xcodeproj/xcshareddata/
 *.xcuserstate
+xcuserdata/
+*.xcbkptlist
 
 # Xcode DerivedData (outside repo — listed for clarity)
 DerivedData/

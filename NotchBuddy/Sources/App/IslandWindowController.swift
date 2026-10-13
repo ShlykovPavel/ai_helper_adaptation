@@ -321,7 +321,9 @@ final class IslandWindowController: NSWindowController {
         NotificationCenter.default.addObserver(
             forName: .greetComplete, object: nil, queue: .main
         ) { [weak self] _ in
-            self?.fsm.greetComplete()
+            MainActor.assumeIsolated {
+                self?.fsm.greetComplete()
+            }
         }
 
         // An approval, or an email prepared by voice, stays open until I click.
@@ -856,52 +858,67 @@ final class IslandWindowController: NSWindowController {
 
         // Hook server expand requests (alerts only)
         NotificationCenter.default.addObserver(forName: .hookExpand, object: nil, queue: .main) { [weak self] note in
-            guard let self, let view = note.object as? IslandView else { return }
-            self.fsm.openedExternally()
-            self.expand(to: view)
+            let view = note.object as? IslandView
+            MainActor.assumeIsolated {
+                guard let self, let view else { return }
+                self.fsm.openedExternally()
+                self.expand(to: view)
+            }
         }
 
         // Hook server compact reveal (non-alert work events: session start, tool use, etc.)
         NotificationCenter.default.addObserver(forName: .hookReveal, object: nil, queue: .main) { [weak self] _ in
-            guard let self else { return }
-            self.fsm.reveal()
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.fsm.reveal()
+            }
         }
 
         // Music started playing: reveal silently (no peek sound)
         NotificationCenter.default.addObserver(forName: .musicReveal, object: nil, queue: .main) { [weak self] _ in
-            guard let self else { return }
-            self.silentNextReveal = true
-            self.fsm.reveal()
-            self.silentNextReveal = false
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.silentNextReveal = true
+                self.fsm.reveal()
+                self.silentNextReveal = false
+            }
         }
 
         // Email prepared by voice: open the mail card, filled in, for me to check and send.
         NotificationCenter.default.addObserver(forName: .voiceShowMailCard, object: nil, queue: .main) { [weak self] _ in
-            guard let self else { return }
-            self.fsm.openedExternally()
-            self.expand(to: .mail)
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.fsm.openedExternally()
+                self.expand(to: .mail)
+            }
         }
 
         // Collapse requests from views (OK button, etc.)
         NotificationCenter.default.addObserver(forName: .islandCollapse, object: nil, queue: .main) { [weak self] _ in
-            self?.collapse()
+            MainActor.assumeIsolated {
+                self?.collapse()
+            }
         }
 
         // Wardrobe open/close from desktop Mochi right-click (does NOT post .hookExpand)
         NotificationCenter.default.addObserver(forName: .openWardrobeFromDesktop, object: nil, queue: .main) { [weak self] _ in
-            guard let self else { return }
-            if self.state.mode == .expanded && self.state.view == .wardrobe {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                    self.state.view = .overview
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                if self.state.mode == .expanded && self.state.view == .wardrobe {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        self.state.view = .overview
+                    }
+                } else {
+                    self.expand(to: .wardrobe)
                 }
-            } else {
-                self.expand(to: .wardrobe)
             }
         }
 
         // .botDizzy — posted by BotEngine.slap() on 3rd hit; show confused view + recover after 3.3s
         NotificationCenter.default.addObserver(forName: .botDizzy, object: nil, queue: .main) { [weak self] _ in
-            self?.handleDizzy()
+            MainActor.assumeIsolated {
+                self?.handleDizzy()
+            }
         }
 
         // Eye tracking at the mouse's own rate: Mochi's look target follows every mouse move
@@ -1038,16 +1055,19 @@ final class IslandWindowController: NSWindowController {
         }
 
         // Track last external app for window context capture
-        let ourBundle = Bundle.main.bundleIdentifier ?? ""
         NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.didActivateApplicationNotification,
-            object: nil, queue: .main
-        ) { [weak self] note in
-            guard let self else { return }
-            if let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
-               app.bundleIdentifier != ourBundle {
-                self.state.lastExternalApp = app
-            }
+            self,
+            selector: #selector(handleDidActivateApplication(_:)),
+            name: NSWorkspace.didActivateApplicationNotification,
+            object: nil
+        )
+    }
+
+    @objc private func handleDidActivateApplication(_ note: Notification) {
+        let ourBundle = Bundle.main.bundleIdentifier ?? ""
+        if let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+           app.bundleIdentifier != ourBundle {
+            self.state.lastExternalApp = app
         }
     }
 
