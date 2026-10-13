@@ -7,6 +7,7 @@ Coucou is a native macOS app (`NotchBuddy/`); `windows/` is the Tauri version fo
 - `NotchBuddy/Sources/CoucouKit/PillCatalog.swift` — single source of truth for all declared pills (workspace tools, agents, AI providers, services). Every pill ID, color, category and subtitle lives here.
 - `docs/SPEC.md`, `docs/INTEGRATIONS.md` — behaviour, views, states, integrations (in French).
 - `docs/gestapo/GESTAPO.md` — Gestapo VPN watchdog & kill-switch architecture, L1 hook gate and L2 daemon.
+- `docs/gestapo/IMPLEMENTATION_PLAN.md` — Master implementation plan for full Gestapo integration.
 - `docs/gestapo/FORK_SYNC.md` — Fork update and upstream sync guide.
 - `docs/gestapo/BUILD_MACOS.md` — macOS build and execution instructions.
 - `design/prototype/notch-buddy.html` — original prototype, the visual source of truth. `design/captures/` — target screenshots.
