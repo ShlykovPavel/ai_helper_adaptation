@@ -2,6 +2,16 @@
 
 Настоящий документ фиксирует утверждённый план полного переноса функционала из кодовой базы **Gestapo** (`/Users/pavel/start_tool`) в форк **Coucou** (`/Users/pavel/ai_helper_adaptation`).
 
+## Текущий статус
+
+По состоянию на 13 октября 2026 года завершены **Фазы 1 и 2**. Сетевое ядро, Power Guard, непрерывный kill-switch, GUI Hunter и системные уведомления реализованы и проходят безопасные автоматические проверки. Следующий этап — **Фаза 3: UI щитка Gestapo в чёлке**.
+
+Последняя проверка:
+
+- `make test-gestapo-safe` — все проверки Фазы 1 прошли;
+- `./scripts/test-gestapo-phase2-safe.sh` — 4/4 проверки прошли;
+- `make build` — `BUILD SUCCEEDED` без ошибок компиляции.
+
 ---
 
 ## 1. Анализ механизмов из исходного Gestapo (`/Users/pavel/start_tool`)
@@ -175,8 +185,8 @@ Gestapo — это не сессия агента Claude/Codex, поэтому �
 
 | Фаза | Задачи | Критерии приёмки (DoD) |
 |---|---|---|
-| **Фаза 1: Сетевое ядро и Power Guard** | Создание `GestapoPowerGuard.swift` (IOPM assertion, willSleep/didWake, 10s grace). Создание `GestapoNetworkWorker.swift` (ICMP ping 5s, per-target route checks, DNS cache, probe IP). Исправление на continuous kill в `GestapoWatchdog.swift`. | Проект компилируется Swift 6 без варнингов. Крышка Mac: при открытии нет ложного kill в течение 10 с. Экран залокан: фоновый процесс не засыпает. |
-| **Фаза 2: GUI Hunter и уведомления** | Создание `GestapoAppHunter.swift` (NSRunningApplication forceTerminate для .app + pkill для CLI). Системные баннеры через `display notification`. | При отвале VPN запущенный Claude.app закрывается менее чем за 500 мс. Появляется баннер macOS. |
-| **Фаза 3: Доработка UI чёлки** | Блокировка кнопки сброса в `SecurityPanicView` пока `!isVpnActive`. Создание `GestapoShieldCardView` для плашки `gestapo_shield`. | Кнопка «Сбросить тревогу» не кликается до подъема VPN. Плашка в чёлке показывает пинг и шлюз. |
+| ✅ **Фаза 1: Сетевое ядро и Power Guard** | Реализованы `GestapoPowerGuard.swift`, `GestapoNetworkWorker.swift` и continuous kill в `GestapoWatchdog.swift`: IOPM assertion, sleep/wake grace period, ICMP ping, split-tunnel route checks, DNS cache и on-demand IP probe. | Safe Swift/Python тесты проходят; проект собирается Swift 6. |
+| ✅ **Фаза 2: GUI Hunter и уведомления** | Реализованы `NSRunningApplication.forceTerminate` для GUI, точный `pkill -9 -x` для CLI, безопасный whitelist, AppleScript escaping и асинхронные системные баннеры. Добавлены безопасные тестовые seams. | 4/4 Phase 2 safe-теста проходят; полный macOS build успешен. |
+| **Фаза 3: Доработка UI чёлки** ← следующий этап | Блокировка кнопки сброса в `SecurityPanicView` пока `!isVpnActive`. Создание `GestapoShieldCardView` для плашки `gestapo_shield`. | Кнопка «Сбросить тревогу» не кликается до подъёма VPN. Плашка в чёлке показывает пинг и шлюз. |
 | **Фаза 4: Вкладка настроек Gestapo Guard** | Добавление вкладки в сайдбар `SettingsView.swift`. Верстка 5 GroupBox с тумблерами и кнопкой проверки IP. | Все тумблеры сохраняются в `@AppStorage`. Кнопка «Проверить IP» показывает реальный IP без зависания UI. |
 | **Фаза 5: Тестирование и валидация** | Расширение `tests/GestapoWatchdogTests.swift` (Grace period, Ping Dead Tunnel, Continuous Kill, GUI). Прогон `./scripts/test-gestapo.sh`. | Все тесты завершаются со статусом PASS. Сборка `xcodebuild` проходит без ошибок. |
