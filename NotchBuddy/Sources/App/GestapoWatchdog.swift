@@ -15,7 +15,7 @@ final class GestapoWatchdog: ObservableObject {
     private var isChecking: Bool = false
 
     /// Точные имена исполняемых файлов (флаг -x исключает ложные срабатывания)
-    private static let targetProcessExactNames = [
+    nonisolated static let targetProcessExactNames = [
         "claude",
         "agy",
         "codex",
@@ -23,7 +23,7 @@ final class GestapoWatchdog: ObservableObject {
         "cursor-agent"
     ]
 
-    private init() {}
+    init() {}
 
     func start() {
         checkNetwork()
@@ -43,10 +43,30 @@ final class GestapoWatchdog: ObservableObject {
         monitorTimer = nil
     }
 
+    /// Проверка, относится ли интерфейс к семейству виртуальных VPN-туннелей utun
+    nonisolated static func isVpnInterface(_ iface: String) -> Bool {
+        iface.hasPrefix("utun")
+    }
+
+    /// Извлечение интерфейса из вывода /sbin/route -n get
+    nonisolated static func parseInterface(fromRouteOutput output: String) -> String {
+        for line in output.components(separatedBy: .newlines) {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.hasPrefix("interface:") {
+                return trimmed.replacingOccurrences(of: "interface:", with: "").trimmingCharacters(in: .whitespaces)
+            }
+        }
+        return ""
+    }
+
     /// Проверка маршрута через /sbin/route (nonisolated для Swift 6 Strict Concurrency)
-    nonisolated static func getRouteInterface(dest: String = "1.1.1.1") -> String {
+    nonisolated static func getRouteInterface(
+        dest: String = "1.1.1.1",
+        routeExecutableURL: URL = URL(fileURLWithPath: "/sbin/route"),
+        timeoutSeconds: Double = 0.8
+    ) -> String {
         let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/sbin/route")
+        task.executableURL = routeExecutableURL
         task.arguments = ["-n", "get", dest]
         let pipe = Pipe()
         task.standardOutput = pipe
@@ -57,7 +77,7 @@ final class GestapoWatchdog: ObservableObject {
                 task.terminate()
             }
         }
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.8, execute: timeoutItem)
+        DispatchQueue.global().asyncAfter(deadline: .now() + timeoutSeconds, execute: timeoutItem)
         defer { timeoutItem.cancel() }
 
         do {
@@ -65,26 +85,41 @@ final class GestapoWatchdog: ObservableObject {
             let data = pipe.fileHandleForReading.readDataToEndOfFile()
             task.waitUntilExit()
             if let output = String(data: data, encoding: .utf8) {
-                for line in output.components(separatedBy: .newlines) {
-                    let trimmed = line.trimmingCharacters(in: .whitespaces)
-                    if trimmed.hasPrefix("interface:") {
-                        return trimmed.replacingOccurrences(of: "interface:", with: "").trimmingCharacters(in: .whitespaces)
-                    }
-                }
+                return parseInterface(fromRouteOutput: output)
             }
         } catch {}
         return ""
     }
 
-    nonisolated static func checkVpnTunnel() -> (isVpn: Bool, iface: String) {
-        var iface = getRouteInterface(dest: "1.1.1.1")
-        if !iface.hasPrefix("utun") {
-            let defIface = getRouteInterface(dest: "default")
-            if defIface.hasPrefix("utun") {
+    nonisolated static func checkVpnTunnel(
+        routeExecutableURL: URL = URL(fileURLWithPath: "/sbin/route")
+    ) -> (isVpn: Bool, iface: String) {
+        var iface = getRouteInterface(dest: "1.1.1.1", routeExecutableURL: routeExecutableURL)
+        if !isVpnInterface(iface) {
+            let defIface = getRouteInterface(dest: "default", routeExecutableURL: routeExecutableURL)
+            if isVpnInterface(defIface) {
                 iface = defIface
             }
         }
-        return (iface.hasPrefix("utun"), iface)
+        return (isVpnInterface(iface), iface)
+    }
+
+    func handleNetworkTransition(isVpn: Bool, iface: String) {
+        self.lastVpnIface = iface
+        let prevActive = self.previousVpnActive
+        self.isVpnActive = isVpn
+        self.previousVpnActive = isVpn
+
+        if prevActive && !isVpn {
+            // Edge-Triggered: тревога и ликвидация только в момент падения VPN (переход true -> false)
+            self.executeGestapoHardKill(detectedIface: iface)
+        } else if isVpn && AppState.shared.view == .securityPanic {
+            // Восстановление
+            AppState.shared.resetSecurityAlert()
+            self.queue.async {
+                Self.logSecurityEvent("🟢 [WATCHDOG] VPN туннель восстановлен: \(iface)")
+            }
+        }
     }
 
     private func checkNetwork() {
@@ -97,27 +132,13 @@ final class GestapoWatchdog: ObservableObject {
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
                 self.isChecking = false
-                self.lastVpnIface = iface
-                let prevActive = self.previousVpnActive
-                self.isVpnActive = isVpn
-                self.previousVpnActive = isVpn
-
-                if prevActive && !isVpn {
-                    // Edge-Triggered: тревога и ликвидация только в момент падения VPN (переход true -> false)
-                    self.executeGestapoHardKill(detectedIface: iface)
-                } else if isVpn && AppState.shared.view == .securityPanic {
-                    // Восстановление
-                    AppState.shared.resetSecurityAlert()
-                    self.queue.async {
-                        Self.logSecurityEvent("🟢 [WATCHDOG] VPN туннель восстановлен: \(iface)")
-                    }
-                }
+                self.handleNetworkTransition(isVpn: isVpn, iface: iface)
             }
         }
     }
 
     /// Точечная ликвидация процессов агентов (флаг -x)
-    private func executeGestapoHardKill(detectedIface: String) {
+    func executeGestapoHardKill(detectedIface: String) {
         // Активация режима тревоги в чёлке
         AppState.shared.triggerSecurityPanic(
             message: "VPN отключен! AI-агенты принудительно ликвидированы."
@@ -134,7 +155,7 @@ final class GestapoWatchdog: ObservableObject {
         }
     }
 
-    nonisolated private static func killTargetProcesses(targets: [String]) {
+    nonisolated static func killTargetProcesses(targets: [String]) {
         for binName in targets {
             let task = Process()
             task.executableURL = URL(fileURLWithPath: "/usr/bin/pkill")
@@ -146,8 +167,8 @@ final class GestapoWatchdog: ObservableObject {
         }
     }
 
-    nonisolated private static func logSecurityEvent(_ message: String) {
-        let logDir = URL(fileURLWithPath: (NSHomeDirectory() as NSString).appendingPathComponent("Library/Logs/Gestapo"))
+    nonisolated static func logSecurityEvent(_ message: String, logDirURL: URL? = nil) {
+        let logDir = logDirURL ?? URL(fileURLWithPath: (NSHomeDirectory() as NSString).appendingPathComponent("Library/Logs/Gestapo"))
         try? FileManager.default.createDirectory(at: logDir, withIntermediateDirectories: true)
         let logFile = logDir.appendingPathComponent("watchdog.log")
 
