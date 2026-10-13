@@ -2,14 +2,39 @@ import Foundation
 import AppKit
 import Darwin
 
+/// Главный координатор системы безопасности Gestapo.
+/// Объединяет GestapoPowerGuard, GestapoNetworkWorker и GestapoAppHunter
+/// и предоставляет реактивный интерфейс для SwiftUI и Dynamic Island (чёлки).
 @MainActor
 final class GestapoWatchdog: ObservableObject {
     static let shared = GestapoWatchdog()
 
+    // MARK: - Подсистемы
+    let powerGuard: GestapoPowerGuard
+    let networkWorker: GestapoNetworkWorker
+
+    // MARK: - Реактивные свойства состояния
     @Published private(set) var isVpnActive: Bool = true
     @Published private(set) var lastVpnIface: String = ""
+    @Published private(set) var pingLatencyMs: Double = 0.0
+    @Published private(set) var isDeadTunnel: Bool = false
+    @Published private(set) var externalIp: String = ""
+    @Published private(set) var isCheckingIp: Bool = false
+    @Published private(set) var isGracePeriodActive: Bool = false
 
-    private var previousVpnActive: Bool = true
+    // MARK: - Настройки и политики
+    @Published var isEnabled: Bool = true
+    @Published var continuousKill: Bool = true
+    @Published var pingCheckEnabled: Bool = true
+    @Published var splitTunnelCheck: Bool = false
+    @Published var preventSleep: Bool = true
+    @Published var sleepWakeGuardEnabled: Bool = true
+    @Published var alarmSoundEnabled: Bool = true
+    @Published var macNotificationsEnabled: Bool = true
+    @Published var targets: [GestapoTargetApp] = GestapoAppHunter.defaultTargets
+
+    // MARK: - Внутреннее состояние
+    private var previousHealthy: Bool = true
     private var monitorTimer: Timer?
     private let queue = DispatchQueue(label: "com.gestapo.coucou.watchdog", qos: .userInitiated)
     private var isChecking: Bool = false
@@ -23,7 +48,13 @@ final class GestapoWatchdog: ObservableObject {
         "cursor-agent"
     ]
 
-    init() {}
+    init(
+        powerGuard: GestapoPowerGuard = GestapoPowerGuard(),
+        networkWorker: GestapoNetworkWorker = GestapoNetworkWorker()
+    ) {
+        self.powerGuard = powerGuard
+        self.networkWorker = networkWorker
+    }
 
     func start() {
         checkNetwork()
@@ -41,14 +72,180 @@ final class GestapoWatchdog: ObservableObject {
     func stop() {
         monitorTimer?.invalidate()
         monitorTimer = nil
+        powerGuard.releaseOnTerminate()
     }
 
-    /// Проверка, относится ли интерфейс к семейству виртуальных VPN-туннелей utun
+    func applicationWillTerminate() {
+        stop()
+    }
+
+    // MARK: - Обработка сетевых переходов и Continuous Level-Triggered Kill
+
+    func handleNetworkSnapshot(_ snapshot: NetworkSnapshot, isGrace: Bool) {
+        self.lastVpnIface = snapshot.iface
+        self.isVpnActive = snapshot.isVpn
+        self.pingLatencyMs = snapshot.pingLatencyMs
+        self.isDeadTunnel = snapshot.deadTunnelDetected
+        self.isGracePeriodActive = isGrace
+
+        // Обновление системного sleep assertion (Mac не уснет при заблокированном экране)
+        powerGuard.updateSleepAssertion(
+            shouldHold: preventSleep && isEnabled,
+            reason: "Gestapo VPN Protection Active"
+        )
+
+        // Во время Grace Period сетевые сбои игнорируются для исключения ложных тревог
+        if isGrace {
+            return
+        }
+
+        // Определение актуального статуса защищённости
+        let currentlyHealthy: Bool
+        let failureReason: String
+
+        if snapshot.deadTunnelDetected {
+            currentlyHealthy = false
+            failureReason = "Завис VPN туннель (нет ответа на пинг)"
+        } else if splitTunnelCheck && !snapshot.targetDomainsOk {
+            currentlyHealthy = false
+            failureReason = "Утечка трафика целевых AI-доменов в незащищенный интерфейс"
+        } else if !snapshot.isVpn {
+            currentlyHealthy = false
+            failureReason = "VPN отключен! Обнаружен интерфейс: \(snapshot.iface.isEmpty ? "нет" : snapshot.iface)"
+        } else {
+            currentlyHealthy = true
+            failureReason = ""
+        }
+
+        let wasHealthy = previousHealthy
+
+        if wasHealthy && !currentlyHealthy {
+            // Edge Trigger: Первое падение — полномасштабная авария
+            previousHealthy = false
+            executeGestapoHardKill(reason: failureReason, detectedIface: snapshot.iface)
+        } else if !wasHealthy && !currentlyHealthy {
+            // Level Trigger: Повторные тики пока сеть не восстановлена (Continuous Kill)
+            if continuousKill {
+                let activeTargets = targets
+                queue.async {
+                    let killed = GestapoAppHunter.killAllActiveTargets(targets: activeTargets)
+                    if !killed.isEmpty {
+                        Self.logSecurityEvent("⚡ [CONTINUOUS_KILL] Подавлены повторно запущенные процессы: \(killed.joined(separator: ", "))")
+                    }
+                }
+            }
+        } else if !wasHealthy && currentlyHealthy {
+            // Восстановление сети
+            previousHealthy = true
+            if AppState.shared.view == .securityPanic {
+                AppState.shared.resetSecurityAlert()
+                let recoveredIface = snapshot.iface
+                queue.async {
+                    Self.logSecurityEvent("🟢 [WATCHDOG] VPN туннель восстановлен: \(recoveredIface)")
+                }
+            }
+        }
+    }
+
+    /// Совместимость с модульными тестами и прямыми вызовами проверки VPN
+    func handleNetworkTransition(isVpn: Bool, iface: String) {
+        let snapshot = NetworkSnapshot(
+            isVpn: isVpn,
+            iface: iface,
+            pingOk: true,
+            pingLatencyMs: 0.0,
+            deadTunnelDetected: false,
+            targetDomainsOk: true
+        )
+        handleNetworkSnapshot(snapshot, isGrace: false)
+    }
+
+    private func checkNetwork() {
+        guard isEnabled, !isChecking else { return }
+        isChecking = true
+
+        let isGrace = sleepWakeGuardEnabled && powerGuard.isGracePeriodActive
+        self.isGracePeriodActive = isGrace
+
+        if powerGuard.isSleeping {
+            isChecking = false
+            return
+        }
+
+        let targetDomains = splitTunnelCheck ? targets.map(\.domain).filter { !$0.isEmpty } : []
+        let pingEnabled = pingCheckEnabled
+
+        Task { [weak self] in
+            guard let self else { return }
+            let snapshot = await self.networkWorker.checkStatus(
+                targetDomains: targetDomains,
+                enablePing: pingEnabled,
+                isGracePeriod: isGrace
+            )
+            self.isChecking = false
+            self.handleNetworkSnapshot(snapshot, isGrace: isGrace)
+        }
+    }
+
+    // MARK: - Аварийная ликвидация (Hard Kill)
+
+    func executeGestapoHardKill(reason: String, detectedIface: String = "") {
+        // Активация режима тревоги в чёлке
+        AppState.shared.triggerSecurityPanic(
+            message: "VPN отключен! AI-агенты принудительно ликвидированы."
+        )
+
+        // Звуковое оповещение только на edge-переходе
+        if alarmSoundEnabled {
+            NSSound.beep()
+        }
+
+        // Системный баннер macOS
+        if macNotificationsEnabled {
+            GestapoAppHunter.sendMacNotification(
+                title: "🚨 ГЕСТАПО: ТРЕВОГА!",
+                message: reason
+            )
+        }
+
+        // Вынос логирования и ликвидации на фоновую очередь
+        let activeTargets = targets
+        queue.async {
+            Self.logSecurityEvent("🚨 [KILL-SWITCH] \(reason). Немедленная ликвидация агентов.")
+            let killed = GestapoAppHunter.killAllActiveTargets(targets: activeTargets)
+            if !killed.isEmpty {
+                Self.logSecurityEvent("💀 [KILL-SWITCH] Ликвидированы: \(killed.joined(separator: ", "))")
+            }
+        }
+    }
+
+    func executeGestapoHardKill(detectedIface: String) {
+        executeGestapoHardKill(
+            reason: "VPN упал! Обнаружен интерфейс: \(detectedIface)",
+            detectedIface: detectedIface
+        )
+    }
+
+    // MARK: - On-demand проверка внешнего IP
+
+    func probeExternalIpOnDemand(domain: String = "claude.ai") {
+        guard !isCheckingIp else { return }
+        isCheckingIp = true
+        Task { [weak self] in
+            guard let self else { return }
+            let result = await self.networkWorker.probeExternalIp(targetDomain: domain)
+            self.externalIp = result.ip
+            self.isCheckingIp = false
+            Self.logSecurityEvent("🛰 [IP_PROBE] Внешний IP: \(result.ip.isEmpty ? "не определен" : result.ip) (интерфейс: \(result.iface), vpn: \(result.isVpn))")
+        }
+    }
+
+    // MARK: - Статические утилиты (Nonisolated для Swift 6 и обратной совместимости)
+
     nonisolated static func isVpnInterface(_ iface: String) -> Bool {
         iface.hasPrefix("utun")
     }
 
-    /// Извлечение интерфейса из вывода /sbin/route -n get
     nonisolated static func parseInterface(fromRouteOutput output: String) -> String {
         for line in output.components(separatedBy: .newlines) {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
@@ -59,7 +256,6 @@ final class GestapoWatchdog: ObservableObject {
         return ""
     }
 
-    /// Проверка маршрута через /sbin/route (nonisolated для Swift 6 Strict Concurrency)
     nonisolated static func getRouteInterface(
         dest: String = "1.1.1.1",
         routeExecutableURL: URL = URL(fileURLWithPath: "/sbin/route"),
@@ -102,57 +298,6 @@ final class GestapoWatchdog: ObservableObject {
             }
         }
         return (isVpnInterface(iface), iface)
-    }
-
-    func handleNetworkTransition(isVpn: Bool, iface: String) {
-        self.lastVpnIface = iface
-        let prevActive = self.previousVpnActive
-        self.isVpnActive = isVpn
-        self.previousVpnActive = isVpn
-
-        if prevActive && !isVpn {
-            // Edge-Triggered: тревога и ликвидация только в момент падения VPN (переход true -> false)
-            self.executeGestapoHardKill(detectedIface: iface)
-        } else if isVpn && AppState.shared.view == .securityPanic {
-            // Восстановление
-            AppState.shared.resetSecurityAlert()
-            self.queue.async {
-                Self.logSecurityEvent("🟢 [WATCHDOG] VPN туннель восстановлен: \(iface)")
-            }
-        }
-    }
-
-    private func checkNetwork() {
-        guard !isChecking else { return }
-        isChecking = true
-
-        queue.async {
-            let (isVpn, iface) = Self.checkVpnTunnel()
-
-            DispatchQueue.main.async { [weak self] in
-                guard let self else { return }
-                self.isChecking = false
-                self.handleNetworkTransition(isVpn: isVpn, iface: iface)
-            }
-        }
-    }
-
-    /// Точечная ликвидация процессов агентов (флаг -x)
-    func executeGestapoHardKill(detectedIface: String) {
-        // Активация режима тревоги в чёлке
-        AppState.shared.triggerSecurityPanic(
-            message: "VPN отключен! AI-агенты принудительно ликвидированы."
-        )
-
-        // Звуковое оповещение только на edge-переходе
-        NSSound.beep()
-
-        // Вынос логирования и pkill на фоновую очередь
-        let targets = Self.targetProcessExactNames
-        queue.async {
-            Self.logSecurityEvent("🚨 [KILL-SWITCH] VPN упал! Обнаружен интерфейс: \(detectedIface). Немедленная ликвидация агентов.")
-            Self.killTargetProcesses(targets: targets)
-        }
     }
 
     nonisolated static func killTargetProcesses(targets: [String]) {
