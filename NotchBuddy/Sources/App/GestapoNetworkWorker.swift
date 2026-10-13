@@ -13,6 +13,28 @@ struct NetworkSnapshot: Sendable, Equatable {
     var gateway: String = ""
 }
 
+/// Подробный результат ручной проверки внешнего IP.
+/// Храним маршрут до целевого AI-сервиса и маршрут до IP-сервиса отдельно,
+/// чтобы UI мог объяснить, что именно было проверено.
+struct ExternalIpProbeResult: Sendable, Equatable {
+    let targetHost: String
+    let targetIp: String
+    let targetInterface: String
+    let targetGateway: String
+    let ipService: String
+    let ipServiceIp: String
+    let ipServiceInterface: String
+    let ipServiceGateway: String
+    let ip: String
+    let errorMessage: String
+
+    var isVpn: Bool { GestapoWatchdog.isVpnInterface(targetInterface) }
+    var isSuccessful: Bool { !ip.isEmpty && errorMessage.isEmpty }
+
+    // Compatibility with the Phase 1 tuple-shaped result.
+    var iface: String { targetInterface }
+}
+
 /// GestapoNetworkWorker изолирует сетевые проверки, ICMP-пинг и DNS-резолвинг
 /// в Swift Actor для обеспечения потокобезопасности без блокировки UI.
 actor GestapoNetworkWorker {
@@ -29,6 +51,7 @@ actor GestapoNetworkWorker {
     private let dnsCacheTTL: TimeInterval = 300.0
     private let pingInterval: TimeInterval
     private let routeTimeout: TimeInterval
+    private let ipProbeServices: [String]
 
     var pingExecutableURL: URL = URL(fileURLWithPath: "/sbin/ping")
     var routeExecutableURL: URL = URL(fileURLWithPath: "/sbin/route")
@@ -39,13 +62,20 @@ actor GestapoNetworkWorker {
         routeExecutableURL: URL = URL(fileURLWithPath: "/sbin/route"),
         curlExecutableURL: URL = URL(fileURLWithPath: "/usr/bin/curl"),
         pingInterval: TimeInterval = 5.0,
-        routeTimeout: TimeInterval = 0.8
+        routeTimeout: TimeInterval = 0.8,
+        ipProbeServices: [String] = [
+            "ifconfig.me",
+            "icanhazip.com",
+            "api.ipify.org",
+            "checkip.amazonaws.com"
+        ]
     ) {
         self.pingExecutableURL = pingExecutableURL
         self.routeExecutableURL = routeExecutableURL
         self.curlExecutableURL = curlExecutableURL
         self.pingInterval = pingInterval
         self.routeTimeout = routeTimeout
+        self.ipProbeServices = ipProbeServices
     }
 
     /// Резолвинг доменного имени в IPv4 с 300-секундным кэшем.
@@ -178,6 +208,11 @@ actor GestapoNetworkWorker {
         }
     }
 
+    private func isValidIPv4(_ value: String) -> Bool {
+        var address = in_addr()
+        return value.withCString { inet_pton(AF_INET, $0, &address) == 1 }
+    }
+
     /// Комплексная проверка состояния сети:
     /// 1. Основной VPN-маршрут (1.1.1.1 / default)
     /// 2. Split Tunneling для целевых AI-доменов
@@ -283,29 +318,54 @@ actor GestapoNetworkWorker {
         lastPingOk = true
     }
 
-    /// On-demand опрос внешнего IP через curl, привязанный к указанному интерфейсу
-    func probeExternalIp(targetDomain: String = "claude.ai") async -> (ip: String, iface: String, isVpn: Bool) {
-        // Шаг 1: определение маршрута для целевого домена
+    /// On-demand опрос внешнего IP через сервис, чей маршрут совпадает
+    /// с маршрутом до целевого AI-сервиса.
+    func probeExternalIp(targetDomain: String = "claude.ai") async -> ExternalIpProbeResult {
         let targetIp = resolveDomain(targetDomain)
-        var iface = ""
-        if !targetIp.isEmpty {
-            iface = getRouteInterface(dest: targetIp, timeoutSeconds: routeTimeout)
-        }
-        if iface.isEmpty {
-            iface = getRouteInterface(dest: "1.1.1.1", timeoutSeconds: routeTimeout)
-        }
-        if iface.isEmpty {
-            iface = getRouteInterface(dest: "default", timeoutSeconds: routeTimeout)
+        guard !targetIp.isEmpty else {
+            return ExternalIpProbeResult(
+                targetHost: targetDomain, targetIp: "", targetInterface: "", targetGateway: "",
+                ipService: "", ipServiceIp: "", ipServiceInterface: "", ipServiceGateway: "",
+                ip: "", errorMessage: "Не удалось определить IP адреса \(targetDomain)"
+            )
         }
 
-        // Шаг 2: запрос к api.ipify.org
+        let targetRoute = getRouteInfo(dest: targetIp, timeoutSeconds: routeTimeout)
+        guard !targetRoute.iface.isEmpty else {
+            return ExternalIpProbeResult(
+                targetHost: targetDomain, targetIp: targetIp, targetInterface: "", targetGateway: "",
+                ipService: "", ipServiceIp: "", ipServiceInterface: "", ipServiceGateway: "",
+                ip: "", errorMessage: "Не удалось определить маршрут до \(targetDomain)"
+            )
+        }
+
+        var selectedService: (host: String, ip: String, route: RouteInfo)?
+        for service in ipProbeServices {
+            let serviceIp = resolveDomain(service)
+            guard !serviceIp.isEmpty else { continue }
+            let serviceRoute = getRouteInfo(dest: serviceIp, timeoutSeconds: routeTimeout)
+            if serviceRoute.iface == targetRoute.iface {
+                selectedService = (service, serviceIp, serviceRoute)
+                break
+            }
+        }
+
+        guard let service = selectedService else {
+            return ExternalIpProbeResult(
+                targetHost: targetDomain, targetIp: targetIp,
+                targetInterface: targetRoute.iface, targetGateway: targetRoute.gateway,
+                ipService: "", ipServiceIp: "", ipServiceInterface: "", ipServiceGateway: "",
+                ip: "", errorMessage: "Не найден сервис проверки IP через \(targetRoute.iface)"
+            )
+        }
+
+        // Запрос привязан к тому же интерфейсу, что и маршрут до AI-сервиса.
         let task = Process()
         task.executableURL = curlExecutableURL
-        var args = ["-s", "--max-time", "4"]
-        if !iface.isEmpty {
-            args.append(contentsOf: ["--interface", iface])
-        }
-        args.append("https://api.ipify.org")
+        var args = ["-4", "-sS", "--fail", "--max-time", "4"]
+        args.append(contentsOf: ["--resolve", "\(service.host):443:\(service.ip)"])
+        args.append(contentsOf: ["--interface", targetRoute.iface])
+        args.append("https://\(service.host)")
         task.arguments = args
 
         let pipe = Pipe()
@@ -316,12 +376,25 @@ actor GestapoNetworkWorker {
             try task.run()
             let data = pipe.fileHandleForReading.readDataToEndOfFile()
             task.waitUntilExit()
-            if let output = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !output.isEmpty {
-                let isVpn = GestapoWatchdog.isVpnInterface(iface)
-                return (ip: output, iface: iface, isVpn: isVpn)
+            if let output = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
+               isValidIPv4(output),
+               task.terminationStatus == 0 {
+                return ExternalIpProbeResult(
+                    targetHost: targetDomain, targetIp: targetIp,
+                    targetInterface: targetRoute.iface, targetGateway: targetRoute.gateway,
+                    ipService: service.host, ipServiceIp: service.ip,
+                    ipServiceInterface: service.route.iface, ipServiceGateway: service.route.gateway,
+                    ip: output, errorMessage: ""
+                )
             }
         } catch {}
 
-        return (ip: "", iface: iface, isVpn: GestapoWatchdog.isVpnInterface(iface))
+        return ExternalIpProbeResult(
+            targetHost: targetDomain, targetIp: targetIp,
+            targetInterface: targetRoute.iface, targetGateway: targetRoute.gateway,
+            ipService: service.host, ipServiceIp: service.ip,
+            ipServiceInterface: service.route.iface, ipServiceGateway: service.route.gateway,
+            ip: "", errorMessage: "Сервис \(service.host) не ответил через \(targetRoute.iface)"
+        )
     }
 }

@@ -29,6 +29,7 @@ final class GestapoWatchdog: ObservableObject {
     @Published private(set) var pingLatencyMs: Double = 0.0
     @Published private(set) var isDeadTunnel: Bool = false
     @Published private(set) var externalIp: String = ""
+    @Published private(set) var ipProbeResult: ExternalIpProbeResult?
     @Published private(set) var isCheckingIp: Bool = false
     @Published private(set) var isGracePeriodActive: Bool = false
     /// Единый статус, которым пользуются watchdog и UI. Он учитывает не только
@@ -47,6 +48,15 @@ final class GestapoWatchdog: ObservableObject {
     @Published var alarmSoundEnabled: Bool = true
     @Published var macNotificationsEnabled: Bool = true
     @Published var targets: [GestapoTargetApp] = GestapoAppHunter.defaultTargets
+
+    /// Домены, по которым пользователь может вручную проверить маршрут и внешний IP.
+    var ipProbeDomains: [String] {
+        var domains = ["claude.ai"]
+        for domain in targets.map(\.domain) where !domain.isEmpty && !domains.contains(domain) {
+            domains.append(domain)
+        }
+        return domains
+    }
 
     // MARK: - Внутреннее состояние
     private var previousHealthy: Bool = true
@@ -280,6 +290,7 @@ final class GestapoWatchdog: ObservableObject {
         Task { [weak self] in
             guard let self else { return }
             let result = await self.networkWorker.probeExternalIp(targetDomain: domain)
+            self.ipProbeResult = result
             self.externalIp = result.ip
             self.isCheckingIp = false
             Self.logSecurityEvent("🛰 [IP_PROBE] Внешний IP: \(result.ip.isEmpty ? "не определен" : result.ip) (интерфейс: \(result.iface), vpn: \(result.isVpn))")

@@ -111,7 +111,8 @@ enum GestapoPhase1SafeTests {
             routeExecutableURL: route,
             curlExecutableURL: curl,
             pingInterval: 0,
-            routeTimeout: 2
+            routeTimeout: 2,
+            ipProbeServices: ["203.0.113.10"]
         )
         let result = await worker.probeExternalIp(targetDomain: "203.0.113.10")
         precondition(result.ip == "198.51.100.7")

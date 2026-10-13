@@ -18,6 +18,7 @@ enum GestapoPhase3SafeTests {
     static func main() async throws {
         testProtectionStatusAndResetEligibility()
         try await testSelectedRouteGateway()
+        try await testExternalIpProbeExplainsRoute()
         print("Gestapo Phase 3 safe tests: all passed")
     }
 
@@ -69,5 +70,64 @@ enum GestapoPhase3SafeTests {
         precondition(snapshot.isVpn && snapshot.iface == "utun9")
         precondition(snapshot.gateway == "192.0.2.2", "gateway must come from selected VPN route")
         print("  ✓ selected route keeps interface and gateway together")
+    }
+
+    static func testExternalIpProbeExplainsRoute() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("gestapo-phase3-ip-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let route = dir.appendingPathComponent("route")
+        try """
+        #!/bin/sh
+        case "$3" in
+          203.0.113.10) echo 'gateway: 192.0.2.10'; echo 'interface: utun7' ;;
+          198.51.100.10) echo 'gateway: 192.0.2.20'; echo 'interface: en0' ;;
+          198.51.100.11) echo 'gateway: 192.0.2.10'; echo 'interface: utun7' ;;
+          *) echo 'gateway: 192.0.2.1'; echo 'interface: en0' ;;
+        esac
+        """.write(to: route, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: route.path)
+
+        let curl = dir.appendingPathComponent("curl")
+        try """
+        #!/bin/sh
+        echo '198.51.100.77'
+        """.write(to: curl, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: curl.path)
+
+        let worker = GestapoNetworkWorker(
+            routeExecutableURL: route,
+            curlExecutableURL: curl,
+            pingInterval: 0,
+            routeTimeout: 2,
+            ipProbeServices: ["198.51.100.10", "198.51.100.11"]
+        )
+        let result = await worker.probeExternalIp(targetDomain: "203.0.113.10")
+        precondition(result.ip == "198.51.100.77")
+        precondition(result.targetIp == "203.0.113.10")
+        precondition(result.targetInterface == "utun7")
+        precondition(result.ipService == "198.51.100.11")
+        precondition(result.ipServiceInterface == "utun7")
+        precondition(result.isVpn)
+        print("  ✓ IP probe reports target route and matching IP service")
+
+        let invalidCurl = dir.appendingPathComponent("curl-invalid")
+        try """
+        #!/bin/sh
+        echo '<html>not an ip</html>'
+        """.write(to: invalidCurl, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: invalidCurl.path)
+        let invalidWorker = GestapoNetworkWorker(
+            routeExecutableURL: route,
+            curlExecutableURL: invalidCurl,
+            pingInterval: 0,
+            routeTimeout: 2,
+            ipProbeServices: ["198.51.100.11"]
+        )
+        let invalidResult = await invalidWorker.probeExternalIp(targetDomain: "203.0.113.10")
+        precondition(!invalidResult.isSuccessful)
+        precondition(invalidResult.ip.isEmpty)
+        print("  ✓ IP probe rejects non-IP response")
     }
 }

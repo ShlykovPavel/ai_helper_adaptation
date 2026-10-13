@@ -99,6 +99,13 @@ struct SecurityPanicView: View {
 struct GestapoShieldCardView: View {
     @ObservedObject var state: AppState
     @ObservedObject private var watchdog = GestapoWatchdog.shared
+    @State private var selectedProbeDomain = "claude.ai"
+
+    private var effectiveProbeDomain: String {
+        watchdog.ipProbeDomains.contains(selectedProbeDomain)
+            ? selectedProbeDomain
+            : (watchdog.ipProbeDomains.first ?? "claude.ai")
+    }
 
     private var statusColor: Color {
         switch watchdog.protectionStatus {
@@ -140,23 +147,52 @@ struct GestapoShieldCardView: View {
                     statusRow("arrow.triangle.branch", "Шлюз", watchdog.lastGateway.isEmpty ? "—" : watchdog.lastGateway)
                     statusRow("waveform.path.ecg", "Пинг", watchdog.pingLatencyMs > 0 ? String(format: "%.0f ms", watchdog.pingLatencyMs) : "—")
                 }
-                HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 3) {
                     Label(watchdog.powerGuard.isAssertionActive ? "Mac не уснёт" : "Power Guard выключен",
                           systemImage: watchdog.powerGuard.isAssertionActive ? "bolt.fill" : "bolt.slash")
                         .font(.system(size: 9))
                         .foregroundColor(watchdog.powerGuard.isAssertionActive ? Color(hex: "#30D158") : Color(hex: "#8E939C"))
                     if watchdog.isCheckingIp {
-                        ProgressView().controlSize(.small)
-                    } else if !watchdog.externalIp.isEmpty {
-                        Text("IP \(watchdog.externalIp)")
-                            .font(.system(size: 9, design: .monospaced))
-                            .foregroundColor(Color(hex: "#B8BBC2"))
-                    }
-                    Button("Проверить IP") { watchdog.probeExternalIpOnDemand() }
-                        .buttonStyle(.plain)
-                        .font(.system(size: 9, weight: .medium))
+                        HStack(spacing: 5) {
+                            ProgressView().controlSize(.small)
+                            Text("Проверяю маршрут до \(effectiveProbeDomain) и ищу IP-сервис в том же туннеле…")
+                        }
+                        .font(.system(size: 9))
                         .foregroundColor(Color(hex: "#B8BBC2"))
-                        .disabled(watchdog.isCheckingIp)
+                    } else if let probe = watchdog.ipProbeResult {
+                        Group {
+                            if probe.isSuccessful {
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text("Маршрут: \(probe.targetHost) → \(probe.targetIp) → \(probe.targetInterface)")
+                                    Text("IP-сервис: \(probe.ipService) → \(probe.ipServiceInterface) • внешний IP: \(probe.ip)")
+                                        .foregroundColor(probe.isVpn ? Color(hex: "#30D158") : Color(hex: "#FFB4BA"))
+                                }
+                            } else {
+                                Text(probe.errorMessage)
+                                    .foregroundColor(Color(hex: "#FFB4BA"))
+                            }
+                        }
+                        .font(.system(size: 9, design: .monospaced))
+                        .lineLimit(2)
+                    }
+                    HStack(spacing: 7) {
+                        Menu {
+                            ForEach(watchdog.ipProbeDomains, id: \.self) { domain in
+                                Button(domain) { selectedProbeDomain = domain }
+                            }
+                        } label: {
+                            Label("Цель: \(effectiveProbeDomain)", systemImage: "arrow.triangle.branch")
+                        }
+                        .menuStyle(.borderlessButton)
+
+                        Button("Проверить IP") {
+                            watchdog.probeExternalIpOnDemand(domain: effectiveProbeDomain)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(Color(hex: "#B8BBC2"))
+                    .disabled(watchdog.isCheckingIp)
                 }
                 HStack {
                     Text(statusFooter)
