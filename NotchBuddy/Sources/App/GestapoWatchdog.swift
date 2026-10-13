@@ -2,6 +2,15 @@ import Foundation
 import AppKit
 import Darwin
 
+enum GestapoProtectionStatus: Equatable, Sendable {
+    case disabled
+    case grace
+    case protected
+    case vpnInactive
+    case deadTunnel
+    case splitTunnelLeak
+}
+
 /// Главный координатор системы безопасности Gestapo.
 /// Объединяет GestapoPowerGuard, GestapoNetworkWorker и GestapoAppHunter
 /// и предоставляет реактивный интерфейс для SwiftUI и Dynamic Island (чёлки).
@@ -16,11 +25,17 @@ final class GestapoWatchdog: ObservableObject {
     // MARK: - Реактивные свойства состояния
     @Published private(set) var isVpnActive: Bool = true
     @Published private(set) var lastVpnIface: String = ""
+    @Published private(set) var lastGateway: String = ""
     @Published private(set) var pingLatencyMs: Double = 0.0
     @Published private(set) var isDeadTunnel: Bool = false
     @Published private(set) var externalIp: String = ""
     @Published private(set) var isCheckingIp: Bool = false
     @Published private(set) var isGracePeriodActive: Bool = false
+    /// Единый статус, которым пользуются watchdog и UI. Он учитывает не только
+    /// наличие utun, но и dead-tunnel/split-tunnel аварии.
+    @Published private(set) var protectionStatus: GestapoProtectionStatus = .protected
+
+    var canResetSecurityAlert: Bool { protectionStatus == .protected }
 
     // MARK: - Настройки и политики
     @Published var isEnabled: Bool = true
@@ -85,16 +100,29 @@ final class GestapoWatchdog: ObservableObject {
         let effectiveGrace = isGrace || powerGuard.isSleeping ||
             (sleepWakeGuardEnabled && powerGuard.isGracePeriodActive)
         self.lastVpnIface = snapshot.iface
+        self.lastGateway = snapshot.gateway
         self.isVpnActive = snapshot.isVpn
         self.pingLatencyMs = snapshot.pingLatencyMs
         self.isDeadTunnel = snapshot.deadTunnelDetected
         self.isGracePeriodActive = effectiveGrace
 
-        // Обновление системного sleep assertion (Mac не уснет при заблокированном экране)
+        // Keep the power assertion aligned with the user setting even while
+        // the network is in grace or the protection is disabled.
         powerGuard.updateSleepAssertion(
             shouldHold: preventSleep && isEnabled,
             reason: "Gestapo VPN Protection Active"
         )
+
+        guard isEnabled else {
+            protectionStatus = .disabled
+            previousHealthy = true
+            return
+        }
+
+        if effectiveGrace {
+            protectionStatus = .grace
+            return
+        }
 
         // Во время Grace Period сетевые сбои игнорируются для исключения ложных тревог
         if effectiveGrace {
@@ -117,6 +145,16 @@ final class GestapoWatchdog: ObservableObject {
         } else {
             currentlyHealthy = true
             failureReason = ""
+        }
+
+        if currentlyHealthy {
+            protectionStatus = .protected
+        } else if snapshot.deadTunnelDetected {
+            protectionStatus = .deadTunnel
+        } else if splitTunnelCheck && !snapshot.targetDomainsOk {
+            protectionStatus = .splitTunnelLeak
+        } else {
+            protectionStatus = .vpnInactive
         }
 
         let wasHealthy = previousHealthy
@@ -165,6 +203,8 @@ final class GestapoWatchdog: ObservableObject {
     private func checkNetwork() {
         guard !isChecking else { return }
         guard isEnabled else {
+            protectionStatus = .disabled
+            isGracePeriodActive = false
             powerGuard.updateSleepAssertion(shouldHold: false)
             return
         }
@@ -260,6 +300,20 @@ final class GestapoWatchdog: ObservableObject {
             }
         }
         return ""
+    }
+
+    nonisolated static func parseGateway(fromRouteOutput output: String) -> String {
+        for line in output.components(separatedBy: .newlines) {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard trimmed.hasPrefix("gateway:") else { continue }
+            return trimmed.replacingOccurrences(of: "gateway:", with: "")
+                .trimmingCharacters(in: .whitespaces)
+        }
+        return ""
+    }
+
+    nonisolated static func parseRouteInfo(fromRouteOutput output: String) -> (iface: String, gateway: String) {
+        (parseInterface(fromRouteOutput: output), parseGateway(fromRouteOutput: output))
     }
 
     nonisolated static func getRouteInterface(

@@ -7,10 +7,13 @@ test: test-gestapo-safe
 
 test-gestapo: test-gestapo-safe
 
-test-gestapo-safe: test-gestapo-swift-safe test-gestapo-python-safe
+test-gestapo-safe: test-gestapo-swift-safe test-gestapo-phase3-safe test-gestapo-python-safe
 
 test-gestapo-swift-safe:
 	./scripts/test-gestapo-phase1-safe.sh
+
+test-gestapo-phase3-safe:
+	./scripts/test-gestapo-phase3-safe.sh
 
 test-gestapo-python-safe:
 	PYTHONPATH=tests python3 -m unittest -v \

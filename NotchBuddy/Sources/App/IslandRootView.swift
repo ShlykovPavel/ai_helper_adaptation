@@ -522,7 +522,9 @@ struct IslandContentView: View {
 
 struct IslandHeader: View {
     @ObservedObject var state: AppState
+    @ObservedObject private var watchdog = GestapoWatchdog.shared
     @State private var gearHovered  = false
+    @State private var shieldHovered = false
     @State private var soundHovered = false
     @State private var closeHovered = false
 
@@ -562,6 +564,20 @@ struct IslandHeader: View {
                 HStack(spacing: 14) {
                     Button(action: {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            state.view = state.view == .gestapoShield ? .overview : .gestapoShield
+                        }
+                    }) {
+                        Image(systemName: gestapoShieldIcon)
+                            .font(.system(size: 14))
+                            .foregroundColor(gestapoShieldColor)
+                            .opacity(shieldHovered || state.view == .gestapoShield ? 1 : 0.9)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Gestapo Guard")
+                    .onHover { shieldHovered = $0 }
+
+                    Button(action: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             state.view = .settings
                         }
                     }) {
@@ -598,6 +614,18 @@ struct IslandHeader: View {
             .padding(.trailing, 16)
         }
         .frame(maxHeight: .infinity)
+    }
+
+    private var gestapoShieldIcon: String {
+        watchdog.protectionStatus == .protected ? "shield.fill" : "exclamationmark.shield.fill"
+    }
+
+    private var gestapoShieldColor: Color {
+        switch watchdog.protectionStatus {
+        case .protected: return Color(hex: "#30D158")
+        case .grace: return Color(hex: "#FFD60A")
+        default: return Color(hex: "#FF5460")
+        }
     }
 }
 

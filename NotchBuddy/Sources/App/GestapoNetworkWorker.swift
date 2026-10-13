@@ -9,11 +9,17 @@ struct NetworkSnapshot: Sendable, Equatable {
     let pingLatencyMs: Double
     let deadTunnelDetected: Bool
     let targetDomainsOk: Bool
+    /// Next-hop gateway for the selected route, when the system reports one.
+    var gateway: String = ""
 }
 
 /// GestapoNetworkWorker изолирует сетевые проверки, ICMP-пинг и DNS-резолвинг
 /// в Swift Actor для обеспечения потокобезопасности без блокировки UI.
 actor GestapoNetworkWorker {
+    private struct RouteInfo: Sendable {
+        let iface: String
+        let gateway: String
+    }
     private var dnsCache: [String: (ip: String, timestamp: TimeInterval)] = [:]
     private var consecutivePingFails: Int = 0
     private var lastPingOk: Bool = true
@@ -102,7 +108,7 @@ actor GestapoNetworkWorker {
     }
 
     /// Проверка маршрута через /sbin/route -n get <dest> с защитой от зависания по таймауту
-    func getRouteInterface(dest: String, timeoutSeconds: Double = 0.8) -> String {
+    private func getRouteInfo(dest: String, timeoutSeconds: Double = 0.8) -> RouteInfo {
         let task = Process()
         task.executableURL = routeExecutableURL
         task.arguments = ["-n", "get", dest]
@@ -126,10 +132,19 @@ actor GestapoNetworkWorker {
             let data = pipe.fileHandleForReading.readDataToEndOfFile()
             task.waitUntilExit()
             if let output = String(data: data, encoding: .utf8) {
-                return GestapoWatchdog.parseInterface(fromRouteOutput: output)
+                let parsed = GestapoWatchdog.parseRouteInfo(fromRouteOutput: output)
+                return RouteInfo(iface: parsed.iface, gateway: parsed.gateway)
             }
         } catch {}
-        return ""
+        return RouteInfo(iface: "", gateway: "")
+    }
+
+    func getRouteInterface(dest: String, timeoutSeconds: Double = 0.8) -> String {
+        getRouteInfo(dest: dest, timeoutSeconds: timeoutSeconds).iface
+    }
+
+    func getRouteGateway(dest: String, timeoutSeconds: Double = 0.8) -> String {
+        getRouteInfo(dest: dest, timeoutSeconds: timeoutSeconds).gateway
     }
 
     /// Отправка ICMP пакета с отдельным wall-clock таймаутом.
@@ -175,21 +190,23 @@ actor GestapoNetworkWorker {
         // 1. Определение интерфейса глобального шлюза.
         // Для def1/раздельных конфигураций первый публичный адрес может
         // оказаться вне туннеля, поэтому проверяем ещё 8.8.8.8 и default.
-        var iface = getRouteInterface(dest: "1.1.1.1", timeoutSeconds: routeTimeout)
-        if !GestapoWatchdog.isVpnInterface(iface) {
-            let secondaryIface = getRouteInterface(dest: "8.8.8.8", timeoutSeconds: routeTimeout)
-            if GestapoWatchdog.isVpnInterface(secondaryIface) {
-                iface = secondaryIface
+        var selectedRoute = getRouteInfo(dest: "1.1.1.1", timeoutSeconds: routeTimeout)
+        if !GestapoWatchdog.isVpnInterface(selectedRoute.iface) {
+            let secondaryRoute = getRouteInfo(dest: "8.8.8.8", timeoutSeconds: routeTimeout)
+            if GestapoWatchdog.isVpnInterface(secondaryRoute.iface) {
+                selectedRoute = secondaryRoute
             } else {
-                let defIface = getRouteInterface(dest: "default", timeoutSeconds: routeTimeout)
-                if GestapoWatchdog.isVpnInterface(defIface) {
-                    iface = defIface
-                } else if iface.isEmpty {
-                    iface = defIface.isEmpty ? secondaryIface : defIface
+                let defaultRoute = getRouteInfo(dest: "default", timeoutSeconds: routeTimeout)
+                if GestapoWatchdog.isVpnInterface(defaultRoute.iface) {
+                    selectedRoute = defaultRoute
+                } else if selectedRoute.iface.isEmpty {
+                    selectedRoute = defaultRoute.iface.isEmpty ? secondaryRoute : defaultRoute
                 }
             }
         }
+        let iface = selectedRoute.iface
         let isVpn = GestapoWatchdog.isVpnInterface(iface)
+        let gateway = selectedRoute.gateway
 
         // 2. Проверка Split Tunneling доменов (если переданы)
         var targetDomainsOk = true
@@ -255,7 +272,8 @@ actor GestapoNetworkWorker {
             pingOk: pingOk,
             pingLatencyMs: pingLatencyMs,
             deadTunnelDetected: deadTunnel,
-            targetDomainsOk: targetDomainsOk
+            targetDomainsOk: targetDomainsOk,
+            gateway: gateway
         )
     }
 

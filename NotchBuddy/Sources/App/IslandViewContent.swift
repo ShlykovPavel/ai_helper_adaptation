@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 // MARK: - Dispatch view content by IslandView
 
@@ -42,8 +43,7 @@ struct IslandViewContent: View {
         case .securityPanic:
             SecurityPanicView(state: state)
         case .gestapoShield:
-            // Экран защитника будет вынесен в отдельную UI-фазу плана.
-            EmptyView()
+            GestapoShieldCardView(state: state)
         }
     }
 }
@@ -52,6 +52,7 @@ struct IslandViewContent: View {
 
 struct SecurityPanicView: View {
     @ObservedObject var state: AppState
+    @ObservedObject private var watchdog = GestapoWatchdog.shared
 
     var body: some View {
         ZStack {
@@ -74,12 +75,141 @@ struct SecurityPanicView: View {
                     PrimaryButton("Сбросить тревогу") {
                         state.resetSecurityAlert()
                     }
+                    .disabled(!watchdog.canResetSecurityAlert)
+                    .opacity(watchdog.canResetSecurityAlert ? 1 : 0.45)
+                    if !watchdog.canResetSecurityAlert {
+                        Text("VPN не восстановлен — сброс заблокирован")
+                            .font(.system(size: 10))
+                            .foregroundColor(Color(hex: "#FFB4BA"))
+                            .lineLimit(1)
+                    }
                 }
             }
             .padding(.leading, 116)
             .padding(.trailing, 16)
             .padding(.vertical, 4)
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+// MARK: - Gestapo shield card
+
+/// Compact status card opened from the shield in the island header.
+struct GestapoShieldCardView: View {
+    @ObservedObject var state: AppState
+    @ObservedObject private var watchdog = GestapoWatchdog.shared
+
+    private var statusColor: Color {
+        switch watchdog.protectionStatus {
+        case .grace: return Color(hex: "#FFD60A")
+        case .protected: return Color(hex: "#30D158")
+        default: return Color(hex: "#FF5460")
+        }
+    }
+
+    private var statusText: String {
+        switch watchdog.protectionStatus {
+        case .grace: return "VPN переподключается"
+        case .protected: return "VPN активен"
+        case .deadTunnel: return "VPN завис"
+        case .splitTunnelLeak: return "Утечка split-tunnel"
+        case .disabled: return "Защита выключена"
+        case .vpnInactive: return "Прямой интернет"
+        }
+    }
+
+    var body: some View {
+        ZStack {
+            CardBackground(wash: watchdog.protectionStatus == .protected ? .green : .red)
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 6) {
+                    Image(systemName: watchdog.protectionStatus == .protected ? "shield.fill" : "exclamationmark.shield.fill")
+                        .foregroundColor(statusColor)
+                        .font(.system(size: 13, weight: .bold))
+                    Text("GESTAPO GUARD")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(statusColor)
+                    Spacer()
+                    Text(statusText)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(Color(hex: "#F5F6F8").opacity(0.85))
+                }
+                HStack(spacing: 14) {
+                    statusRow("network", "Интерфейс", watchdog.lastVpnIface.isEmpty ? "—" : watchdog.lastVpnIface)
+                    statusRow("arrow.triangle.branch", "Шлюз", watchdog.lastGateway.isEmpty ? "—" : watchdog.lastGateway)
+                    statusRow("waveform.path.ecg", "Пинг", watchdog.pingLatencyMs > 0 ? String(format: "%.0f ms", watchdog.pingLatencyMs) : "—")
+                }
+                HStack(spacing: 8) {
+                    Label(watchdog.powerGuard.isAssertionActive ? "Mac не уснёт" : "Power Guard выключен",
+                          systemImage: watchdog.powerGuard.isAssertionActive ? "bolt.fill" : "bolt.slash")
+                        .font(.system(size: 9))
+                        .foregroundColor(watchdog.powerGuard.isAssertionActive ? Color(hex: "#30D158") : Color(hex: "#8E939C"))
+                    if watchdog.isCheckingIp {
+                        ProgressView().controlSize(.small)
+                    } else if !watchdog.externalIp.isEmpty {
+                        Text("IP \(watchdog.externalIp)")
+                            .font(.system(size: 9, design: .monospaced))
+                            .foregroundColor(Color(hex: "#B8BBC2"))
+                    }
+                    Button("Проверить IP") { watchdog.probeExternalIpOnDemand() }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundColor(Color(hex: "#B8BBC2"))
+                        .disabled(watchdog.isCheckingIp)
+                }
+                HStack {
+                    Text(statusFooter)
+                        .font(.system(size: 10))
+                        .foregroundColor(Color(hex: "#8E939C"))
+                    Spacer()
+                    Button("Обзор") {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.view = .overview }
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(Color(hex: "#B8BBC2"))
+                    Button("Настройки") { state.view = .settings }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(Color(hex: "#B8BBC2"))
+                    Button("Журнал") {
+                        let path = (NSHomeDirectory() as NSString).appendingPathComponent("Library/Logs/Gestapo/watchdog.log")
+                        NSWorkspace.shared.open(URL(fileURLWithPath: path))
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(Color(hex: "#B8BBC2"))
+                }
+            }
+            .padding(.leading, 108)
+            .padding(.trailing, 16)
+            .padding(.vertical, 5)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var statusFooter: String {
+        switch watchdog.protectionStatus {
+        case .protected: return "Трафик защищён kill-switch"
+        case .grace: return "Ожидание восстановления VPN"
+        case .disabled: return "Защита выключена пользователем"
+        case .deadTunnel: return "Агенты остановлены: VPN не отвечает"
+        case .splitTunnelLeak: return "Агенты остановлены: обнаружена утечка маршрута"
+        case .vpnInactive: return "Агенты остановлены до восстановления VPN"
+        }
+    }
+
+    @ViewBuilder
+    private func statusRow(_ icon: String, _ label: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Label(label, systemImage: icon)
+                .font(.system(size: 9))
+                .foregroundColor(Color(hex: "#8E939C"))
+            Text(value)
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                .foregroundColor(Color(hex: "#F5F6F8"))
+                .lineLimit(1)
         }
     }
 }
