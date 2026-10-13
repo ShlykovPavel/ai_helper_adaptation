@@ -21,7 +21,8 @@ actor GestapoNetworkWorker {
     private var lastPingTimestamp: TimeInterval = 0.0
 
     private let dnsCacheTTL: TimeInterval = 300.0
-    private let pingInterval: TimeInterval = 5.0
+    private let pingInterval: TimeInterval
+    private let routeTimeout: TimeInterval
 
     var pingExecutableURL: URL = URL(fileURLWithPath: "/sbin/ping")
     var routeExecutableURL: URL = URL(fileURLWithPath: "/sbin/route")
@@ -30,11 +31,15 @@ actor GestapoNetworkWorker {
     init(
         pingExecutableURL: URL = URL(fileURLWithPath: "/sbin/ping"),
         routeExecutableURL: URL = URL(fileURLWithPath: "/sbin/route"),
-        curlExecutableURL: URL = URL(fileURLWithPath: "/usr/bin/curl")
+        curlExecutableURL: URL = URL(fileURLWithPath: "/usr/bin/curl"),
+        pingInterval: TimeInterval = 5.0,
+        routeTimeout: TimeInterval = 0.8
     ) {
         self.pingExecutableURL = pingExecutableURL
         self.routeExecutableURL = routeExecutableURL
         self.curlExecutableURL = curlExecutableURL
+        self.pingInterval = pingInterval
+        self.routeTimeout = routeTimeout
     }
 
     /// Резолвинг доменного имени в IPv4 с 300-секундным кэшем.
@@ -108,6 +113,9 @@ actor GestapoNetworkWorker {
         let timeoutItem = DispatchWorkItem { [weak task] in
             if let task, task.isRunning {
                 task.terminate()
+                if task.isRunning {
+                    kill(task.processIdentifier, SIGKILL)
+                }
             }
         }
         DispatchQueue.global().asyncAfter(deadline: .now() + timeoutSeconds, execute: timeoutItem)
@@ -124,34 +132,31 @@ actor GestapoNetworkWorker {
         return ""
     }
 
-    /// Отправка ICMP пакета /sbin/ping -c 1 -W 1500 1.1.1.1
+    /// Отправка ICMP пакета с отдельным wall-clock таймаутом.
     private func executePing() -> (ok: Bool, latencyMs: Double) {
         let task = Process()
         task.executableURL = pingExecutableURL
         task.arguments = ["-c", "1", "-W", "1500", "1.1.1.1"]
-        let pipe = Pipe()
-        task.standardOutput = pipe
+        task.standardOutput = FileHandle.nullDevice
         task.standardError = FileHandle.nullDevice
 
         let startTime = Date()
         do {
             try task.run()
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            task.waitUntilExit()
+            let deadline = Date().addingTimeInterval(2.0)
+            while task.isRunning && Date() < deadline {
+                usleep(50_000)
+            }
+            if task.isRunning {
+                task.terminate()
+                if task.isRunning {
+                    kill(task.processIdentifier, SIGKILL)
+                }
+                task.waitUntilExit()
+                return (false, 0.0)
+            }
             let elapsed = Date().timeIntervalSince(startTime) * 1000.0
             let ok = (task.terminationStatus == 0)
-
-            if ok, let output = String(data: data, encoding: .utf8) {
-                // Извлечение миллисекунд из "time=0.561 ms"
-                if let timeRange = output.range(of: "time=") {
-                    let sub = output[timeRange.upperBound...]
-                    let scanner = Scanner(string: String(sub))
-                    if let ms = scanner.scanDouble() {
-                        return (true, ms)
-                    }
-                }
-                return (true, elapsed)
-            }
             return (ok, ok ? elapsed : 0.0)
         } catch {
             return (false, 0.0)
@@ -167,12 +172,21 @@ actor GestapoNetworkWorker {
         enablePing: Bool = true,
         isGracePeriod: Bool = false
     ) -> NetworkSnapshot {
-        // 1. Определение интерфейса глобального шлюза
-        var iface = getRouteInterface(dest: "1.1.1.1")
+        // 1. Определение интерфейса глобального шлюза.
+        // Для def1/раздельных конфигураций первый публичный адрес может
+        // оказаться вне туннеля, поэтому проверяем ещё 8.8.8.8 и default.
+        var iface = getRouteInterface(dest: "1.1.1.1", timeoutSeconds: routeTimeout)
         if !GestapoWatchdog.isVpnInterface(iface) {
-            let defIface = getRouteInterface(dest: "default")
-            if GestapoWatchdog.isVpnInterface(defIface) {
-                iface = defIface
+            let secondaryIface = getRouteInterface(dest: "8.8.8.8", timeoutSeconds: routeTimeout)
+            if GestapoWatchdog.isVpnInterface(secondaryIface) {
+                iface = secondaryIface
+            } else {
+                let defIface = getRouteInterface(dest: "default", timeoutSeconds: routeTimeout)
+                if GestapoWatchdog.isVpnInterface(defIface) {
+                    iface = defIface
+                } else if iface.isEmpty {
+                    iface = defIface.isEmpty ? secondaryIface : defIface
+                }
             }
         }
         let isVpn = GestapoWatchdog.isVpnInterface(iface)
@@ -182,12 +196,14 @@ actor GestapoNetworkWorker {
         if !targetDomains.isEmpty {
             for domain in targetDomains {
                 let resolvedIp = resolveDomain(domain)
-                if !resolvedIp.isEmpty {
-                    let domainIface = getRouteInterface(dest: resolvedIp)
-                    if !GestapoWatchdog.isVpnInterface(domainIface) {
-                        targetDomainsOk = false
-                        break
-                    }
+                guard !resolvedIp.isEmpty else {
+                    targetDomainsOk = false
+                    break
+                }
+                let domainIface = getRouteInterface(dest: resolvedIp, timeoutSeconds: routeTimeout)
+                if !GestapoWatchdog.isVpnInterface(domainIface) {
+                    targetDomainsOk = false
+                    break
                 }
             }
         }
@@ -255,13 +271,13 @@ actor GestapoNetworkWorker {
         let targetIp = resolveDomain(targetDomain)
         var iface = ""
         if !targetIp.isEmpty {
-            iface = getRouteInterface(dest: targetIp)
+            iface = getRouteInterface(dest: targetIp, timeoutSeconds: routeTimeout)
         }
         if iface.isEmpty {
-            iface = getRouteInterface(dest: "1.1.1.1")
+            iface = getRouteInterface(dest: "1.1.1.1", timeoutSeconds: routeTimeout)
         }
         if iface.isEmpty {
-            iface = getRouteInterface(dest: "default")
+            iface = getRouteInterface(dest: "default", timeoutSeconds: routeTimeout)
         }
 
         // Шаг 2: запрос к api.ipify.org

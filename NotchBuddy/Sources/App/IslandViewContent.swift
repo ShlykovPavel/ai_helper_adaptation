@@ -41,6 +41,9 @@ struct IslandViewContent: View {
             #endif
         case .securityPanic:
             SecurityPanicView(state: state)
+        case .gestapoShield:
+            // Экран защитника будет вынесен в отдельную UI-фазу плана.
+            EmptyView()
         }
     }
 }

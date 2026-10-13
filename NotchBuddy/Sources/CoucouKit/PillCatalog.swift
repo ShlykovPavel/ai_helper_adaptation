@@ -58,7 +58,6 @@ struct PillDefinition {
         case "agent_codex":        return "Codex"
         case "agent_hermes":       return "Hermes"
         case "agent_claude-desktop": return "Claude Desktop"
-        case "gestapo_shield":     return "Gestapo Shield"
         default:                   return "Agent"
         }
     }
@@ -70,8 +69,6 @@ enum PillCatalog {
     // All declared pills in display order.
     static let all: [PillDefinition] = [
         // ── Where you code ───────────────────────────────────────────────────
-        .init(id: "gestapo_shield",      name: "Gestapo Shield", color: "#30D158",
-              category: .workspace, subtitle: "VPN Guard",    source: .agent),
         .init(id: "integration_claude",  name: "VS Code",     color: "#F5F6F8",
               category: .workspace, subtitle: "Integration",  source: .claudeCode),
         .init(id: "agent_cursor",        name: "Cursor",      color: "#C0C4CC",

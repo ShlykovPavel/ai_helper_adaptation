@@ -15,6 +15,7 @@ enum IslandView: String, CaseIterable, Sendable {
     case listening    // voice wake detected — "À l'écoute…" with live transcript
     case voiceResult  // voice command executed — "✓ Musique lancée" for ~2 s
     case securityPanic // Режим тревоги ИБ
+    case gestapoShield // Меню защитника Gestapo в чёлке
 }
 
 // MARK: - Bot State
@@ -240,6 +241,8 @@ enum IslandConst {
         .voiceResult:  ViewLayout(height: 160, botX: 68,  botY: nil, botDiameter: 58, agentMode: .none),
         // Security panic: alarm card with Mochi on left, red warning on right
         .securityPanic: ViewLayout(height: 160, botX: 62, botY: nil, botDiameter: 58, agentMode: .none),
+        // Gestapo shield: status card with Mochi on left, VPN/IP controls on right
+        .gestapoShield: ViewLayout(height: 160, botX: 62, botY: nil, botDiameter: 58, agentMode: .none),
     ]
 
     // Project colors — keyed by lowercase display name or slug
@@ -278,5 +281,6 @@ enum IslandConst {
         .result:    "rgba(52,211,153,0.22)",
         .prompt:    "rgba(99,102,241,0.22)",
         .securityPanic: "rgba(244,80,94,0.7)",
+        .gestapoShield: "rgba(48,209,88,0.28)",
     ]
 }

@@ -31,7 +31,8 @@ final class GestapoAppHunter: Sendable {
         // Оконные GUI-приложения
         GestapoTargetApp(id: "claude-desktop", name: "Claude Desktop", type: .gui, binaryOrBundleId: "com.anthropic.claudefordesktop", domain: "claude.ai"),
         GestapoTargetApp(id: "chatgpt-desktop", name: "ChatGPT Desktop", type: .gui, binaryOrBundleId: "com.openai.chat", domain: "chatgpt.com"),
-        GestapoTargetApp(id: "antigravity-desktop", name: "Antigravity Desktop", type: .gui, binaryOrBundleId: "com.google.antigravity", domain: "generativelanguage.googleapis.com")
+        GestapoTargetApp(id: "antigravity-desktop", name: "Antigravity Desktop", type: .gui, binaryOrBundleId: "com.google.antigravity", domain: "generativelanguage.googleapis.com"),
+        GestapoTargetApp(id: "antigravity-ide", name: "Antigravity IDE", type: .gui, binaryOrBundleId: "com.google.antigravity.ide", domain: "generativelanguage.googleapis.com")
     ]
 
     /// Имена бинарников CLI по умолчанию

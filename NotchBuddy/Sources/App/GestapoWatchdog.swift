@@ -82,11 +82,13 @@ final class GestapoWatchdog: ObservableObject {
     // MARK: - Обработка сетевых переходов и Continuous Level-Triggered Kill
 
     func handleNetworkSnapshot(_ snapshot: NetworkSnapshot, isGrace: Bool) {
+        let effectiveGrace = isGrace || powerGuard.isSleeping ||
+            (sleepWakeGuardEnabled && powerGuard.isGracePeriodActive)
         self.lastVpnIface = snapshot.iface
         self.isVpnActive = snapshot.isVpn
         self.pingLatencyMs = snapshot.pingLatencyMs
         self.isDeadTunnel = snapshot.deadTunnelDetected
-        self.isGracePeriodActive = isGrace
+        self.isGracePeriodActive = effectiveGrace
 
         // Обновление системного sleep assertion (Mac не уснет при заблокированном экране)
         powerGuard.updateSleepAssertion(
@@ -95,7 +97,7 @@ final class GestapoWatchdog: ObservableObject {
         )
 
         // Во время Grace Period сетевые сбои игнорируются для исключения ложных тревог
-        if isGrace {
+        if effectiveGrace {
             return
         }
 
@@ -109,7 +111,7 @@ final class GestapoWatchdog: ObservableObject {
         } else if splitTunnelCheck && !snapshot.targetDomainsOk {
             currentlyHealthy = false
             failureReason = "Утечка трафика целевых AI-доменов в незащищенный интерфейс"
-        } else if !snapshot.isVpn {
+        } else if !splitTunnelCheck && !snapshot.isVpn {
             currentlyHealthy = false
             failureReason = "VPN отключен! Обнаружен интерфейс: \(snapshot.iface.isEmpty ? "нет" : snapshot.iface)"
         } else {
@@ -161,7 +163,11 @@ final class GestapoWatchdog: ObservableObject {
     }
 
     private func checkNetwork() {
-        guard isEnabled, !isChecking else { return }
+        guard !isChecking else { return }
+        guard isEnabled else {
+            powerGuard.updateSleepAssertion(shouldHold: false)
+            return
+        }
         isChecking = true
 
         let isGrace = sleepWakeGuardEnabled && powerGuard.isGracePeriodActive
