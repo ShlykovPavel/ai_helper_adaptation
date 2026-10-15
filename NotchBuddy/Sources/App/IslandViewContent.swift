@@ -259,10 +259,12 @@ struct TunnelGuardShieldCardView: View {
                     .buttonStyle(.plain)
                     .font(.system(size: 10, weight: .medium))
                     .foregroundColor(Color(hex: "#B8BBC2"))
-                    Button("Настройки") { state.view = .settings }
-                        .buttonStyle(.plain)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Color(hex: "#B8BBC2"))
+                    Button("Настройки") {
+                        NotificationCenter.default.post(name: .openFullSettings, object: "tunnelGuard")
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(Color(hex: "#B8BBC2"))
                     Button("Журнал") {
                         let path = (NSHomeDirectory() as NSString).appendingPathComponent("Library/Logs/TunnelGuard/watchdog.log")
                         NSWorkspace.shared.open(URL(fileURLWithPath: path))
