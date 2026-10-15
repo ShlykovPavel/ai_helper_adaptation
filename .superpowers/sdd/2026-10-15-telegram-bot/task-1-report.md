@@ -27,3 +27,9 @@ None.
 - Replaced every fixture callback ref with a distinct 16-byte, unpadded base64url value (22 characters).
 - Split action cases into canonical `event` (`approval`/`question`) and separate `operation` fields.
 - Revalidated JSON, callback ref alphabet/length/decoded size, and whitespace.
+
+## Scoped re-review fix
+
+- Replaced all remaining malformed callback refs, including foreign, duplicate, and expired cases, with opaque 22-character base64url refs.
+- Verified every fixture callback ref matches the allowed ASCII alphabet and decodes to exactly 16 bytes.
+- Re-ran JSON parsing and `git diff --check`.
