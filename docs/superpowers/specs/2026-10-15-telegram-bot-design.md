@@ -131,6 +131,18 @@ Swift-слой использует текущие `HookServer`, `AppState`, `Ap
 
 `Stop` с несколькими параллельными сессиями отправляет сообщение только когда текущая сессия действительно завершила turn и `PillSessionRegistry`/Tauri state больше не считает её working. Ошибки сети Telegram не меняют состояние агента. Если Telegram выключен, question/approval остаются доступными в Coucou и терминале.
 
+## Контрактный чек-лист для Swift и Rust
+
+Обе реализации сверяют один и тот же контракт и fixtures из `tests/fixtures/telegram`:
+
+- События имеют только канонические имена `finished`, `question`, `approval`, `error`; входящие update разбираются по `update_id`, `message.chat.id`, `message.from.id`, `message.message_id` и `callback_query.data`.
+- Pairing принимает ровно один `/start <nonce>` в private chat от ожидаемого `from.id`; nonce действителен 10 минут, после успешного pairing одноразовый. Группа, канал, чужой chat/user и неверный nonce игнорируются.
+- Callback data строго соответствует `c:<ref>:<op>` и помещается в 64 байта UTF-8. `ref` — 16 случайных байт в base64url без `=`; неизвестный формат, чужой chat/user, fingerprint или message id не выполняют действие.
+- Action registry хранит максимум 64 pending action; TTL action — 120 секунд. Допустимые переходы: `pending → consumed` (ровно один раз), `pending → expired` по TTL, `pending → revoked` при disable/перепривязке. Повторный callback для `consumed`, `expired` или `revoked` отвечает только уведомлением об истечении.
+- Для вопроса `questionSelect` меняется только выбранное значение; решение отправляется один раз на `questionSubmit` после полной валидации. `questionText` принимается только в состоянии `awaitingText` от спаренного пользователя.
+- Текст исходящего сообщения ограничен 3 500 Unicode-символами; callback не содержит token, path, command или полный fingerprint.
+- HTTP timeout обычного запроса — 10 секунд, long poll — 25 секунд; backoff после ошибки: 1, 2, 4, 8, 16, 30, 60 секунд. Для 409 polling показывает конфликт экземпляров, для 429 ждёт `parameters.retry_after`, для 401 останавливается.
+
 ## Приватность и отказоустойчивость
 
 - Token никогда не хранится в settings JSON, логах, crash message или callback data.

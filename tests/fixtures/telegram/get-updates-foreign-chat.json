@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "result": [
+    {
+      "update_id": 1004,
+      "message": {
+        "message_id": 8,
+        "chat": {"id": -100222333444, "type": "group", "title": "Synthetic Group"},
+        "from": {"id": 111222333, "is_bot": false, "first_name": "Other"},
+        "text": "/start pairNonceExample"
+      }
+    },
+    {
+      "update_id": 1005,
+      "callback_query": {
+        "id": "callback-foreign-1",
+        "from": {"id": 111222333, "is_bot": false, "first_name": "Other"},
+        "message": {
+          "message_id": 43,
+          "chat": {"id": 999888777, "type": "private"}
+        },
+        "data": "c:approvalRef01:allow"
+      }
+    }
+  ]
+}
