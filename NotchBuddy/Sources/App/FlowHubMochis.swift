@@ -264,6 +264,8 @@ struct HubHeroTheme {
             return .init(color: Color(hex: "#F97316"), cast: [m("#F97316", 60, 0.3), m("#F5F6F8", 48, 0.85, outfit: .roundGlasses)])
         case .shortcuts:
             return .init(color: Color(hex: "#6366F1"), cast: [m("#6366F1", 56, 0.2, outfit: .sunglasses), m("#F5F6F8", 46, 0.8)])
+        case .tunnelGuard:
+            return .init(color: Color(hex: "#30D158"), cast: [m("#30D158", 58, 0.2, outfit: .sunglasses), m("#F5F6F8", 48, 0.8)])
         }
     }
 }

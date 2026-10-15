@@ -6,12 +6,12 @@ import SwiftUI
 /// The pages of the Coucou window: Flow (the dictation, the Notetaker) and the notch's settings.
 enum HubPage: String, CaseIterable, Identifiable {
     case dictation, notes, insights, dictionary, snippets, styles, settings
-    case general, pills, agents, chat, integrations, voice, shortcuts
+    case general, pills, agents, chat, integrations, voice, shortcuts, tunnelGuard
 
     var id: String { rawValue }
 
     static let flowPages: [HubPage] = [.dictation, .notes, .insights, .dictionary, .snippets, .styles, .settings]
-    static let notchPages: [HubPage] = [.general, .pills, .agents, .chat, .integrations, .voice, .shortcuts]
+    static let notchPages: [HubPage] = [.general, .pills, .agents, .chat, .integrations, .voice, .shortcuts, .tunnelGuard]
 
     /// The section of Settings this page shows, for the notch's pages.
     var settingsSection: String? {
@@ -23,6 +23,7 @@ enum HubPage: String, CaseIterable, Identifiable {
         case .integrations: return "integrations"
         case .voice:        return "voice"
         case .shortcuts:    return "shortcuts"
+        case .tunnelGuard:  return "tunnelGuard"
         default:            return nil
         }
     }
@@ -41,6 +42,7 @@ enum HubPage: String, CaseIterable, Identifiable {
         case .integrations: return String(localized: "Integrations")
         case .voice:        return String(localized: "Voice")
         case .shortcuts:    return String(localized: "Shortcuts")
+        case .tunnelGuard:  return "TunnelGuard"
         case .dictation:  return String(localized: "hub.page.dictation")
         case .notes:      return String(localized: "hub.page.notes")
         case .insights:   return String(localized: "hub.page.insights")
@@ -67,6 +69,7 @@ enum HubPage: String, CaseIterable, Identifiable {
         case .integrations: return "puzzlepiece.extension"
         case .voice:        return "waveform"
         case .shortcuts:    return "keyboard"
+        case .tunnelGuard:  return "shield.checkered"
         }
     }
 }
@@ -118,6 +121,7 @@ extension HubPage {
         case .integrations: return String(localized: "hub.notch.integrations")
         case .voice:        return String(localized: "hub.notch.voice")
         case .shortcuts:    return String(localized: "hub.notch.shortcuts")
+        case .tunnelGuard:  return String(localized: "hub.notch.tunnelguard", defaultValue: "Kill-switch, аварийный мониторинг и защита агентского трафика")
         default:            return nil
         }
     }
