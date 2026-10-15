@@ -16,13 +16,13 @@ actor TelegramActionRegistry {
         return action
     }
 
-    func consume(ref: String, chatId: Int64, userId: Int64, now: Date? = nil, fingerprint: String? = nil) -> TelegramActionResult {
+    func consume(ref: String, chatId: Int64, userId: Int64, now: Date? = nil, fingerprint: String) -> TelegramActionResult {
         let instant = now ?? clock.now
         guard var entry = entries[ref] else { return .rejected(.unknown) }
         guard instant < entry.action.expiresAt else { entries.removeValue(forKey: ref); return .rejected(.expired) }
         guard entry.action.chatId == chatId && entry.action.userId == userId else { return .rejected(.unauthorized) }
         guard !entry.consumed else { return .rejected(.consumed) }
-        if let fingerprint, fingerprint != entry.action.fingerprint { return .rejected(.fingerprintMismatch) }
+        if fingerprint != entry.action.fingerprint { return .rejected(.fingerprintMismatch) }
         entry.consumed = true; entries[ref] = entry
         return .accepted(entry.action)
     }
