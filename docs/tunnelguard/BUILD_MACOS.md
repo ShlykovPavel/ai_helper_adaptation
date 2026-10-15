@@ -235,3 +235,40 @@ make dist
    - **Вручную в консоли**: выполнить `xattr -cr /Applications/Coucou.app`.
 4. В *«Системных настройках» → «Конфиденциальность и безопасность» → «Универсальный доступ» (Accessibility)* включить тумблер для **Coucou** (необходимо для позиционирования над чёлкой экрана).
 
+---
+
+## 11. Сборка версий для Windows и Linux
+
+Версии Coucou для **Windows** и **Linux** вынесены в директорию [`windows/`](../../windows) и построены на фреймворке **Tauri v2** (бэкенд на Rust, интерфейс на TypeScript + Vite):
+
+### 1. Архитектура и скрипт упаковщика
+Внутри `windows/package.json` уже реализован пайплайн упаковки `npm run pack` (`tauri build && node scripts/pack.mjs`):
+- **Windows**: создаёт инсталляторы `Coucou-Windows-<версия>-setup.exe` (NSIS) и `.msi`.
+- **Linux**: собирает пакеты `Coucou-Linux-<версия>-<arch>.AppImage`, `.deb` и `.rpm`.
+Готовые файлы складываются в `windows/release/`.
+
+### 2. Ограничения сборки с Mac (кросс-компиляция)
+Напрямую с текущей машины macOS скомпилировать бинарники для Windows или Linux нельзя:
+- **Для Linux**: бинарник требует нативной линковки с системными библиотеками Linux (`libwebkit2gtk-4.1-dev`, `libgtk-layer-shell-dev`, `libayatana-appindicator3-dev`, `libasound2-dev`, `patchelf`). С Mac такая сборка возможна **только через контейнер Docker** (образ на базе Ubuntu 22.04).
+- **Для Windows**: требуются Windows SDK, MSVC toolchain и WiX Toolset. Кросс-компиляция GUI-приложений Tauri с macOS официально не поддерживается.
+
+### 3. Сборка на целевых ОС
+Если у вас есть машина или виртуальная машина с нужной ОС:
+```bash
+cd windows
+npm install
+npm run pack
+```
+*(Для Linux перед сборкой необходимо установить dev-зависимости: `sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-layer-shell-dev libayatana-appindicator3-dev libasound2-dev patchelf`)*.
+
+### 4. Облачная сборка через GitHub Actions (Рекомендуется)
+В репозитории уже настроены готовые CI-пайплайны:
+- [`.github/workflows/windows.yml`](../../.github/workflows/windows.yml)
+- [`.github/workflows/linux.yml`](../../.github/workflows/linux.yml)
+
+Их можно запустить вручную без локальной настройки окружения:
+1. Перейдите во вкладку **Actions** в репозитории GitHub.
+2. В левой колонке выберите воркфлоу **Windows** или **Linux**.
+3. Нажмите кнопку **Run workflow** (выбрав нужную ветку).
+4. Облачные раннеры соберут дистрибутивы и прикрепят готовые установочные пакеты (`.exe`, `.msi`, `.AppImage`, `.deb`, `.rpm`) к артефактам/релизу.
+
