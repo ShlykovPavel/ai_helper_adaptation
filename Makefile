@@ -1,6 +1,7 @@
 .PHONY: test test-tunnelguard test-tunnelguard-safe test-tunnelguard-swift-safe \
         test-tunnelguard-phase2-safe test-tunnelguard-phase3-safe test-tunnelguard-watchdog \
-        test-tunnelguard-python-safe test-tunnelguard-all test-tunnelguard-dangerous build
+        test-tunnelguard-python-safe test-tunnelguard-all test-tunnelguard-dangerous \
+        build build-release release-build release
 
 # Безопасный набор — используется по умолчанию. Не запускает тесты,
 # которые намеренно посылают SIGKILL дочерним процессам.
@@ -40,3 +41,10 @@ build:
 	xcodebuild -project NotchBuddy/NotchBuddy.xcodeproj -scheme NotchBuddy \
 		-configuration Debug -destination 'platform=macOS' \
 		CODE_SIGNING_ALLOWED=NO build
+
+build-release:
+	./scripts/build-release.sh
+
+release-build: build-release
+
+release: build-release
