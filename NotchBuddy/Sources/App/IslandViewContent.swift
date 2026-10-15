@@ -100,6 +100,7 @@ struct GestapoShieldCardView: View {
     @ObservedObject var state: AppState
     @ObservedObject private var watchdog = GestapoWatchdog.shared
     @State private var selectedProbeDomain = "claude.ai"
+    @State private var showGatewayPopover = false
 
     private var effectiveProbeDomain: String {
         watchdog.ipProbeDomains.contains(selectedProbeDomain)
@@ -129,7 +130,7 @@ struct GestapoShieldCardView: View {
     var body: some View {
         ZStack {
             CardBackground(wash: watchdog.protectionStatus == .protected ? .green : .red)
-            VStack(alignment: .leading, spacing: 5) {
+            VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {
                     Image(systemName: watchdog.protectionStatus == .protected ? "shield.fill" : "exclamationmark.shield.fill")
                         .foregroundColor(statusColor)
@@ -147,78 +148,110 @@ struct GestapoShieldCardView: View {
                     statusRow("globe", "Внешний IP", watchdog.ipProbeResult?.ip ?? "—")
                     statusRow("waveform.path.ecg", "Пинг", watchdog.pingLatencyMs > 0 ? String(format: "%.0f ms", watchdog.pingLatencyMs) : "—")
                 }
-                VStack(alignment: .leading, spacing: 3) {
-                    Label(watchdog.powerGuard.isAssertionActive ? "Mac не уснёт" : "Power Guard выключен",
-                          systemImage: watchdog.powerGuard.isAssertionActive ? "bolt.fill" : "bolt.slash")
-                        .font(.system(size: 9))
-                        .foregroundColor(watchdog.powerGuard.isAssertionActive ? Color(hex: "#30D158") : Color(hex: "#8E939C"))
-                    if watchdog.isCheckingIp {
-                        HStack(spacing: 5) {
-                            ProgressView().controlSize(.small)
-                            Text("Проверяю маршрут до \(effectiveProbeDomain) и ищу IP-сервис в том же туннеле…")
-                        }
-                        .font(.system(size: 9))
-                        .foregroundColor(Color(hex: "#B8BBC2"))
-                    } else if let probe = watchdog.ipProbeResult {
-                        Group {
-                            if probe.isSuccessful {
-                                VStack(alignment: .leading, spacing: 1) {
-                                    Text("Маршрут: \(probe.targetHost) → \(probe.targetIp) → \(probe.targetInterface)")
-                                    Text("IP-сервис: \(probe.ipService) → \(probe.ipServiceInterface) • внешний IP: \(probe.ip)")
-                                        .foregroundColor(probe.isVpn ? Color(hex: "#30D158") : Color(hex: "#FFB4BA"))
+                HStack(alignment: .center, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Label(watchdog.powerGuard.isAssertionActive ? "Mac не уснёт" : "Power Guard выключен",
+                              systemImage: watchdog.powerGuard.isAssertionActive ? "bolt.fill" : "bolt.slash")
+                            .font(.system(size: 9))
+                            .foregroundColor(watchdog.powerGuard.isAssertionActive ? Color(hex: "#30D158") : Color(hex: "#8E939C"))
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.triangle.branch")
+                            Text("Шлюз: \(watchdog.lastGateway.isEmpty ? "—" : watchdog.lastGateway)")
+                            Button {
+                                showGatewayPopover.toggle()
+                            } label: {
+                                Image(systemName: "info.circle")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(showGatewayPopover ? Color(hex: "#30D158") : Color(hex: "#8E939C"))
+                            }
+                            .buttonStyle(.plain)
+                            .popover(isPresented: $showGatewayPopover, arrowEdge: .bottom) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Сетевой шлюз")
+                                        .font(.system(size: 11, weight: .semibold))
+                                    Text("Шлюз — это следующий сетевой узел, через который система отправляет внешний трафик. При активном VPN он указывает на защищённый адрес туннеля (utun).")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(.secondary)
                                 }
-                            } else {
-                                Text(probe.errorMessage)
-                                    .foregroundColor(Color(hex: "#FFB4BA"))
+                                .padding(10)
+                                .frame(width: 230)
                             }
                         }
-                        .font(.system(size: 9, design: .monospaced))
-                        .lineLimit(2)
+                        .font(.system(size: 8.5))
+                        .foregroundColor(Color(hex: "#8E939C"))
                     }
-                    HStack(spacing: 7) {
-                        Menu {
+
+                    Spacer(minLength: 4)
+
+                    Menu {
+                        Section("Сервис проверки IP") {
                             ForEach(watchdog.ipProbeDomains, id: \.self) { domain in
-                                Button(domain) {
+                                Button {
                                     if selectedProbeDomain != domain {
                                         selectedProbeDomain = domain
                                         watchdog.clearIpProbeResult()
                                     }
+                                    watchdog.probeExternalIpOnDemand(domain: domain)
+                                } label: {
+                                    HStack {
+                                        Text(domain)
+                                        if selectedProbeDomain == domain && watchdog.ipProbeResult != nil {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
                                 }
                             }
-                        } label: {
-                            Label(effectiveProbeDomain, systemImage: "globe")
                         }
-                        .menuStyle(.borderlessButton)
-                        .help("Выберите домен, через который проверить защищённый маршрут")
-
-                        Button {
-                            watchdog.probeExternalIpOnDemand(domain: effectiveProbeDomain)
-                        } label: {
-                            Label("Проверить IP", systemImage: "checkmark.circle")
+                    } label: {
+                        HStack(spacing: 4) {
+                            if watchdog.isCheckingIp {
+                                ProgressView().controlSize(.small)
+                                Text("Проверка…")
+                            } else {
+                                Image(systemName: "globe")
+                                Text("Проверить IP")
+                                Image(systemName: "chevron.down").font(.system(size: 7))
+                            }
                         }
-                        .buttonStyle(.plain)
-                        .help("Проверить внешний IP через выбранную цель")
-                        Spacer(minLength: 0)
+                        .font(.system(size: 9.5, weight: .medium))
+                        .foregroundColor(Color(hex: "#C5C8CD"))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.white.opacity(0.08))
+                        .clipShape(Capsule())
                     }
-                    .font(.system(size: 9, weight: .medium))
-                    .foregroundColor(Color(hex: "#B8BBC2"))
+                    .menuStyle(.borderlessButton)
                     .disabled(watchdog.isCheckingIp)
-                    .onChange(of: selectedProbeDomain) { _, _ in
-                        watchdog.clearIpProbeResult()
-                    }
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrow.triangle.branch")
-                        Text("Шлюз: \(watchdog.lastGateway.isEmpty ? "—" : watchdog.lastGateway)")
-                        Image(systemName: "info.circle")
-                            .help("Шлюз — следующий сетевой узел, через который система отправляет трафик. Он помогает проверить, что соединение идёт через VPN.")
+                }
+
+                if watchdog.isCheckingIp {
+                    HStack(spacing: 5) {
+                        ProgressView().controlSize(.small)
+                        Text("Проверяю маршрут до \(effectiveProbeDomain)…")
                     }
                     .font(.system(size: 8.5))
-                    .foregroundColor(Color(hex: "#8E939C"))
+                    .foregroundColor(Color(hex: "#B8BBC2"))
+                    .lineLimit(1)
+                } else if let probe = watchdog.ipProbeResult {
+                    Group {
+                        if probe.isSuccessful {
+                            Text("Маршрут: \(probe.targetHost) → \(probe.targetInterface) • Сервис: \(probe.ipService)")
+                                .foregroundColor(probe.isVpn ? Color(hex: "#30D158") : Color(hex: "#FFB4BA"))
+                        } else {
+                            Text(probe.errorMessage)
+                                .foregroundColor(Color(hex: "#FFB4BA"))
+                        }
+                    }
+                    .font(.system(size: 8.5, design: .monospaced))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
                 }
+
                 HStack {
                     Text(statusFooter)
-                        .font(.system(size: 10))
+                        .font(.system(size: 9.5))
                         .foregroundColor(Color(hex: "#8E939C"))
+                        .lineLimit(1)
                     Spacer()
                     Button("Обзор") {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.view = .overview }
@@ -241,7 +274,7 @@ struct GestapoShieldCardView: View {
             }
             .padding(.leading, 108)
             .padding(.trailing, 16)
-            .padding(.vertical, 5)
+            .padding(.vertical, 6)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }

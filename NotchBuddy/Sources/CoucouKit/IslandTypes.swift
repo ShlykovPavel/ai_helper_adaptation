@@ -242,7 +242,7 @@ enum IslandConst {
         // Security panic: alarm card with Mochi on left, red warning on right
         .securityPanic: ViewLayout(height: 160, botX: 62, botY: nil, botDiameter: 58, agentMode: .none),
         // Gestapo shield: status card with Mochi on left, VPN/IP controls on right
-        .gestapoShield: ViewLayout(height: 160, botX: 62, botY: nil, botDiameter: 58, agentMode: .none),
+        .gestapoShield: ViewLayout(height: 180, botX: 62, botY: nil, botDiameter: 58, agentMode: .none),
     ]
 
     // Project colors — keyed by lowercase display name or slug
