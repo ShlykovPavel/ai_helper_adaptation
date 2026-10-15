@@ -1,4 +1,5 @@
 .PHONY: test test-gestapo test-gestapo-safe test-gestapo-swift-safe \
+        test-gestapo-phase2-safe test-gestapo-phase3-safe test-gestapo-watchdog \
         test-gestapo-python-safe test-gestapo-all test-gestapo-dangerous build
 
 # Безопасный набор — используется по умолчанию. Не запускает тесты,
@@ -7,13 +8,19 @@ test: test-gestapo-safe
 
 test-gestapo: test-gestapo-safe
 
-test-gestapo-safe: test-gestapo-swift-safe test-gestapo-phase3-safe test-gestapo-python-safe
+test-gestapo-safe: test-gestapo-swift-safe test-gestapo-phase2-safe test-gestapo-phase3-safe test-gestapo-watchdog test-gestapo-python-safe
 
 test-gestapo-swift-safe:
 	./scripts/test-gestapo-phase1-safe.sh
 
+test-gestapo-phase2-safe:
+	./scripts/test-gestapo-phase2-safe.sh
+
 test-gestapo-phase3-safe:
 	./scripts/test-gestapo-phase3-safe.sh
+
+test-gestapo-watchdog:
+	./scripts/test-gestapo-watchdog.sh
 
 test-gestapo-python-safe:
 	PYTHONPATH=tests python3 -m unittest -v \

@@ -190,6 +190,10 @@ enum GestapoWatchdogTests {
     static func testVpnDropBehaviorAndEdgeTriggering() {
         AppState.shared.resetTestCounters()
         let watchdog = GestapoWatchdog()
+        // Unit test safety: prevent firing live pkill against host development environment
+        watchdog.targets = []
+        watchdog.alarmSoundEnabled = false
+        watchdog.macNotificationsEnabled = false
 
         precondition(watchdog.isVpnActive == true, "Initial watchdog status must be active")
         precondition(AppState.shared.view == .overview, "Initial AppState view must be .overview")

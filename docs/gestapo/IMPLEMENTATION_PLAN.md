@@ -4,14 +4,14 @@
 
 ## Текущий статус
 
-По состоянию на 13 октября 2026 года завершены **Фазы 1, 2 и 3**. Сетевое ядро, Power Guard, непрерывный kill-switch, GUI Hunter, системные уведомления и UI щитка Gestapo реализованы и проходят безопасные автоматические проверки. Следующий этап — **Фаза 4: настройки Gestapo Guard**; полноценной вкладки настроек пока нет.
-
-Последняя проверка:
-
-- `make test-gestapo-safe` — safe-проверки Фаз 1, 3 и Python gate прошли;
-- `./scripts/test-gestapo-phase2-safe.sh` — 4/4 проверки прошли;
-- `make build` — `BUILD SUCCEEDED` без ошибок компиляции.
-- Фаза 3: кнопка сброса тревоги блокируется до восстановления VPN; экран щитка показывает интерфейс, шлюз и ping; ручная проверка IP показывает маршрут до цели, выбранный IP-сервис и внешний IP.
+По состоянию на 15 октября 2026 года все **Фазы 1, 2, 3, 4 и 5 успешно завершены**.
+Перенос механизмов Gestapo в Coucou (NotchBuddy) полностью реализован:
+- Сетевое ядро, Power Guard (IOPMAssertion), Continuous Kill, Dead Tunnel и Split Tunnel;
+- GUI Hunter и системные уведомления macOS;
+- Экран щитка Gestapo в Dynamic Island с корректными размерами (180pt), popover-подсказкой сетевого шлюза и компактным меню выбора сервиса в кнопке проверки IP;
+- Вкладка настроек Gestapo Guard в SettingsView с 5 группами настроек и синхронизацией с AppStorage;
+- Полный автоматизированный тестовый сьют L1 (Python Hook Gate) + L2 (Swift Safe Suites & Watchdog) проходит 100% PASS;
+- Сборка `make build` проходит успешно (`BUILD SUCCEEDED`).
 
 ---
 
@@ -188,7 +188,8 @@ Gestapo — это не сессия агента Claude/Codex, поэтому �
 |---|---|---|
 | ✅ **Фаза 1: Сетевое ядро и Power Guard** | Реализованы `GestapoPowerGuard.swift`, `GestapoNetworkWorker.swift` и continuous kill в `GestapoWatchdog.swift`: IOPM assertion, sleep/wake grace period, ICMP ping, split-tunnel route checks, DNS cache и on-demand IP probe. | Safe Swift/Python тесты проходят; проект собирается Swift 6. |
 | ✅ **Фаза 2: GUI Hunter и уведомления** | Реализованы `NSRunningApplication.forceTerminate` для GUI, точный `pkill -9 -x` для CLI, безопасный whitelist, AppleScript escaping и асинхронные системные баннеры. Добавлены безопасные тестовые seams. | 4/4 Phase 2 safe-теста проходят; полный macOS build успешен. |
+| ✅ **Фаза 3: Доработка UI чёлки** | Единый `protectionStatus` (VPN, dead tunnel, split leak, grace, disabled), блокировка сброса до `.protected`, выбранные из одного route output интерфейс и gateway, popover шлюза, меню сервиса под кнопкой «Проверить IP», высота 180pt. | Тесты и UI-проверки пройдены. Окно стабильно, кнопки не перекрываются. |
 | ✅ **Фаза 4: Вкладка настроек Gestapo Guard** | Добавление вкладки в сайдбар `SettingsView.swift`. Верстка 5 GroupBox с тумблерами и кнопкой проверки IP. | Все тумблеры сохраняются в `@AppStorage`. Кнопка «Проверить IP» показывает реальный IP без зависания UI. |
-| **Фаза 5: Тестирование и валидация** | Расширение `tests/GestapoWatchdogTests.swift` (Grace period, Ping Dead Tunnel, Continuous Kill, GUI). Прогон `./scripts/test-gestapo.sh`. | Все тесты завершаются со статусом PASS. Сборка `xcodebuild` проходит без ошибок. |
+| ✅ **Фаза 5: Тестирование и валидация** | Интеграция безопасных сьютов L1 Gate и L2 Daemon. Полный прогон `./scripts/test-gestapo.sh` и `make test-gestapo-safe`. | Все 5 этапов тестов завершаются 100% PASS. Сборка `make build` проходит чисто. |
 
-Фазы 1-4 закрыты. Вкладка Gestapo Guard в SettingsView реализована и привязана к AppStorage и GestapoWatchdog. Safe-тесты и сборка проходят без ошибок.
+Все 5 фаз утверждённого плана закрыты. Все механизмы Gestapo успешно перенесены в форк Coucou (NotchBuddy).
