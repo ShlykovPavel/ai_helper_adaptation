@@ -1,7 +1,8 @@
 .PHONY: test test-tunnelguard test-tunnelguard-safe test-tunnelguard-swift-safe \
         test-tunnelguard-phase2-safe test-tunnelguard-phase3-safe test-tunnelguard-watchdog \
         test-tunnelguard-python-safe test-tunnelguard-all test-tunnelguard-dangerous \
-        build build-release release-build release
+        build build-release release-build release \
+        package dist
 
 # Безопасный набор — используется по умолчанию. Не запускает тесты,
 # которые намеренно посылают SIGKILL дочерним процессам.
@@ -48,3 +49,10 @@ build-release:
 release-build: build-release
 
 release: build-release
+
+package:
+	./scripts/package.sh
+
+dist:
+	./scripts/package.sh
+
