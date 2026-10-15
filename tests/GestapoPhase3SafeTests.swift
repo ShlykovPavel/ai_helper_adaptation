@@ -16,10 +16,45 @@ final class AppState {
 enum GestapoPhase3SafeTests {
     @MainActor
     static func main() async throws {
+        testPersistedSettingsBeforeStartup()
         testProtectionStatusAndResetEligibility()
         try await testSelectedRouteGateway()
         try await testExternalIpProbeExplainsRoute()
         print("Gestapo Phase 3 safe tests: all passed")
+    }
+
+    @MainActor
+    static func testPersistedSettingsBeforeStartup() {
+        let suite = "gestapo-settings-test-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let fresh = GestapoWatchdog(settingsDefaults: defaults)
+        precondition(fresh.isEnabled && fresh.continuousKill && !fresh.splitTunnelCheck)
+        precondition(fresh.targets == GestapoAppHunter.defaultTargets)
+        for key in ["enabled", "continuousKill", "pingCheckEnabled", "preventSleep",
+                    "sleepWakeGuardEnabled", "alarmSoundEnabled", "macNotificationsEnabled"] {
+            defaults.set(false, forKey: "gestapo.\(key)")
+        }
+        defaults.set(true, forKey: "gestapo.splitTunnelCheck")
+        defaults.set(false, forKey: "gestapo.target.antigravity-ide")
+        let restored = GestapoWatchdog(settingsDefaults: defaults)
+        precondition(!restored.isEnabled && !restored.continuousKill && !restored.pingCheckEnabled)
+        precondition(!restored.preventSleep && !restored.sleepWakeGuardEnabled)
+        precondition(!restored.alarmSoundEnabled && !restored.macNotificationsEnabled)
+        precondition(restored.splitTunnelCheck)
+        precondition(!restored.targets.contains { $0.id == "antigravity-ide" })
+        precondition(restored.targets.contains { $0.id == "antigravity-desktop" })
+        restored.start() // Disabled policy prevents networking and process termination.
+        precondition(restored.protectionStatus == .disabled)
+        restored.stop()
+
+        // Immediate reactivity & clearIpProbeResult verification
+        fresh.isEnabled = false
+        precondition(fresh.protectionStatus == .disabled)
+        fresh.clearIpProbeResult()
+        precondition(fresh.ipProbeResult == nil && fresh.externalIp.isEmpty)
+
+        print("  ✓ persisted policy and IDE target applied before monitoring starts")
     }
 
     @MainActor

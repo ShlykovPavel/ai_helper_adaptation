@@ -144,7 +144,7 @@ struct GestapoShieldCardView: View {
                 }
                 HStack(spacing: 14) {
                     statusRow("network", "Интерфейс", watchdog.lastVpnIface.isEmpty ? "—" : watchdog.lastVpnIface)
-                    statusRow("arrow.triangle.branch", "Шлюз", watchdog.lastGateway.isEmpty ? "—" : watchdog.lastGateway)
+                    statusRow("globe", "Внешний IP", watchdog.ipProbeResult?.ip ?? "—")
                     statusRow("waveform.path.ecg", "Пинг", watchdog.pingLatencyMs > 0 ? String(format: "%.0f ms", watchdog.pingLatencyMs) : "—")
                 }
                 VStack(alignment: .leading, spacing: 3) {
@@ -178,21 +178,42 @@ struct GestapoShieldCardView: View {
                     HStack(spacing: 7) {
                         Menu {
                             ForEach(watchdog.ipProbeDomains, id: \.self) { domain in
-                                Button(domain) { selectedProbeDomain = domain }
+                                Button(domain) {
+                                    if selectedProbeDomain != domain {
+                                        selectedProbeDomain = domain
+                                        watchdog.clearIpProbeResult()
+                                    }
+                                }
                             }
                         } label: {
-                            Label("Цель: \(effectiveProbeDomain)", systemImage: "arrow.triangle.branch")
+                            Label(effectiveProbeDomain, systemImage: "globe")
                         }
                         .menuStyle(.borderlessButton)
+                        .help("Выберите домен, через который проверить защищённый маршрут")
 
-                        Button("Проверить IP") {
+                        Button {
                             watchdog.probeExternalIpOnDemand(domain: effectiveProbeDomain)
+                        } label: {
+                            Label("Проверить IP", systemImage: "checkmark.circle")
                         }
                         .buttonStyle(.plain)
+                        .help("Проверить внешний IP через выбранную цель")
+                        Spacer(minLength: 0)
                     }
                     .font(.system(size: 9, weight: .medium))
                     .foregroundColor(Color(hex: "#B8BBC2"))
                     .disabled(watchdog.isCheckingIp)
+                    .onChange(of: selectedProbeDomain) { _, _ in
+                        watchdog.clearIpProbeResult()
+                    }
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.triangle.branch")
+                        Text("Шлюз: \(watchdog.lastGateway.isEmpty ? "—" : watchdog.lastGateway)")
+                        Image(systemName: "info.circle")
+                            .help("Шлюз — следующий сетевой узел, через который система отправляет трафик. Он помогает проверить, что соединение идёт через VPN.")
+                    }
+                    .font(.system(size: 8.5))
+                    .foregroundColor(Color(hex: "#8E939C"))
                 }
                 HStack {
                     Text(statusFooter)

@@ -5,6 +5,7 @@ import AppKit
 struct SettingsView: View {
     @ObservedObject private var state = AppState.shared
     @ObservedObject private var demoEngine = DemoEngine.shared
+    @ObservedObject private var gestapo = GestapoWatchdog.shared
     @State private var apiKey: String = KeychainStore.shared.get("anthropic-api-key") ?? ""
 
     // Claude model — dynamic list fetched from the API, static fallback if unavailable
@@ -137,6 +138,26 @@ struct SettingsView: View {
 
     // Sidebar selection persisted across sessions
     @AppStorage("settingsSection") private var selectedSection: String = "general"
+    // Gestapo Guard preferences are persisted here and mirrored to the
+    // watchdog when the settings screen is shown or a control changes.
+    @AppStorage("gestapo.enabled") private var gestapoEnabled = true
+    @AppStorage("gestapo.continuousKill") private var gestapoContinuousKill = true
+    @AppStorage("gestapo.pingCheckEnabled") private var gestapoPingCheckEnabled = true
+    @AppStorage("gestapo.splitTunnelCheck") private var gestapoSplitTunnelCheck = false
+    @AppStorage("gestapo.preventSleep") private var gestapoPreventSleep = true
+    @AppStorage("gestapo.sleepWakeGuardEnabled") private var gestapoSleepWakeGuardEnabled = true
+    @AppStorage("gestapo.alarmSoundEnabled") private var gestapoAlarmSoundEnabled = true
+    @AppStorage("gestapo.macNotificationsEnabled") private var gestapoMacNotificationsEnabled = true
+    @AppStorage("gestapo.target.claude-cli") private var protectClaudeCLI = true
+    @AppStorage("gestapo.target.agy-cli") private var protectAgyCLI = true
+    @AppStorage("gestapo.target.codex-cli") private var protectCodexCLI = true
+    @AppStorage("gestapo.target.gemini-cli") private var protectGeminiCLI = true
+    @AppStorage("gestapo.target.cursor-agent-cli") private var protectCursorCLI = true
+    @AppStorage("gestapo.target.claude-desktop") private var protectClaudeDesktop = true
+    @AppStorage("gestapo.target.chatgpt-desktop") private var protectChatGPTDesktop = true
+    @AppStorage("gestapo.target.antigravity-desktop") private var protectAntigravityDesktop = true
+    @AppStorage("gestapo.target.antigravity-ide") private var protectAntigravityIDE = true
+    @State private var gestapoProbeDomain = "claude.ai"
     // Active pills: the pill whose colour palette is open, if any
     @State private var colorPalettePill: String? = nil
     #if PHONE_LINK
@@ -185,6 +206,7 @@ struct SettingsView: View {
                         SettingsSidebarRow(title: "Agents",       icon: "terminal.fill",                     color: "#3B9EFF").tag("agents")
                         SettingsSidebarRow(title: "Chat",         icon: "bubble.left.and.bubble.right.fill", color: "#E07950").tag("chat")
                         SettingsSidebarRow(title: "Integrations", icon: "puzzlepiece.extension.fill",        color: "#7C5CFF").tag("integrations")
+                        SettingsSidebarRow(title: "Gestapo Guard", icon: "shield.checkered",                 color: "#30D158").tag("gestapo")
                         #if !APPSTORE
                         SettingsSidebarRow(title: "Voice",        icon: "mic.fill",                          color: "#F97316").tag("voice")
                         #endif
@@ -227,6 +249,7 @@ struct SettingsView: View {
             #if !APPSTORE
             state.refreshPlanRelayState()
             #endif
+            syncGestapoSettings()
             guard fetchedModels.isEmpty,
                   let key = KeychainStore.shared.get("anthropic-api-key"), !key.isEmpty else { return }
             Task {
@@ -256,6 +279,7 @@ struct SettingsView: View {
         case "agents":       return String(localized: "Agents")
         case "chat":         return String(localized: "Chat")
         case "integrations": return String(localized: "Integrations")
+        case "gestapo":      return "Gestapo Guard"
         case "voice":        return String(localized: "Voice")
         case "shortcuts":    return String(localized: "Shortcuts")
         default:             return String(localized: "General")
@@ -268,6 +292,7 @@ struct SettingsView: View {
         case "agents":       agentsSection
         case "chat":         chatSection
         case "integrations": integrationsSection
+        case "gestapo":      gestapoSection
         #if !APPSTORE
         case "voice":        voiceSection
         #endif
@@ -277,6 +302,145 @@ struct SettingsView: View {
     }
 
     // MARK: - General section
+
+    private func syncGestapoSettings() {
+        gestapo.isEnabled = gestapoEnabled
+        gestapo.continuousKill = gestapoContinuousKill
+        gestapo.pingCheckEnabled = gestapoPingCheckEnabled
+        gestapo.splitTunnelCheck = gestapoSplitTunnelCheck
+        gestapo.preventSleep = gestapoPreventSleep
+        gestapo.sleepWakeGuardEnabled = gestapoSleepWakeGuardEnabled
+        gestapo.alarmSoundEnabled = gestapoAlarmSoundEnabled
+        gestapo.macNotificationsEnabled = gestapoMacNotificationsEnabled
+        let enabledIDs: Set<String> = [
+            protectClaudeCLI ? "claude-cli" : "", protectAgyCLI ? "agy-cli" : "",
+            protectCodexCLI ? "codex-cli" : "", protectGeminiCLI ? "gemini-cli" : "",
+            protectCursorCLI ? "cursor-agent-cli" : "", protectClaudeDesktop ? "claude-desktop" : "",
+            protectChatGPTDesktop ? "chatgpt-desktop" : "", protectAntigravityDesktop ? "antigravity-desktop" : "",
+            protectAntigravityIDE ? "antigravity-ide" : ""
+        ]
+        gestapo.targets = GestapoAppHunter.defaultTargets.filter { enabledIDs.contains($0.id) }
+        if !gestapo.ipProbeDomains.contains(gestapoProbeDomain) {
+            gestapoProbeDomain = gestapo.ipProbeDomains.first ?? "claude.ai"
+            gestapo.clearIpProbeResult()
+        }
+    }
+
+    private func gestapoTargetBinding(_ id: String) -> Binding<Bool> {
+        Binding(get: {
+            switch id {
+            case "claude-cli": return protectClaudeCLI
+            case "agy-cli": return protectAgyCLI
+            case "codex-cli": return protectCodexCLI
+            case "gemini-cli": return protectGeminiCLI
+            case "cursor-agent-cli": return protectCursorCLI
+            case "claude-desktop": return protectClaudeDesktop
+            case "chatgpt-desktop": return protectChatGPTDesktop
+            case "antigravity-desktop": return protectAntigravityDesktop
+            case "antigravity-ide": return protectAntigravityIDE
+            default: return false
+            }
+        }, set: { value in
+            switch id {
+            case "claude-cli": protectClaudeCLI = value
+            case "agy-cli": protectAgyCLI = value
+            case "codex-cli": protectCodexCLI = value
+            case "gemini-cli": protectGeminiCLI = value
+            case "cursor-agent-cli": protectCursorCLI = value
+            case "claude-desktop": protectClaudeDesktop = value
+            case "chatgpt-desktop": protectChatGPTDesktop = value
+            case "antigravity-desktop": protectAntigravityDesktop = value
+            case "antigravity-ide": protectAntigravityIDE = value
+            default: break
+            }
+            syncGestapoSettings()
+        })
+    }
+
+    private func openGestapoLog() {
+        let path = (NSHomeDirectory() as NSString).appendingPathComponent("Library/Logs/Gestapo/watchdog.log")
+        NSWorkspace.shared.open(URL(fileURLWithPath: path))
+    }
+
+    @ViewBuilder private var gestapoSection: some View {
+        GroupBox("Статус защиты и маршрут") {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Circle().fill(gestapo.protectionStatus == .protected ? Color.green : Color.red).frame(width: 8, height: 8)
+                    Text(gestapo.protectionStatus == .protected ? "Защищён" : gestapo.protectionStatus == .grace ? "Переподключение (Grace Period)" : "Утечка / VPN неактивен")
+                    Spacer()
+                    Text(gestapo.lastVpnIface.isEmpty ? "интерфейс не определён" : gestapo.lastVpnIface).foregroundColor(.secondary)
+                }
+                HStack {
+                    Label("Шлюз: \(gestapo.lastGateway.isEmpty ? "не определён" : gestapo.lastGateway)", systemImage: "arrow.triangle.branch")
+                        .help("Шлюз — следующий сетевой узел, через который система отправляет трафик. Он помогает проверить, что соединение идёт через VPN.")
+                    Spacer()
+                    Text(gestapo.pingLatencyMs > 0 ? String(format: "Ping %.0f ms", gestapo.pingLatencyMs) : "Ping —").foregroundColor(.secondary)
+                }
+                HStack(spacing: 8) {
+                    Picker("Цель", selection: $gestapoProbeDomain) {
+                        ForEach(gestapo.ipProbeDomains, id: \.self) { Text($0).tag($0) }
+                    }.frame(maxWidth: 260)
+                    Button(gestapo.isCheckingIp ? "Проверка…" : "Проверить IP") { gestapo.probeExternalIpOnDemand(domain: gestapoProbeDomain) }.disabled(gestapo.isCheckingIp)
+                }
+                .onChange(of: gestapoProbeDomain) { _, _ in
+                    gestapo.clearIpProbeResult()
+                }
+                if let result = gestapo.ipProbeResult {
+                    Text(result.isSuccessful ? "Внешний IP: \(result.ip) · маршрут \(result.targetInterface) · сервис \(result.ipService)" : (result.errorMessage.isEmpty ? "IP не определён" : result.errorMessage))
+                        .font(.system(size: 11)).foregroundColor(result.isSuccessful ? .secondary : .red).fixedSize(horizontal: false, vertical: true)
+                }
+            }.padding(6)
+        }
+        GroupBox("Политика Kill-Switch") {
+            VStack(alignment: .leading, spacing: 8) {
+                Toggle("Включить сторож Gestapo (Kill-Switch активен)", isOn: $gestapoEnabled)
+                Toggle("Непрерывный отстрел (Continuous Kill)", isOn: $gestapoContinuousKill)
+                Toggle("Мониторинг зависшего туннеля (ICMP Ping каждые 5 с)", isOn: $gestapoPingCheckEnabled)
+                Toggle("Проверка Split-Tunneling доменов", isOn: $gestapoSplitTunnelCheck)
+            }.padding(6)
+            .onChange(of: gestapoEnabled) { _, _ in syncGestapoSettings() }
+            .onChange(of: gestapoContinuousKill) { _, _ in syncGestapoSettings() }
+            .onChange(of: gestapoPingCheckEnabled) { _, _ in syncGestapoSettings() }
+            .onChange(of: gestapoSplitTunnelCheck) { _, _ in syncGestapoSettings() }
+        }
+        GroupBox("Управление питанием и крышкой Mac (Power Guard)") {
+            VStack(alignment: .leading, spacing: 8) {
+                Toggle("Защита от сна при блокировке экрана (IOPMAssertion)", isOn: $gestapoPreventSleep)
+                Toggle("Sleep/Wake Guard (10-секундный Grace Period)", isOn: $gestapoSleepWakeGuardEnabled)
+            }.padding(6)
+            .onChange(of: gestapoPreventSleep) { _, _ in syncGestapoSettings() }
+            .onChange(of: gestapoSleepWakeGuardEnabled) { _, _ in syncGestapoSettings() }
+        }
+        GroupBox("Защищаемые приложения и агенты") {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Консольные агенты").font(.subheadline).foregroundColor(.secondary)
+                Toggle("Claude", isOn: gestapoTargetBinding("claude-cli"))
+                Toggle("Antigravity (agy)", isOn: gestapoTargetBinding("agy-cli"))
+                Toggle("Codex", isOn: gestapoTargetBinding("codex-cli"))
+                Toggle("Gemini", isOn: gestapoTargetBinding("gemini-cli"))
+                Toggle("Cursor Agent", isOn: gestapoTargetBinding("cursor-agent-cli"))
+                Divider()
+                Text("Оконные приложения").font(.subheadline).foregroundColor(.secondary)
+                Toggle("Claude Desktop", isOn: gestapoTargetBinding("claude-desktop"))
+                Toggle("ChatGPT Desktop", isOn: gestapoTargetBinding("chatgpt-desktop"))
+                Toggle("Antigravity Desktop", isOn: gestapoTargetBinding("antigravity-desktop"))
+                Toggle("Antigravity IDE", isOn: gestapoTargetBinding("antigravity-ide"))
+            }.padding(6)
+        }
+        GroupBox("Оповещения и аудит") {
+            VStack(alignment: .leading, spacing: 8) {
+                Toggle("Системный звук при аварии", isOn: $gestapoAlarmSoundEnabled)
+                Toggle("Баннеры Центра уведомлений macOS", isOn: $gestapoMacNotificationsEnabled)
+                HStack(spacing: 8) {
+                    Button("Открыть журнал аудита (watchdog.log)") { openGestapoLog() }
+                    Button("Симуляция аварии VPN") { gestapo.executeGestapoHardKill(reason: "Тестовая симуляция аварии VPN") }.foregroundColor(.red)
+                }
+            }.padding(6)
+            .onChange(of: gestapoAlarmSoundEnabled) { _, _ in syncGestapoSettings() }
+            .onChange(of: gestapoMacNotificationsEnabled) { _, _ in syncGestapoSettings() }
+        }
+    }
 
     @ViewBuilder private var generalSection: some View {
         GroupBox(String(localized: "demo.groupbox.title")) {

@@ -39,11 +39,26 @@ final class GestapoWatchdog: ObservableObject {
     var canResetSecurityAlert: Bool { protectionStatus == .protected }
 
     // MARK: - Настройки и политики
-    @Published var isEnabled: Bool = true
+    @Published var isEnabled: Bool = true {
+        didSet {
+            if !isEnabled {
+                protectionStatus = .disabled
+                isGracePeriodActive = false
+                powerGuard.updateSleepAssertion(shouldHold: false)
+            }
+        }
+    }
     @Published var continuousKill: Bool = true
     @Published var pingCheckEnabled: Bool = true
     @Published var splitTunnelCheck: Bool = false
-    @Published var preventSleep: Bool = true
+    @Published var preventSleep: Bool = true {
+        didSet {
+            powerGuard.updateSleepAssertion(
+                shouldHold: preventSleep && isEnabled,
+                reason: "Gestapo VPN Protection Active"
+            )
+        }
+    }
     @Published var sleepWakeGuardEnabled: Bool = true
     @Published var alarmSoundEnabled: Bool = true
     @Published var macNotificationsEnabled: Bool = true
@@ -63,6 +78,7 @@ final class GestapoWatchdog: ObservableObject {
     private var monitorTimer: Timer?
     private let queue = DispatchQueue(label: "com.gestapo.coucou.watchdog", qos: .userInitiated)
     private var isChecking: Bool = false
+    private let settingsDefaults: UserDefaults
 
     /// Точные имена исполняемых файлов (флаг -x исключает ложные срабатывания)
     nonisolated static let targetProcessExactNames = [
@@ -75,13 +91,20 @@ final class GestapoWatchdog: ObservableObject {
 
     init(
         powerGuard: GestapoPowerGuard = GestapoPowerGuard(),
-        networkWorker: GestapoNetworkWorker = GestapoNetworkWorker()
+        networkWorker: GestapoNetworkWorker = GestapoNetworkWorker(),
+        settingsDefaults: UserDefaults = .standard
     ) {
         self.powerGuard = powerGuard
         self.networkWorker = networkWorker
+        self.settingsDefaults = settingsDefaults
+        loadPersistedSettings()
     }
 
     func start() {
+        // AppDelegate starts the singleton before SettingsView is created. Load
+        // AppStorage-backed preferences here so the first network check uses
+        // the user's persisted policy and target selection.
+        loadPersistedSettings()
         checkNetwork()
 
         // Таймер в режиме .common для работы даже при открытых системных меню
@@ -92,6 +115,38 @@ final class GestapoWatchdog: ObservableObject {
         }
         RunLoop.main.add(timer, forMode: .common)
         self.monitorTimer = timer
+    }
+
+    private func loadPersistedSettings() {
+        let defaults = settingsDefaults
+        func bool(forKey key: String, default defaultValue: Bool) -> Bool {
+            guard defaults.object(forKey: key) != nil else { return defaultValue }
+            return defaults.bool(forKey: key)
+        }
+
+        isEnabled = bool(forKey: "gestapo.enabled", default: true)
+        continuousKill = bool(forKey: "gestapo.continuousKill", default: true)
+        pingCheckEnabled = bool(forKey: "gestapo.pingCheckEnabled", default: true)
+        splitTunnelCheck = bool(forKey: "gestapo.splitTunnelCheck", default: false)
+        preventSleep = bool(forKey: "gestapo.preventSleep", default: true)
+        sleepWakeGuardEnabled = bool(forKey: "gestapo.sleepWakeGuardEnabled", default: true)
+        alarmSoundEnabled = bool(forKey: "gestapo.alarmSoundEnabled", default: true)
+        macNotificationsEnabled = bool(forKey: "gestapo.macNotificationsEnabled", default: true)
+
+        targets = GestapoAppHunter.defaultTargets.filter { target in
+            bool(forKey: "gestapo.target.\(target.id)", default: true)
+        }
+
+        if !isEnabled {
+            protectionStatus = .disabled
+            isGracePeriodActive = false
+            powerGuard.updateSleepAssertion(shouldHold: false)
+        } else {
+            powerGuard.updateSleepAssertion(
+                shouldHold: preventSleep,
+                reason: "Gestapo VPN Protection Active"
+            )
+        }
     }
 
     func stop() {
@@ -295,6 +350,12 @@ final class GestapoWatchdog: ObservableObject {
             self.isCheckingIp = false
             Self.logSecurityEvent("🛰 [IP_PROBE] Внешний IP: \(result.ip.isEmpty ? "не определен" : result.ip) (интерфейс: \(result.iface), vpn: \(result.isVpn))")
         }
+    }
+
+    /// Сбрасывает устаревший результат IP-проверки при смене целевого домена.
+    func clearIpProbeResult() {
+        ipProbeResult = nil
+        externalIp = ""
     }
 
     // MARK: - Статические утилиты (Nonisolated для Swift 6 и обратной совместимости)
