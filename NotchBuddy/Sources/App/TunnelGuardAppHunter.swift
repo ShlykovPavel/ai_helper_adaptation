@@ -6,7 +6,7 @@ import AppKit
 /// `NSRunningApplication` нельзя создать в изолированных тестах. Этот seam
 /// оставляет в production только тонкий адаптер AppKit, а тесты могут
 /// подставить безопасный mock, не запуская и не завершая реальные процессы.
-struct GestapoRunningApplication {
+struct TunnelGuardRunningApplication {
     let processIdentifier: Int32
     let bundleIdentifier: String?
     let forceTerminate: () -> Bool
@@ -22,8 +22,8 @@ struct GestapoRunningApplication {
     }
 }
 
-/// Описание целевого приложения или CLI-агента под защитой Gestapo
-struct GestapoTargetApp: Sendable, Identifiable, Equatable {
+/// Описание целевого приложения или CLI-агента под защитой TunnelGuard
+struct TunnelGuardTargetApp: Sendable, Identifiable, Equatable {
     enum TargetType: String, Sendable, Equatable {
         case cli
         case gui
@@ -36,24 +36,24 @@ struct GestapoTargetApp: Sendable, Identifiable, Equatable {
     let domain: String
 }
 
-/// GestapoAppHunter отвечает за обнаружение и гарантированную ликвидацию
+/// TunnelGuardAppHunter отвечает за обнаружение и гарантированную ликвидацию
 /// защищаемых процессов (как консольных агентов, так и оконных приложений macOS).
-final class GestapoAppHunter: Sendable {
+final class TunnelGuardAppHunter: Sendable {
 
-    /// Предустановленный список целей Gestapo
-    nonisolated static let defaultTargets: [GestapoTargetApp] = [
+    /// Предустановленный список целей TunnelGuard
+    nonisolated static let defaultTargets: [TunnelGuardTargetApp] = [
         // CLI-агенты
-        GestapoTargetApp(id: "claude-cli", name: "Claude CLI", type: .cli, binaryOrBundleId: "claude", domain: "claude.ai"),
-        GestapoTargetApp(id: "agy-cli", name: "Antigravity CLI", type: .cli, binaryOrBundleId: "agy", domain: "generativelanguage.googleapis.com"),
-        GestapoTargetApp(id: "codex-cli", name: "Codex CLI", type: .cli, binaryOrBundleId: "codex", domain: "chatgpt.com"),
-        GestapoTargetApp(id: "gemini-cli", name: "Gemini CLI", type: .cli, binaryOrBundleId: "gemini", domain: "generativelanguage.googleapis.com"),
-        GestapoTargetApp(id: "cursor-agent-cli", name: "Cursor Agent", type: .cli, binaryOrBundleId: "cursor-agent", domain: "cursor.sh"),
+        TunnelGuardTargetApp(id: "claude-cli", name: "Claude CLI", type: .cli, binaryOrBundleId: "claude", domain: "claude.ai"),
+        TunnelGuardTargetApp(id: "agy-cli", name: "Antigravity CLI", type: .cli, binaryOrBundleId: "agy", domain: "generativelanguage.googleapis.com"),
+        TunnelGuardTargetApp(id: "codex-cli", name: "Codex CLI", type: .cli, binaryOrBundleId: "codex", domain: "chatgpt.com"),
+        TunnelGuardTargetApp(id: "gemini-cli", name: "Gemini CLI", type: .cli, binaryOrBundleId: "gemini", domain: "generativelanguage.googleapis.com"),
+        TunnelGuardTargetApp(id: "cursor-agent-cli", name: "Cursor Agent", type: .cli, binaryOrBundleId: "cursor-agent", domain: "cursor.sh"),
 
         // Оконные GUI-приложения
-        GestapoTargetApp(id: "claude-desktop", name: "Claude Desktop", type: .gui, binaryOrBundleId: "com.anthropic.claudefordesktop", domain: "claude.ai"),
-        GestapoTargetApp(id: "chatgpt-desktop", name: "ChatGPT Desktop", type: .gui, binaryOrBundleId: "com.openai.chat", domain: "chatgpt.com"),
-        GestapoTargetApp(id: "antigravity-desktop", name: "Antigravity Desktop", type: .gui, binaryOrBundleId: "com.google.antigravity", domain: "generativelanguage.googleapis.com"),
-        GestapoTargetApp(id: "antigravity-ide", name: "Antigravity IDE", type: .gui, binaryOrBundleId: "com.google.antigravity.ide", domain: "generativelanguage.googleapis.com")
+        TunnelGuardTargetApp(id: "claude-desktop", name: "Claude Desktop", type: .gui, binaryOrBundleId: "com.anthropic.claudefordesktop", domain: "claude.ai"),
+        TunnelGuardTargetApp(id: "chatgpt-desktop", name: "ChatGPT Desktop", type: .gui, binaryOrBundleId: "com.openai.chat", domain: "chatgpt.com"),
+        TunnelGuardTargetApp(id: "antigravity-desktop", name: "Antigravity Desktop", type: .gui, binaryOrBundleId: "com.google.antigravity", domain: "generativelanguage.googleapis.com"),
+        TunnelGuardTargetApp(id: "antigravity-ide", name: "Antigravity IDE", type: .gui, binaryOrBundleId: "com.google.antigravity.ide", domain: "generativelanguage.googleapis.com")
     ]
 
     /// Имена бинарников CLI по умолчанию
@@ -65,7 +65,7 @@ final class GestapoAppHunter: Sendable {
     nonisolated static let suicideWhitelist: Set<String> = [
         "coucou",
         "notchbuddy",
-        "gestapo",
+        "tunnelguard",
         "terminal",
         "zsh",
         "bash",
@@ -85,9 +85,9 @@ final class GestapoAppHunter: Sendable {
 
     /// Снимок AppKit-приложений для production-вызова. В тестах этот список
     /// заменяется параметром `runningApplications`.
-    nonisolated static func liveRunningApplications() -> [GestapoRunningApplication] {
+    nonisolated static func liveRunningApplications() -> [TunnelGuardRunningApplication] {
         NSWorkspace.shared.runningApplications.map { app in
-            GestapoRunningApplication(
+            TunnelGuardRunningApplication(
                 processIdentifier: app.processIdentifier,
                 bundleIdentifier: app.bundleIdentifier,
                 forceTerminate: { app.forceTerminate() }
@@ -113,9 +113,9 @@ final class GestapoAppHunter: Sendable {
     /// Возвращает список имён ликвидированных целей
     @discardableResult
     nonisolated static func killAllActiveTargets(
-        targets: [GestapoTargetApp],
+        targets: [TunnelGuardTargetApp],
         pkillExecutableURL: URL = URL(fileURLWithPath: "/usr/bin/pkill"),
-        runningApplications: [GestapoRunningApplication]? = nil
+        runningApplications: [TunnelGuardRunningApplication]? = nil
     ) -> [String] {
         var killedNames: [String] = []
         let currentPid = ProcessInfo.processInfo.processIdentifier

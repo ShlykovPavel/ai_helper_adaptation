@@ -2,7 +2,7 @@ import Foundation
 import AppKit
 import Darwin
 
-enum GestapoProtectionStatus: Equatable, Sendable {
+enum TunnelGuardProtectionStatus: Equatable, Sendable {
     case disabled
     case grace
     case protected
@@ -11,16 +11,16 @@ enum GestapoProtectionStatus: Equatable, Sendable {
     case splitTunnelLeak
 }
 
-/// Главный координатор системы безопасности Gestapo.
-/// Объединяет GestapoPowerGuard, GestapoNetworkWorker и GestapoAppHunter
+/// Главный координатор системы безопасности TunnelGuard.
+/// Объединяет TunnelGuardPowerGuard, TunnelGuardNetworkWorker и TunnelGuardAppHunter
 /// и предоставляет реактивный интерфейс для SwiftUI и Dynamic Island (чёлки).
 @MainActor
-final class GestapoWatchdog: ObservableObject {
-    static let shared = GestapoWatchdog()
+final class TunnelGuardWatchdog: ObservableObject {
+    static let shared = TunnelGuardWatchdog()
 
     // MARK: - Подсистемы
-    let powerGuard: GestapoPowerGuard
-    let networkWorker: GestapoNetworkWorker
+    let powerGuard: TunnelGuardPowerGuard
+    let networkWorker: TunnelGuardNetworkWorker
 
     // MARK: - Реактивные свойства состояния
     @Published private(set) var isVpnActive: Bool = true
@@ -34,7 +34,7 @@ final class GestapoWatchdog: ObservableObject {
     @Published private(set) var isGracePeriodActive: Bool = false
     /// Единый статус, которым пользуются watchdog и UI. Он учитывает не только
     /// наличие utun, но и dead-tunnel/split-tunnel аварии.
-    @Published private(set) var protectionStatus: GestapoProtectionStatus = .protected
+    @Published private(set) var protectionStatus: TunnelGuardProtectionStatus = .protected
 
     var canResetSecurityAlert: Bool { protectionStatus == .protected }
 
@@ -55,14 +55,14 @@ final class GestapoWatchdog: ObservableObject {
         didSet {
             powerGuard.updateSleepAssertion(
                 shouldHold: preventSleep && isEnabled,
-                reason: "Gestapo VPN Protection Active"
+                reason: "TunnelGuard VPN Protection Active"
             )
         }
     }
     @Published var sleepWakeGuardEnabled: Bool = true
     @Published var alarmSoundEnabled: Bool = true
     @Published var macNotificationsEnabled: Bool = true
-    @Published var targets: [GestapoTargetApp] = GestapoAppHunter.defaultTargets
+    @Published var targets: [TunnelGuardTargetApp] = TunnelGuardAppHunter.defaultTargets
 
     /// Домены, по которым пользователь может вручную проверить маршрут и внешний IP.
     var ipProbeDomains: [String] {
@@ -76,7 +76,7 @@ final class GestapoWatchdog: ObservableObject {
     // MARK: - Внутреннее состояние
     private var previousHealthy: Bool = true
     private var monitorTimer: Timer?
-    private let queue = DispatchQueue(label: "com.gestapo.coucou.watchdog", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "com.tunnelguard.coucou.watchdog", qos: .userInitiated)
     private var isChecking: Bool = false
     private let settingsDefaults: UserDefaults
 
@@ -90,8 +90,8 @@ final class GestapoWatchdog: ObservableObject {
     ]
 
     init(
-        powerGuard: GestapoPowerGuard = GestapoPowerGuard(),
-        networkWorker: GestapoNetworkWorker = GestapoNetworkWorker(),
+        powerGuard: TunnelGuardPowerGuard = TunnelGuardPowerGuard(),
+        networkWorker: TunnelGuardNetworkWorker = TunnelGuardNetworkWorker(),
         settingsDefaults: UserDefaults = .standard
     ) {
         self.powerGuard = powerGuard
@@ -124,17 +124,17 @@ final class GestapoWatchdog: ObservableObject {
             return defaults.bool(forKey: key)
         }
 
-        isEnabled = bool(forKey: "gestapo.enabled", default: true)
-        continuousKill = bool(forKey: "gestapo.continuousKill", default: true)
-        pingCheckEnabled = bool(forKey: "gestapo.pingCheckEnabled", default: true)
-        splitTunnelCheck = bool(forKey: "gestapo.splitTunnelCheck", default: false)
-        preventSleep = bool(forKey: "gestapo.preventSleep", default: true)
-        sleepWakeGuardEnabled = bool(forKey: "gestapo.sleepWakeGuardEnabled", default: true)
-        alarmSoundEnabled = bool(forKey: "gestapo.alarmSoundEnabled", default: true)
-        macNotificationsEnabled = bool(forKey: "gestapo.macNotificationsEnabled", default: true)
+        isEnabled = bool(forKey: "tunnelGuard.enabled", default: true)
+        continuousKill = bool(forKey: "tunnelGuard.continuousKill", default: true)
+        pingCheckEnabled = bool(forKey: "tunnelGuard.pingCheckEnabled", default: true)
+        splitTunnelCheck = bool(forKey: "tunnelGuard.splitTunnelCheck", default: false)
+        preventSleep = bool(forKey: "tunnelGuard.preventSleep", default: true)
+        sleepWakeGuardEnabled = bool(forKey: "tunnelGuard.sleepWakeGuardEnabled", default: true)
+        alarmSoundEnabled = bool(forKey: "tunnelGuard.alarmSoundEnabled", default: true)
+        macNotificationsEnabled = bool(forKey: "tunnelGuard.macNotificationsEnabled", default: true)
 
-        targets = GestapoAppHunter.defaultTargets.filter { target in
-            bool(forKey: "gestapo.target.\(target.id)", default: true)
+        targets = TunnelGuardAppHunter.defaultTargets.filter { target in
+            bool(forKey: "tunnelGuard.target.\(target.id)", default: true)
         }
 
         if !isEnabled {
@@ -144,7 +144,7 @@ final class GestapoWatchdog: ObservableObject {
         } else {
             powerGuard.updateSleepAssertion(
                 shouldHold: preventSleep,
-                reason: "Gestapo VPN Protection Active"
+                reason: "TunnelGuard VPN Protection Active"
             )
         }
     }
@@ -175,7 +175,7 @@ final class GestapoWatchdog: ObservableObject {
         // the network is in grace or the protection is disabled.
         powerGuard.updateSleepAssertion(
             shouldHold: preventSleep && isEnabled,
-            reason: "Gestapo VPN Protection Active"
+            reason: "TunnelGuard VPN Protection Active"
         )
 
         guard isEnabled else {
@@ -227,13 +227,13 @@ final class GestapoWatchdog: ObservableObject {
         if wasHealthy && !currentlyHealthy {
             // Edge Trigger: Первое падение — полномасштабная авария
             previousHealthy = false
-            executeGestapoHardKill(reason: failureReason, detectedIface: snapshot.iface)
+            executeTunnelGuardHardKill(reason: failureReason, detectedIface: snapshot.iface)
         } else if !wasHealthy && !currentlyHealthy {
             // Level Trigger: Повторные тики пока сеть не восстановлена (Continuous Kill)
             if continuousKill {
                 let activeTargets = targets
                 queue.async {
-                    let killed = GestapoAppHunter.killAllActiveTargets(targets: activeTargets)
+                    let killed = TunnelGuardAppHunter.killAllActiveTargets(targets: activeTargets)
                     if !killed.isEmpty {
                         Self.logSecurityEvent("⚡ [CONTINUOUS_KILL] Подавлены повторно запущенные процессы: \(killed.joined(separator: ", "))")
                     }
@@ -300,7 +300,7 @@ final class GestapoWatchdog: ObservableObject {
 
     // MARK: - Аварийная ликвидация (Hard Kill)
 
-    func executeGestapoHardKill(reason: String, detectedIface: String = "") {
+    func executeTunnelGuardHardKill(reason: String, detectedIface: String = "") {
         // Активация режима тревоги в чёлке
         AppState.shared.triggerSecurityPanic(
             message: "VPN отключен! AI-агенты принудительно ликвидированы."
@@ -313,8 +313,8 @@ final class GestapoWatchdog: ObservableObject {
 
         // Системный баннер macOS
         if macNotificationsEnabled {
-            GestapoAppHunter.sendMacNotification(
-                title: "🚨 ГЕСТАПО: ТРЕВОГА!",
+            TunnelGuardAppHunter.sendMacNotification(
+                title: "🚨 TUNNELGUARD: ТРЕВОГА!",
                 message: reason
             )
         }
@@ -323,15 +323,15 @@ final class GestapoWatchdog: ObservableObject {
         let activeTargets = targets
         queue.async {
             Self.logSecurityEvent("🚨 [KILL-SWITCH] \(reason). Немедленная ликвидация агентов.")
-            let killed = GestapoAppHunter.killAllActiveTargets(targets: activeTargets)
+            let killed = TunnelGuardAppHunter.killAllActiveTargets(targets: activeTargets)
             if !killed.isEmpty {
                 Self.logSecurityEvent("💀 [KILL-SWITCH] Ликвидированы: \(killed.joined(separator: ", "))")
             }
         }
     }
 
-    func executeGestapoHardKill(detectedIface: String) {
-        executeGestapoHardKill(
+    func executeTunnelGuardHardKill(detectedIface: String) {
+        executeTunnelGuardHardKill(
             reason: "VPN упал! Обнаружен интерфейс: \(detectedIface)",
             detectedIface: detectedIface
         )
@@ -445,7 +445,7 @@ final class GestapoWatchdog: ObservableObject {
     }
 
     nonisolated static func logSecurityEvent(_ message: String, logDirURL: URL? = nil) {
-        let logDir = logDirURL ?? URL(fileURLWithPath: (NSHomeDirectory() as NSString).appendingPathComponent("Library/Logs/Gestapo"))
+        let logDir = logDirURL ?? URL(fileURLWithPath: (NSHomeDirectory() as NSString).appendingPathComponent("Library/Logs/TunnelGuard"))
         try? FileManager.default.createDirectory(at: logDir, withIntermediateDirectories: true)
         let logFile = logDir.appendingPathComponent("watchdog.log")
 
@@ -460,7 +460,7 @@ final class GestapoWatchdog: ObservableObject {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         let timestamp = formatter.string(from: Date())
-        let line = "\(timestamp) [GESTAPO_WATCHDOG] \(message)\n"
+        let line = "\(timestamp) [TUNNELGUARD_WATCHDOG] \(message)\n"
 
         if let data = line.data(using: .utf8) {
             if FileManager.default.fileExists(atPath: logFile.path),

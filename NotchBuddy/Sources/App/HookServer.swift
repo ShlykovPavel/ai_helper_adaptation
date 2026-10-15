@@ -3157,7 +3157,7 @@ extension Notification.Name {
 
 private let nbHookShellWrapper = """
 #!/bin/sh
-# Coucou hook relay with Gestapo Security Gate
+# Coucou hook relay with TunnelGuard Security Gate
 HOOK_DIR="$(dirname "$0")"
 out=""
 if xcode-select -p >/dev/null 2>&1 && [ -x /usr/bin/python3 ]; then
@@ -3233,7 +3233,7 @@ def get_real_agent_pid():
         pass
     return os.getppid()
 
-def gestapo_kill_agent_and_exit():
+def tunnel_guard_kill_agent_and_exit():
     # Fail-Closed отказ в stdout + SIGKILL реального агента
     agent_pid = get_real_agent_pid()
     
@@ -3242,7 +3242,7 @@ def gestapo_kill_agent_and_exit():
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
-            "message": "🚨 [GESTAPO] VPN ОТКЛЮЧЕН! Действие заблокировано."
+            "message": "🚨 [TUNNELGUARD] VPN ОТКЛЮЧЕН! Действие заблокировано."
         }
     }
     try:
@@ -3318,9 +3318,9 @@ def normalize_tool_fields(payload):
         payload['cwd'] = payload['workdir']
 
 def main():
-    # ШЛАГБАУМ ГЕСТАПО: блокируем до чтения stdin
+    # ШЛАГБАУМ TUNNELGUARD: блокируем до чтения stdin
     if not verify_vpn_route_utun():
-        gestapo_kill_agent_and_exit()
+        tunnel_guard_kill_agent_and_exit()
 
     raw = b''
     payload = {}

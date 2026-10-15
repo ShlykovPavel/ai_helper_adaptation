@@ -6,10 +6,9 @@ Coucou is a native macOS app (`NotchBuddy/`); `windows/` is the Tauri version fo
 - `NotchBuddy/Sources/App/` — Mac-only Swift code. `NotchBuddy/Sources/CoucouKit/` — code shared with the iPhone app (Mochi's BotEngine and outfits, pills, diff, models). `NotchBuddy/Sources/Phone/` — iPhone app (`CoucouPhone` target), with its widgets in `Sources/Widgets/` and the expanded approval notification in `Sources/NotificationContent/`. `NotchBuddy/Resources/sounds/` — the 28 WAV sounds. `NotchBuddy/project.yml` — XcodeGen project (never edit the `.xcodeproj` by hand).
 - `NotchBuddy/Sources/CoucouKit/PillCatalog.swift` — single source of truth for all declared pills (workspace tools, agents, AI providers, services). Every pill ID, color, category and subtitle lives here.
 - `docs/SPEC.md`, `docs/INTEGRATIONS.md` — behaviour, views, states, integrations (in French).
-- `docs/gestapo/GESTAPO.md` — Gestapo VPN watchdog & kill-switch architecture, L1 hook gate and L2 daemon.
-- `docs/gestapo/IMPLEMENTATION_PLAN.md` — Master implementation plan for full Gestapo integration.
-- `docs/gestapo/FORK_SYNC.md` — Fork update and upstream sync guide.
-- `docs/gestapo/BUILD_MACOS.md` — macOS build and execution instructions.
+- `docs/tunnelguard/TUNNELGUARD.md` — TunnelGuard VPN watchdog & kill-switch architecture, L1 hook gate and L2 daemon.
+- `docs/tunnelguard/FORK_SYNC.md` — Fork update and upstream sync guide.
+- `docs/tunnelguard/BUILD_MACOS.md` — macOS build and execution instructions.
 - `design/prototype/notch-buddy.html` — original prototype, the visual source of truth. `design/captures/` — target screenshots.
 - `windows/` — the Tauri app for Windows and Linux: Rust in `src-tauri/`, TypeScript in `src/`, the `coucou-hook` relay in `hook/`. `windows/README.md` lists what differs from the Mac.
 - `docs/*.html` — the GitHub Pages site (privacy, terms, support, legal notice).

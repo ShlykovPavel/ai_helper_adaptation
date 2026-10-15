@@ -1,6 +1,6 @@
 # Руководство по обновлению и синхронизации форка
 
-Этот репозиторий является форком официального проекта **Coucou (NotchBuddy)** ([Louis-CFM/coucou](https://github.com/Louis-CFM/coucou)). В ветку `gestapo-notch` интегрирован защитный контур **Gestapo** (VPN Watchdog, Kill-Switch, экран тревоги чёлки и адаптация сборки без платных подписей Apple Developer).
+Этот репозиторий является форком официального проекта **Coucou (NotchBuddy)** ([Louis-CFM/coucou](https://github.com/Louis-CFM/coucou)). В ветку `tunnelguard-notch` интегрирован защитный контур **TunnelGuard** (VPN Watchdog, Kill-Switch, экран тревоги чёлки и адаптация сборки без платных подписей Apple Developer).
 
 В этом документе описан регламент регулярной синхронизации нашего форка с апстримом (upstream).
 
@@ -29,7 +29,7 @@ git remote set-url --push upstream DISABLE   # Защита от случайн�
 ## 2. Структура веток
 
 - `main` — зеркало оригинальной ветки `upstream/main`.
-- `gestapo-notch` — наша основная рабочая ветка с функционалом Gestapo и адаптацией для локального запуска на Mac.
+- `tunnelguard-notch` — наша основная рабочая ветка с функционалом TunnelGuard и адаптацией для локального запуска на Mac.
 
 ---
 
@@ -47,10 +47,10 @@ git merge upstream/main --ff-only
 git push origin main
 ```
 
-### Шаг 3. Переход в рабочую ветку `gestapo-notch`
+### Шаг 3. Переход в рабочую ветку `tunnelguard-notch`
 Перед слиянием убедитесь, что в рабочей директории нет незакоммиченных изменений:
 ```bash
-git checkout gestapo-notch
+git checkout tunnelguard-notch
 git status
 ```
 
@@ -70,12 +70,12 @@ git merge upstream/main
 | Файл | Что в нем изменено (НЕ ЗАТИРАТЬ апстримом!) |
 |---|---|
 | [`NotchBuddy/project.yml`](file:///Users/pavel/ai_helper_adaptation/NotchBuddy/project.yml) | **КРИТИЧНО**: В upstream используются сертификаты `Apple Development`, `DEVELOPMENT_TEAM: 256AUJ9555` и таргеты `CoucouAppStore`. В нашем форке отключена подпись (`CODE_SIGNING_REQUIRED: NO`, `CODE_SIGN_IDENTITY: ""`), убраны AppStore схемы. **Сохраняйте нашу конфигурацию**, иначе проект не соберется без сертификата разработчика! |
-| [`NotchBuddy/Sources/App/GestapoWatchdog.swift`](file:///Users/pavel/ai_helper_adaptation/NotchBuddy/Sources/App/GestapoWatchdog.swift) | Наш новый файл. Должен оставаться нетронутым. |
-| [`NotchBuddy/Sources/App/HookServer.swift`](file:///Users/pavel/ai_helper_adaptation/NotchBuddy/Sources/App/HookServer.swift) | Содержит шаблон `nbHookPythonGitHub` со шлагбаумом Гестапо (`verify_vpn_route_utun`, `gestapo_kill_agent_and_exit`) и Fail-Closed обертку `nbHookShellWrapper`. |
+| [`NotchBuddy/Sources/App/TunnelGuardWatchdog.swift`](file:///Users/pavel/ai_helper_adaptation/NotchBuddy/Sources/App/TunnelGuardWatchdog.swift) | Наш новый файл. Должен оставаться нетронутым. |
+| [`NotchBuddy/Sources/App/HookServer.swift`](file:///Users/pavel/ai_helper_adaptation/NotchBuddy/Sources/App/HookServer.swift) | Содержит шаблон `nbHookPythonGitHub` со шлагбаумом TunnelGuard (`verify_vpn_route_utun`, `tunnel_guard_kill_agent_and_exit`) и Fail-Closed обертку `nbHookShellWrapper`. |
 | [`NotchBuddy/Sources/App/AppState.swift`](file:///Users/pavel/ai_helper_adaptation/NotchBuddy/Sources/App/AppState.swift) | Содержит методы `triggerSecurityPanic` и `resetSecurityAlert`, а также свойство `securityAlarmText`. |
-| [`NotchBuddy/Sources/App/AppDelegate.swift`](file:///Users/pavel/ai_helper_adaptation/NotchBuddy/Sources/App/AppDelegate.swift) | Вызовы `GestapoWatchdog.shared.start()` и `stop()`, а также замыкания `MainActor.assumeIsolated`. |
+| [`NotchBuddy/Sources/App/AppDelegate.swift`](file:///Users/pavel/ai_helper_adaptation/NotchBuddy/Sources/App/AppDelegate.swift) | Вызовы `TunnelGuardWatchdog.shared.start()` и `stop()`, а также замыкания `MainActor.assumeIsolated`. |
 | [`NotchBuddy/Sources/CoucouKit/IslandTypes.swift`](file:///Users/pavel/ai_helper_adaptation/NotchBuddy/Sources/CoucouKit/IslandTypes.swift) | Перечисление `IslandView.securityPanic` и его параметры верстки/цвета в `IslandConst`. |
-| [`NotchBuddy/Sources/CoucouKit/PillCatalog.swift`](file:///Users/pavel/ai_helper_adaptation/NotchBuddy/Sources/CoucouKit/PillCatalog.swift) | Декларация плашки `gestapo_shield`. |
+| [`NotchBuddy/Sources/CoucouKit/PillCatalog.swift`](file:///Users/pavel/ai_helper_adaptation/NotchBuddy/Sources/CoucouKit/PillCatalog.swift) | Декларация плашки `tunnelguard_shield`. |
 | [`NotchBuddy/Sources/App/IslandViewContent.swift`](file:///Users/pavel/ai_helper_adaptation/NotchBuddy/Sources/App/IslandViewContent.swift) | Структура `SecurityPanicView`. |
 | [`NotchBuddy/Sources/App/BotCanvasView.swift`](file:///Users/pavel/ai_helper_adaptation/NotchBuddy/Sources/App/BotCanvasView.swift) | Адаптация Swift 6 Concurrency (модификаторы наблюдателей состояния). |
 | [`NotchBuddy/Sources/App/IslandWindowController.swift`](file:///Users/pavel/ai_helper_adaptation/NotchBuddy/Sources/App/IslandWindowController.swift) | Селектор `handleDidActivateApplication` и вызовы `MainActor.assumeIsolated`. |
@@ -117,6 +117,6 @@ cd ..
 
 ```bash
 git add .
-git commit -m "chore(sync): merge upstream changes into gestapo-notch"
-git push origin gestapo-notch
+git commit -m "chore(sync): merge upstream changes into tunnelguard-notch"
+git push origin tunnelguard-notch
 ```

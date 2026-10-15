@@ -11,7 +11,7 @@ private final class MockRunningApplication {
         self.bundleIdentifier = bundleIdentifier
     }
 
-    lazy var snapshot: GestapoRunningApplication = GestapoRunningApplication(
+    lazy var snapshot: TunnelGuardRunningApplication = TunnelGuardRunningApplication(
         processIdentifier: processIdentifier,
         bundleIdentifier: bundleIdentifier,
         forceTerminate: { [weak self] in
@@ -23,28 +23,28 @@ private final class MockRunningApplication {
 }
 
 @main
-enum GestapoAppHunterSafeTests {
+enum TunnelGuardAppHunterSafeTests {
     static func main() throws {
         testWhitelistIsExact()
         try testGuiTerminationUsesForceTerminateAndExactBundleID()
         try testCliTerminationUsesExactPkillArguments()
         testNotificationScriptEscaping()
-        print("Gestapo AppHunter Phase 2 safe tests: all passed")
+        print("TunnelGuard AppHunter Phase 2 safe tests: all passed")
     }
 
     static func testWhitelistIsExact() {
-        precondition(GestapoAppHunter.isProtectedProcess("coucou"))
-        precondition(GestapoAppHunter.isProtectedProcess("/usr/bin/zsh"))
-        precondition(GestapoAppHunter.isProtectedProcess(" TERMINAL\n"))
-        precondition(!GestapoAppHunter.isProtectedProcess("coucou-helper"),
+        precondition(TunnelGuardAppHunter.isProtectedProcess("coucou"))
+        precondition(TunnelGuardAppHunter.isProtectedProcess("/usr/bin/zsh"))
+        precondition(TunnelGuardAppHunter.isProtectedProcess(" TERMINAL\n"))
+        precondition(!TunnelGuardAppHunter.isProtectedProcess("coucou-helper"),
                      "Whitelist must not match a process by substring")
-        precondition(!GestapoAppHunter.isProtectedProcess("bash-malware"),
+        precondition(!TunnelGuardAppHunter.isProtectedProcess("bash-malware"),
                      "Whitelist must not match a process by substring")
-        precondition(!GestapoAppHunter.isProtectedProcess("/tmp/coucou-helper"))
-        precondition(!GestapoAppHunter.isSafeExecutableName("/tmp/claude"))
-        precondition(!GestapoAppHunter.isSafeExecutableName("-x"))
-        precondition(!GestapoAppHunter.isSafeExecutableName("claude agent"))
-        precondition(GestapoAppHunter.isSafeExecutableName("cursor-agent"))
+        precondition(!TunnelGuardAppHunter.isProtectedProcess("/tmp/coucou-helper"))
+        precondition(!TunnelGuardAppHunter.isSafeExecutableName("/tmp/claude"))
+        precondition(!TunnelGuardAppHunter.isSafeExecutableName("-x"))
+        precondition(!TunnelGuardAppHunter.isSafeExecutableName("claude agent"))
+        precondition(TunnelGuardAppHunter.isSafeExecutableName("cursor-agent"))
         print("  ✓ exact process whitelist and pkill name validation")
     }
 
@@ -61,7 +61,7 @@ enum GestapoAppHunterSafeTests {
             processIdentifier: ProcessInfo.processInfo.processIdentifier,
             bundleIdentifier: "com.example.target"
         )
-        let target = GestapoTargetApp(
+        let target = TunnelGuardTargetApp(
             id: "gui-test",
             name: "GUI test",
             type: .gui,
@@ -69,7 +69,7 @@ enum GestapoAppHunterSafeTests {
             domain: "example.com"
         )
 
-        let killed = GestapoAppHunter.killAllActiveTargets(
+        let killed = TunnelGuardAppHunter.killAllActiveTargets(
             targets: [target],
             pkillExecutableURL: URL(fileURLWithPath: "/usr/bin/false"),
             runningApplications: [exact.snapshot, prefixOnly.snapshot, selfProcess.snapshot]
@@ -78,13 +78,13 @@ enum GestapoAppHunterSafeTests {
         precondition(killed == ["GUI test"], "Only the exact GUI bundle should be reported as killed")
         precondition(exact.forceTerminateCalls == 1, "GUI target must use forceTerminate exactly once")
         precondition(prefixOnly.forceTerminateCalls == 0, "Bundle ID prefix must not be terminated")
-        precondition(selfProcess.forceTerminateCalls == 0, "Gestapo must never terminate its own PID")
+        precondition(selfProcess.forceTerminateCalls == 0, "TunnelGuard must never terminate its own PID")
         print("  ✓ GUI forceTerminate seam and exact bundle matching")
     }
 
     static func testCliTerminationUsesExactPkillArguments() throws {
         let directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("gestapo-app-hunter-\(UUID().uuidString)")
+            .appendingPathComponent("tunnelguard-app-hunter-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
 
@@ -96,13 +96,13 @@ enum GestapoAppHunterSafeTests {
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
 
         let targets = [
-            GestapoTargetApp(id: "one", name: "Claude", type: .cli, binaryOrBundleId: "claude", domain: "claude.ai"),
-            GestapoTargetApp(id: "two", name: "Cursor", type: .cli, binaryOrBundleId: "cursor-agent", domain: "cursor.sh"),
-            GestapoTargetApp(id: "unsafe-path", name: "Unsafe", type: .cli, binaryOrBundleId: "/tmp/agent", domain: "example.com"),
-            GestapoTargetApp(id: "protected", name: "Shell", type: .cli, binaryOrBundleId: "zsh", domain: "example.com")
+            TunnelGuardTargetApp(id: "one", name: "Claude", type: .cli, binaryOrBundleId: "claude", domain: "claude.ai"),
+            TunnelGuardTargetApp(id: "two", name: "Cursor", type: .cli, binaryOrBundleId: "cursor-agent", domain: "cursor.sh"),
+            TunnelGuardTargetApp(id: "unsafe-path", name: "Unsafe", type: .cli, binaryOrBundleId: "/tmp/agent", domain: "example.com"),
+            TunnelGuardTargetApp(id: "protected", name: "Shell", type: .cli, binaryOrBundleId: "zsh", domain: "example.com")
         ]
 
-        let killed = GestapoAppHunter.killAllActiveTargets(
+        let killed = TunnelGuardAppHunter.killAllActiveTargets(
             targets: targets,
             pkillExecutableURL: script,
             runningApplications: []
@@ -115,7 +115,7 @@ enum GestapoAppHunterSafeTests {
     }
 
     static func testNotificationScriptEscaping() {
-        let script = GestapoAppHunter.notificationScript(
+        let script = TunnelGuardAppHunter.notificationScript(
             title: "title\\\"",
             message: "line1\nline2\t\\\"\u{0001}"
         )

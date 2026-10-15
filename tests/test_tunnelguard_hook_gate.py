@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-test_gestapo_hook_gate.py - Тесты контура L1 Gate и Kill-Switch в NotchBuddy (Coucou).
-Адаптировано из start_tool/tests/test_gestapo.py и simulate_vpn_drop.py.
+test_tunnelguard_hook_gate.py - Тесты контура L1 Gate и Kill-Switch в NotchBuddy (Coucou).
+Адаптировано из start_tool/tests/test_tunnelguard.py и simulate_vpn_drop.py.
 
 Проверяет:
 1. 100% ликвидацию процессов (SIGKILL, процессные деревья, группы процессов, latency benchmark).
 2. Детекцию сетевых интерфейсов и таймауты /sbin/route в Python-реле nb-hook.py.
-3. Шлагбаум Гестапо в nb-hook.py (блокировка до чтения stdin, deny-ответ, отстрел агента).
+3. Шлагбаум TunnelGuard в nb-hook.py (блокировка до чтения stdin, deny-ответ, отстрел агента).
 4. Определение реального PID агента (get_real_agent_pid: claude, node, agy, codex, gemini).
 5. Принудительный Fail-Closed в шелл-обертке nb-hook (проброс exit $rc при падении VPN).
 6. End-to-End симуляцию отвала VPN и ликвидации вызывающего агента.
@@ -59,7 +59,7 @@ def load_hook_module(python_code):
     return mod
 
 
-class TestGestapoProcessKill(unittest.TestCase):
+class TestTunnelGuardProcessKill(unittest.TestCase):
     """Тестирование надежности и скорости ликвидации процессов (SIGKILL)."""
 
     def test_cli_process_kill_sigkill(self):
@@ -135,7 +135,7 @@ class TestGestapoProcessKill(unittest.TestCase):
         self.assertLess(latency_ms, 30.0, f"Ликвидация слишком медленная: {latency_ms:.2f} мс")
 
 
-class TestGestapoHookVPNCheck(unittest.TestCase):
+class TestTunnelGuardHookVPNCheck(unittest.TestCase):
     """Тестирование логики проверки маршрута utun в nb-hook.py."""
 
     @classmethod
@@ -227,7 +227,7 @@ class TestShellWrapperFailClosed(unittest.TestCase):
     """Тестирование принудительного Fail-Closed поведения в nb-hook (шелл-обертка)."""
 
     def setUp(self):
-        self.tmpdir = tempfile.mkdtemp(prefix="gestapo_wrapper_test_")
+        self.tmpdir = tempfile.mkdtemp(prefix="tunnelguard_wrapper_test_")
         self.wrapper_code, self.python_code = extract_hook_scripts()
 
         self.wrapper_path = Path(self.tmpdir) / "nb-hook"
@@ -291,11 +291,11 @@ class TestShellWrapperFailClosed(unittest.TestCase):
         self.assertIn('{"ok": true}', res.stdout)
 
 
-class TestGestapoGateE2E(unittest.TestCase):
+class TestTunnelGuardGateE2E(unittest.TestCase):
     """End-to-End тестирование шлагбаума и ликвидации вызывающего агента при падении VPN."""
 
     def setUp(self):
-        self.tmpdir = tempfile.mkdtemp(prefix="gestapo_e2e_test_")
+        self.tmpdir = tempfile.mkdtemp(prefix="tunnelguard_e2e_test_")
         self.wrapper_code, self.python_code = extract_hook_scripts()
 
         self.wrapper_path = Path(self.tmpdir) / "nb-hook"
@@ -375,14 +375,14 @@ class TestGestapoGateE2E(unittest.TestCase):
         # Подменяем get_real_agent_pid, чтобы не убить сам тест
         test_py = Path(self.tmpdir) / "test_deny.py"
         safe_kill_py = self.python_code.replace(
-            "def gestapo_kill_agent_and_exit():",
-            "def gestapo_kill_agent_and_exit():\n"
-            "    deny_payload = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'message': '🚨 [GESTAPO] VPN ОТКЛЮЧЕН! Действие заблокировано.'}}\n"
+            "def tunnel_guard_kill_agent_and_exit():",
+            "def tunnel_guard_kill_agent_and_exit():\n"
+            "    deny_payload = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'message': '🚨 [TUNNELGUARD] VPN ОТКЛЮЧЕН! Действие заблокировано.'}}\n"
             "    sys.stdout.write(json.dumps(deny_payload) + '\\n')\n"
             "    sys.exit(1)\n"
             "def _unused():\n"
         )
-        # Форсируем вызов gestapo_kill_agent_and_exit при старте
+        # Форсируем вызов tunnel_guard_kill_agent_and_exit при старте
         safe_kill_py = safe_kill_py.replace(
             "if not verify_vpn_route_utun():",
             "if True: # forced VPN drop for test"

@@ -490,9 +490,9 @@ struct IslandContentView: View {
                 ForEach(IslandView.allCases, id: \.self) { v in
                     let active = state.view == v
                     // Views that fill available height instead of the fixed 98pt content frame:
-                    // chat (prompt) is always flexible; mail and gestapoShield are flexible only when active so
+                    // chat (prompt) is always flexible; mail and tunnelGuardShield are flexible only when active so
                     // they don't push the ZStack taller when inactive.
-                    let isTall = v == .prompt || (v == .mail && active) || (v == .gestapoShield && active)
+                    let isTall = v == .prompt || (v == .mail && active) || (v == .tunnelGuardShield && active)
                     let anim: Animation = active
                         ? .spring(response: 0.4, dampingFraction: 0.8).delay(0.16)
                         : .easeIn(duration: 0.16)
@@ -522,7 +522,7 @@ struct IslandContentView: View {
 
 struct IslandHeader: View {
     @ObservedObject var state: AppState
-    @ObservedObject private var watchdog = GestapoWatchdog.shared
+    @ObservedObject private var watchdog = TunnelGuardWatchdog.shared
     @State private var gearHovered  = false
     @State private var shieldHovered = false
     @State private var soundHovered = false
@@ -564,16 +564,16 @@ struct IslandHeader: View {
                 HStack(spacing: 14) {
                     Button(action: {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            state.view = state.view == .gestapoShield ? .overview : .gestapoShield
+                            state.view = state.view == .tunnelGuardShield ? .overview : .tunnelGuardShield
                         }
                     }) {
-                        Image(systemName: gestapoShieldIcon)
+                        Image(systemName: tunnelGuardShieldIcon)
                             .font(.system(size: 14))
-                            .foregroundColor(gestapoShieldColor)
-                            .opacity(shieldHovered || state.view == .gestapoShield ? 1 : 0.9)
+                            .foregroundColor(tunnelGuardShieldColor)
+                            .opacity(shieldHovered || state.view == .tunnelGuardShield ? 1 : 0.9)
                     }
                     .buttonStyle(.plain)
-                    .help("Gestapo Guard")
+                    .help("TunnelGuard")
                     .onHover { shieldHovered = $0 }
 
                     Button(action: {
@@ -616,11 +616,11 @@ struct IslandHeader: View {
         .frame(maxHeight: .infinity)
     }
 
-    private var gestapoShieldIcon: String {
+    private var tunnelGuardShieldIcon: String {
         watchdog.protectionStatus == .protected ? "shield.fill" : "exclamationmark.shield.fill"
     }
 
-    private var gestapoShieldColor: Color {
+    private var tunnelGuardShieldColor: Color {
         switch watchdog.protectionStatus {
         case .protected: return Color(hex: "#30D158")
         case .grace: return Color(hex: "#FFD60A")

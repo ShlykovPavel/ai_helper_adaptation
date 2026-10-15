@@ -1,40 +1,40 @@
-.PHONY: test test-gestapo test-gestapo-safe test-gestapo-swift-safe \
-        test-gestapo-phase2-safe test-gestapo-phase3-safe test-gestapo-watchdog \
-        test-gestapo-python-safe test-gestapo-all test-gestapo-dangerous build
+.PHONY: test test-tunnelguard test-tunnelguard-safe test-tunnelguard-swift-safe \
+        test-tunnelguard-phase2-safe test-tunnelguard-phase3-safe test-tunnelguard-watchdog \
+        test-tunnelguard-python-safe test-tunnelguard-all test-tunnelguard-dangerous build
 
 # Безопасный набор — используется по умолчанию. Не запускает тесты,
 # которые намеренно посылают SIGKILL дочерним процессам.
-test: test-gestapo-safe
+test: test-tunnelguard-safe
 
-test-gestapo: test-gestapo-safe
+test-tunnelguard: test-tunnelguard-safe
 
-test-gestapo-safe: test-gestapo-swift-safe test-gestapo-phase2-safe test-gestapo-phase3-safe test-gestapo-watchdog test-gestapo-python-safe
+test-tunnelguard-safe: test-tunnelguard-swift-safe test-tunnelguard-phase2-safe test-tunnelguard-phase3-safe test-tunnelguard-watchdog test-tunnelguard-python-safe
 
-test-gestapo-swift-safe:
-	./scripts/test-gestapo-phase1-safe.sh
+test-tunnelguard-swift-safe:
+	./scripts/test-tunnelguard-phase1-safe.sh
 
-test-gestapo-phase2-safe:
-	./scripts/test-gestapo-phase2-safe.sh
+test-tunnelguard-phase2-safe:
+	./scripts/test-tunnelguard-phase2-safe.sh
 
-test-gestapo-phase3-safe:
-	./scripts/test-gestapo-phase3-safe.sh
+test-tunnelguard-phase3-safe:
+	./scripts/test-tunnelguard-phase3-safe.sh
 
-test-gestapo-watchdog:
-	./scripts/test-gestapo-watchdog.sh
+test-tunnelguard-watchdog:
+	./scripts/test-tunnelguard-watchdog.sh
 
-test-gestapo-python-safe:
+test-tunnelguard-python-safe:
 	PYTHONPATH=tests python3 -m unittest -v \
-		test_gestapo_hook_gate.TestGestapoHookVPNCheck \
-		test_gestapo_hook_gate.TestAgentPIDDetection \
-		test_gestapo_hook_gate.TestShellWrapperFailClosed \
-		test_gestapo_hook_gate.TestGestapoGateE2E.test_e2e_deny_payload_schema
+		test_tunnelguard_hook_gate.TestTunnelGuardHookVPNCheck \
+		test_tunnelguard_hook_gate.TestAgentPIDDetection \
+		test_tunnelguard_hook_gate.TestShellWrapperFailClosed \
+		test_tunnelguard_hook_gate.TestTunnelGuardGateE2E.test_e2e_deny_payload_schema
 
-# Полный исторический набор. Включает process-kill тесты и запускается только
+# Полный набор. Включает process-kill тесты и запускается только
 # явной командой; перед запуском убедитесь, что это отдельное окружение.
-test-gestapo-all:
-	./scripts/test-gestapo.sh
+test-tunnelguard-all:
+	./scripts/test-tunnelguard.sh
 
-test-gestapo-dangerous: test-gestapo-all
+test-tunnelguard-dangerous: test-tunnelguard-all
 
 build:
 	xcodebuild -project NotchBuddy/NotchBuddy.xcodeproj -scheme NotchBuddy \

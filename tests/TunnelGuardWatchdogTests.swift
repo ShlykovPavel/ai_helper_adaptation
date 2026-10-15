@@ -39,10 +39,10 @@ final class AppState: ObservableObject {
 }
 
 @main
-enum GestapoWatchdogTests {
+enum TunnelGuardWatchdogTests {
     @MainActor
     static func main() {
-        print("=== GestapoWatchdog Tests ===")
+        print("=== TunnelGuardWatchdog Tests ===")
 
         testInterfaceDetection()
         testDnsHangTimeoutProtection()
@@ -51,7 +51,7 @@ enum GestapoWatchdogTests {
         testLogRotation()
         testTargetProcessList()
 
-        print("GestapoWatchdog: all cases passed")
+        print("TunnelGuardWatchdog: all cases passed")
     }
 
     // MARK: - 1. Interface Detection (utun vs non-utun)
@@ -65,7 +65,7 @@ enum GestapoWatchdogTests {
           interface: utun22
               flags: <UP,GATEWAY,HOST,DONE,STATIC>
         """
-        precondition(GestapoWatchdog.parseInterface(fromRouteOutput: utunOutput) == "utun22",
+        precondition(TunnelGuardWatchdog.parseInterface(fromRouteOutput: utunOutput) == "utun22",
                      "Failed to parse utun22 interface")
 
         let en0Output = """
@@ -75,31 +75,31 @@ enum GestapoWatchdogTests {
           interface: en0
               flags: <UP,GATEWAY,DONE,STATIC,PRCLONING>
         """
-        precondition(GestapoWatchdog.parseInterface(fromRouteOutput: en0Output) == "en0",
+        precondition(TunnelGuardWatchdog.parseInterface(fromRouteOutput: en0Output) == "en0",
                      "Failed to parse en0 interface")
 
         let paddedOutput = "  interface:   utun0   \nflags: UP\n"
-        precondition(GestapoWatchdog.parseInterface(fromRouteOutput: paddedOutput) == "utun0",
+        precondition(TunnelGuardWatchdog.parseInterface(fromRouteOutput: paddedOutput) == "utun0",
                      "Failed to trim whitespace around interface")
 
         let emptyOutput = ""
-        precondition(GestapoWatchdog.parseInterface(fromRouteOutput: emptyOutput) == "",
+        precondition(TunnelGuardWatchdog.parseInterface(fromRouteOutput: emptyOutput) == "",
                      "Empty output must return empty string")
 
         let noInterfaceOutput = "destination: 1.1.1.1\ngateway: 10.0.0.1\n"
-        precondition(GestapoWatchdog.parseInterface(fromRouteOutput: noInterfaceOutput) == "",
+        precondition(TunnelGuardWatchdog.parseInterface(fromRouteOutput: noInterfaceOutput) == "",
                      "Output without interface keyword must return empty string")
 
         // 1.2 isVpnInterface checks
-        precondition(GestapoWatchdog.isVpnInterface("utun0"), "utun0 must be recognized as VPN")
-        precondition(GestapoWatchdog.isVpnInterface("utun22"), "utun22 must be recognized as VPN")
-        precondition(GestapoWatchdog.isVpnInterface("utun99"), "utun99 must be recognized as VPN")
-        precondition(!GestapoWatchdog.isVpnInterface("en0"), "en0 must NOT be recognized as VPN")
-        precondition(!GestapoWatchdog.isVpnInterface("en1"), "en1 must NOT be recognized as VPN")
-        precondition(!GestapoWatchdog.isVpnInterface("bridge0"), "bridge0 must NOT be recognized as VPN")
-        precondition(!GestapoWatchdog.isVpnInterface("pdp_ip0"), "pdp_ip0 must NOT be recognized as VPN")
-        precondition(!GestapoWatchdog.isVpnInterface("tun0"), "tun0 without u-prefix must not be treated as macOS utun")
-        precondition(!GestapoWatchdog.isVpnInterface(""), "empty interface must NOT be recognized as VPN")
+        precondition(TunnelGuardWatchdog.isVpnInterface("utun0"), "utun0 must be recognized as VPN")
+        precondition(TunnelGuardWatchdog.isVpnInterface("utun22"), "utun22 must be recognized as VPN")
+        precondition(TunnelGuardWatchdog.isVpnInterface("utun99"), "utun99 must be recognized as VPN")
+        precondition(!TunnelGuardWatchdog.isVpnInterface("en0"), "en0 must NOT be recognized as VPN")
+        precondition(!TunnelGuardWatchdog.isVpnInterface("en1"), "en1 must NOT be recognized as VPN")
+        precondition(!TunnelGuardWatchdog.isVpnInterface("bridge0"), "bridge0 must NOT be recognized as VPN")
+        precondition(!TunnelGuardWatchdog.isVpnInterface("pdp_ip0"), "pdp_ip0 must NOT be recognized as VPN")
+        precondition(!TunnelGuardWatchdog.isVpnInterface("tun0"), "tun0 without u-prefix must not be treated as macOS utun")
+        precondition(!TunnelGuardWatchdog.isVpnInterface(""), "empty interface must NOT be recognized as VPN")
 
         // 1.3 checkVpnTunnel with mock route binaries
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -116,7 +116,7 @@ enum GestapoWatchdogTests {
         try! scriptA.write(to: mockScriptUtun, atomically: true, encoding: .utf8)
         try! FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: mockScriptUtun.path)
 
-        let resA = GestapoWatchdog.checkVpnTunnel(routeExecutableURL: mockScriptUtun)
+        let resA = TunnelGuardWatchdog.checkVpnTunnel(routeExecutableURL: mockScriptUtun)
         precondition(resA.isVpn == true, "checkVpnTunnel must return isVpn=true for utun12")
         precondition(resA.iface == "utun12", "checkVpnTunnel must return iface=utun12")
 
@@ -133,7 +133,7 @@ enum GestapoWatchdogTests {
         try! scriptB.write(to: mockScriptFallback, atomically: true, encoding: .utf8)
         try! FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: mockScriptFallback.path)
 
-        let resB = GestapoWatchdog.checkVpnTunnel(routeExecutableURL: mockScriptFallback)
+        let resB = TunnelGuardWatchdog.checkVpnTunnel(routeExecutableURL: mockScriptFallback)
         precondition(resB.isVpn == true, "checkVpnTunnel must fallback to default route when 1.1.1.1 is non-utun")
         precondition(resB.iface == "utun4", "checkVpnTunnel fallback must return utun4")
 
@@ -146,7 +146,7 @@ enum GestapoWatchdogTests {
         try! scriptC.write(to: mockScriptNonVpn, atomically: true, encoding: .utf8)
         try! FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: mockScriptNonVpn.path)
 
-        let resC = GestapoWatchdog.checkVpnTunnel(routeExecutableURL: mockScriptNonVpn)
+        let resC = TunnelGuardWatchdog.checkVpnTunnel(routeExecutableURL: mockScriptNonVpn)
         precondition(resC.isVpn == false, "checkVpnTunnel must return isVpn=false when route is en0")
         precondition(resC.iface == "en0", "checkVpnTunnel must return iface=en0")
 
@@ -171,7 +171,7 @@ enum GestapoWatchdogTests {
         try! FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: hangingScript.path)
 
         let start = Date()
-        let iface = GestapoWatchdog.getRouteInterface(
+        let iface = TunnelGuardWatchdog.getRouteInterface(
             dest: "1.1.1.1",
             routeExecutableURL: hangingScript,
             timeoutSeconds: 0.25
@@ -189,7 +189,7 @@ enum GestapoWatchdogTests {
     @MainActor
     static func testVpnDropBehaviorAndEdgeTriggering() {
         AppState.shared.resetTestCounters()
-        let watchdog = GestapoWatchdog()
+        let watchdog = TunnelGuardWatchdog()
         // Unit test safety: prevent firing live pkill against host development environment
         watchdog.targets = []
         watchdog.alarmSoundEnabled = false
@@ -242,13 +242,13 @@ enum GestapoWatchdogTests {
 
     static func testLogDirectoryAndFormat() {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("gestapo_log_test_\(UUID().uuidString)")
+            .appendingPathComponent("tunnelguard_log_test_\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
         precondition(!FileManager.default.fileExists(atPath: tempDir.path), "Test dir should not exist yet")
 
         // Write first event
-        GestapoWatchdog.logSecurityEvent("Unit test security event alpha", logDirURL: tempDir)
+        TunnelGuardWatchdog.logSecurityEvent("Unit test security event alpha", logDirURL: tempDir)
 
         let logFile = tempDir.appendingPathComponent("watchdog.log")
         precondition(FileManager.default.fileExists(atPath: logFile.path), "watchdog.log must be created")
@@ -257,14 +257,14 @@ enum GestapoWatchdogTests {
             fatalError("Failed to read created watchdog.log")
         }
 
-        // Verify log format: "yyyy-MM-dd HH:mm:ss [GESTAPO_WATCHDOG] <message>\n"
-        let pattern = #"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \[GESTAPO_WATCHDOG\] Unit test security event alpha\n$"#
+        // Verify log format: "yyyy-MM-dd HH:mm:ss [TUNNELGUARD_WATCHDOG] <message>\n"
+        let pattern = #"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \[TUNNELGUARD_WATCHDOG\] Unit test security event alpha\n$"#
         let regex = try! NSRegularExpression(pattern: pattern)
         let matches = regex.matches(in: content, range: NSRange(location: 0, length: content.utf16.count))
         precondition(!matches.isEmpty, "Log content '\(content)' did not match expected format pattern")
 
         // Append second event
-        GestapoWatchdog.logSecurityEvent("Unit test security event beta", logDirURL: tempDir)
+        TunnelGuardWatchdog.logSecurityEvent("Unit test security event beta", logDirURL: tempDir)
         let updatedContent = try! String(contentsOf: logFile, encoding: .utf8)
         precondition(updatedContent.contains("Unit test security event alpha"))
         precondition(updatedContent.contains("Unit test security event beta"))
@@ -276,7 +276,7 @@ enum GestapoWatchdogTests {
 
     static func testLogRotation() {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("gestapo_rotate_test_\(UUID().uuidString)")
+            .appendingPathComponent("tunnelguard_rotate_test_\(UUID().uuidString)")
         try! FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -299,7 +299,7 @@ enum GestapoWatchdogTests {
         precondition(sizeBefore > 5 * 1024 * 1024, "File must exceed 5MB prior to rotation test")
 
         // Calling logSecurityEvent must trigger rotation
-        GestapoWatchdog.logSecurityEvent("Rotated fresh message", logDirURL: tempDir)
+        TunnelGuardWatchdog.logSecurityEvent("Rotated fresh message", logDirURL: tempDir)
 
         precondition(FileManager.default.fileExists(atPath: oldLogFile.path),
                      "watchdog.log.old must exist after rotation")
@@ -316,13 +316,13 @@ enum GestapoWatchdogTests {
     // MARK: - 6. Target Process List & pkill Command
 
     static func testTargetProcessList() {
-        let targets = GestapoWatchdog.targetProcessExactNames
+        let targets = TunnelGuardWatchdog.targetProcessExactNames
         let expected = ["claude", "agy", "codex", "gemini", "cursor-agent"]
 
         precondition(targets == expected, "Target process list must match expected agent names: \(expected)")
 
         // Safe execution of pkill for non-matching test target
-        GestapoWatchdog.killTargetProcesses(targets: ["dummy_nonexistent_process_xyz_99"])
+        TunnelGuardWatchdog.killTargetProcesses(targets: ["dummy_nonexistent_process_xyz_99"])
 
         print("  ✓ Target process list exact names & pkill: passed")
     }

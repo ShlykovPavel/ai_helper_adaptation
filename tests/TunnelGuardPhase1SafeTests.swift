@@ -23,11 +23,11 @@ final class AppState {
 }
 
 @main
-enum GestapoPhase1SafeTests {
+enum TunnelGuardPhase1SafeTests {
     @MainActor
     static func main() async throws {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("gestapo-phase1-safe-\(UUID().uuidString)")
+            .appendingPathComponent("tunnelguard-phase1-safe-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -50,12 +50,12 @@ enum GestapoPhase1SafeTests {
         try await testExternalIP(route: route, curl: curl)
         testWatchdogSplitTunnelHealth()
 
-        print("Gestapo Phase 1 safe tests: all passed")
+        print("TunnelGuard Phase 1 safe tests: all passed")
     }
 
     @MainActor
     static func testPowerGuard() {
-        let guarder = GestapoPowerGuard()
+        let guarder = TunnelGuardPowerGuard()
         precondition(!guarder.isGracePeriodActive)
         guarder.activateGracePeriod(seconds: 10)
         precondition(guarder.isGracePeriodActive)
@@ -65,7 +65,7 @@ enum GestapoPhase1SafeTests {
     }
 
     static func testSplitTunnel(route: URL) async throws {
-        let worker = GestapoNetworkWorker(routeExecutableURL: route, pingInterval: 0, routeTimeout: 2)
+        let worker = TunnelGuardNetworkWorker(routeExecutableURL: route, pingInterval: 0, routeTimeout: 2)
         let snapshot = await worker.checkStatus(
             targetDomains: ["203.0.113.10"],
             enablePing: false
@@ -76,7 +76,7 @@ enum GestapoPhase1SafeTests {
     }
 
     static func testSplitTunnelLeak(route: URL) async throws {
-        let worker = GestapoNetworkWorker(routeExecutableURL: route, pingInterval: 0, routeTimeout: 2)
+        let worker = TunnelGuardNetworkWorker(routeExecutableURL: route, pingInterval: 0, routeTimeout: 2)
         let snapshot = await worker.checkStatus(
             targetDomains: ["203.0.113.11"],
             enablePing: false
@@ -86,14 +86,14 @@ enum GestapoPhase1SafeTests {
     }
 
     static func testSplitTunnelDNSFailure(route: URL) async throws {
-        let worker = GestapoNetworkWorker(routeExecutableURL: route, pingInterval: 0, routeTimeout: 2)
+        let worker = TunnelGuardNetworkWorker(routeExecutableURL: route, pingInterval: 0, routeTimeout: 2)
         let snapshot = await worker.checkStatus(targetDomains: [""], enablePing: false)
         precondition(snapshot.targetDomainsOk == false)
         print("  ✓ Split tunnel DNS failure is fail-closed")
     }
 
     static func testDeadTunnel(route: URL, ping: URL) async throws {
-        let worker = GestapoNetworkWorker(
+        let worker = TunnelGuardNetworkWorker(
             pingExecutableURL: ping,
             routeExecutableURL: route,
             pingInterval: 0,
@@ -107,7 +107,7 @@ enum GestapoPhase1SafeTests {
     }
 
     static func testExternalIP(route: URL, curl: URL) async throws {
-        let worker = GestapoNetworkWorker(
+        let worker = TunnelGuardNetworkWorker(
             routeExecutableURL: route,
             curlExecutableURL: curl,
             pingInterval: 0,
@@ -123,7 +123,7 @@ enum GestapoPhase1SafeTests {
 
     @MainActor
     static func testWatchdogSplitTunnelHealth() {
-        let watchdog = GestapoWatchdog()
+        let watchdog = TunnelGuardWatchdog()
         watchdog.splitTunnelCheck = true
         watchdog.targets = [] // этот тест проверяет состояние, но не должен запускать pkill
         let healthySplit = NetworkSnapshot(

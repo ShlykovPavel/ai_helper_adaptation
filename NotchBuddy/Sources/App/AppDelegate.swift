@@ -8,7 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var demoMenuItem: NSMenuItem?
 
     func applicationWillTerminate(_ notification: Notification) {
-        GestapoWatchdog.shared.stop()
+        TunnelGuardWatchdog.shared.stop()
         #if !APPSTORE
         NoteTaker.shared.shutdown()
         #endif
@@ -262,7 +262,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         islandController?.showWindow(nil)
         islandController?.fsm.launch()
         HookServer.shared.start()
-        GestapoWatchdog.shared.start()
+        TunnelGuardWatchdog.shared.start()
         #if !APPSTORE
         _ = VoiceEngine.shared  // registers system observers; starts mic only if the user enabled voice
         FlowDictation.shared.start()  // watches the dictation key only if Flow dictation is on

@@ -13,31 +13,31 @@ final class AppState {
 }
 
 @main
-enum GestapoPhase3SafeTests {
+enum TunnelGuardPhase3SafeTests {
     @MainActor
     static func main() async throws {
         testPersistedSettingsBeforeStartup()
         testProtectionStatusAndResetEligibility()
         try await testSelectedRouteGateway()
         try await testExternalIpProbeExplainsRoute()
-        print("Gestapo Phase 3 safe tests: all passed")
+        print("TunnelGuard Phase 3 safe tests: all passed")
     }
 
     @MainActor
     static func testPersistedSettingsBeforeStartup() {
-        let suite = "gestapo-settings-test-\(UUID().uuidString)"
+        let suite = "tunnelguard-settings-test-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
-        let fresh = GestapoWatchdog(settingsDefaults: defaults)
+        let fresh = TunnelGuardWatchdog(settingsDefaults: defaults)
         precondition(fresh.isEnabled && fresh.continuousKill && !fresh.splitTunnelCheck)
-        precondition(fresh.targets == GestapoAppHunter.defaultTargets)
+        precondition(fresh.targets == TunnelGuardAppHunter.defaultTargets)
         for key in ["enabled", "continuousKill", "pingCheckEnabled", "preventSleep",
                     "sleepWakeGuardEnabled", "alarmSoundEnabled", "macNotificationsEnabled"] {
-            defaults.set(false, forKey: "gestapo.\(key)")
+            defaults.set(false, forKey: "tunnelGuard.\(key)")
         }
-        defaults.set(true, forKey: "gestapo.splitTunnelCheck")
-        defaults.set(false, forKey: "gestapo.target.antigravity-ide")
-        let restored = GestapoWatchdog(settingsDefaults: defaults)
+        defaults.set(true, forKey: "tunnelGuard.splitTunnelCheck")
+        defaults.set(false, forKey: "tunnelGuard.target.antigravity-ide")
+        let restored = TunnelGuardWatchdog(settingsDefaults: defaults)
         precondition(!restored.isEnabled && !restored.continuousKill && !restored.pingCheckEnabled)
         precondition(!restored.preventSleep && !restored.sleepWakeGuardEnabled)
         precondition(!restored.alarmSoundEnabled && !restored.macNotificationsEnabled)
@@ -59,7 +59,7 @@ enum GestapoPhase3SafeTests {
 
     @MainActor
     static func testProtectionStatusAndResetEligibility() {
-        let watchdog = GestapoWatchdog()
+        let watchdog = TunnelGuardWatchdog()
         watchdog.targets = []
 
         watchdog.handleNetworkSnapshot(NetworkSnapshot(isVpn: true, iface: "utun3", pingOk: true,
@@ -87,7 +87,7 @@ enum GestapoPhase3SafeTests {
     }
 
     static func testSelectedRouteGateway() async throws {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("gestapo-phase3-\(UUID().uuidString)")
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("tunnelguard-phase3-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
         let route = dir.appendingPathComponent("route")
@@ -100,7 +100,7 @@ enum GestapoPhase3SafeTests {
         esac
         """.write(to: route, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: route.path)
-        let worker = GestapoNetworkWorker(routeExecutableURL: route, pingInterval: 0, routeTimeout: 2)
+        let worker = TunnelGuardNetworkWorker(routeExecutableURL: route, pingInterval: 0, routeTimeout: 2)
         let snapshot = await worker.checkStatus(enablePing: false)
         precondition(snapshot.isVpn && snapshot.iface == "utun9")
         precondition(snapshot.gateway == "192.0.2.2", "gateway must come from selected VPN route")
@@ -108,7 +108,7 @@ enum GestapoPhase3SafeTests {
     }
 
     static func testExternalIpProbeExplainsRoute() async throws {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("gestapo-phase3-ip-\(UUID().uuidString)")
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("tunnelguard-phase3-ip-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
 
@@ -131,7 +131,7 @@ enum GestapoPhase3SafeTests {
         """.write(to: curl, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: curl.path)
 
-        let worker = GestapoNetworkWorker(
+        let worker = TunnelGuardNetworkWorker(
             routeExecutableURL: route,
             curlExecutableURL: curl,
             pingInterval: 0,
@@ -153,7 +153,7 @@ enum GestapoPhase3SafeTests {
         echo '<html>not an ip</html>'
         """.write(to: invalidCurl, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: invalidCurl.path)
-        let invalidWorker = GestapoNetworkWorker(
+        let invalidWorker = TunnelGuardNetworkWorker(
             routeExecutableURL: route,
             curlExecutableURL: invalidCurl,
             pingInterval: 0,

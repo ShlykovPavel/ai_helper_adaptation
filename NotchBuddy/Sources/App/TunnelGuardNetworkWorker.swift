@@ -1,7 +1,7 @@
 import Foundation
 import Darwin
 
-/// Снимок состояния сети, формируемый GestapoNetworkWorker
+/// Снимок состояния сети, формируемый TunnelGuardNetworkWorker
 struct NetworkSnapshot: Sendable, Equatable {
     let isVpn: Bool
     let iface: String
@@ -28,16 +28,16 @@ struct ExternalIpProbeResult: Sendable, Equatable {
     let ip: String
     let errorMessage: String
 
-    var isVpn: Bool { GestapoWatchdog.isVpnInterface(targetInterface) }
+    var isVpn: Bool { TunnelGuardWatchdog.isVpnInterface(targetInterface) }
     var isSuccessful: Bool { !ip.isEmpty && errorMessage.isEmpty }
 
     // Compatibility with the Phase 1 tuple-shaped result.
     var iface: String { targetInterface }
 }
 
-/// GestapoNetworkWorker изолирует сетевые проверки, ICMP-пинг и DNS-резолвинг
+/// TunnelGuardNetworkWorker изолирует сетевые проверки, ICMP-пинг и DNS-резолвинг
 /// в Swift Actor для обеспечения потокобезопасности без блокировки UI.
-actor GestapoNetworkWorker {
+actor TunnelGuardNetworkWorker {
     private struct RouteInfo: Sendable {
         let iface: String
         let gateway: String
@@ -162,7 +162,7 @@ actor GestapoNetworkWorker {
             let data = pipe.fileHandleForReading.readDataToEndOfFile()
             task.waitUntilExit()
             if let output = String(data: data, encoding: .utf8) {
-                let parsed = GestapoWatchdog.parseRouteInfo(fromRouteOutput: output)
+                let parsed = TunnelGuardWatchdog.parseRouteInfo(fromRouteOutput: output)
                 return RouteInfo(iface: parsed.iface, gateway: parsed.gateway)
             }
         } catch {}
@@ -226,13 +226,13 @@ actor GestapoNetworkWorker {
         // Для def1/раздельных конфигураций первый публичный адрес может
         // оказаться вне туннеля, поэтому проверяем ещё 8.8.8.8 и default.
         var selectedRoute = getRouteInfo(dest: "1.1.1.1", timeoutSeconds: routeTimeout)
-        if !GestapoWatchdog.isVpnInterface(selectedRoute.iface) {
+        if !TunnelGuardWatchdog.isVpnInterface(selectedRoute.iface) {
             let secondaryRoute = getRouteInfo(dest: "8.8.8.8", timeoutSeconds: routeTimeout)
-            if GestapoWatchdog.isVpnInterface(secondaryRoute.iface) {
+            if TunnelGuardWatchdog.isVpnInterface(secondaryRoute.iface) {
                 selectedRoute = secondaryRoute
             } else {
                 let defaultRoute = getRouteInfo(dest: "default", timeoutSeconds: routeTimeout)
-                if GestapoWatchdog.isVpnInterface(defaultRoute.iface) {
+                if TunnelGuardWatchdog.isVpnInterface(defaultRoute.iface) {
                     selectedRoute = defaultRoute
                 } else if selectedRoute.iface.isEmpty {
                     selectedRoute = defaultRoute.iface.isEmpty ? secondaryRoute : defaultRoute
@@ -240,7 +240,7 @@ actor GestapoNetworkWorker {
             }
         }
         let iface = selectedRoute.iface
-        let isVpn = GestapoWatchdog.isVpnInterface(iface)
+        let isVpn = TunnelGuardWatchdog.isVpnInterface(iface)
         let gateway = selectedRoute.gateway
 
         // 2. Проверка Split Tunneling доменов (если переданы)
@@ -253,7 +253,7 @@ actor GestapoNetworkWorker {
                     break
                 }
                 let domainIface = getRouteInterface(dest: resolvedIp, timeoutSeconds: routeTimeout)
-                if !GestapoWatchdog.isVpnInterface(domainIface) {
+                if !TunnelGuardWatchdog.isVpnInterface(domainIface) {
                     targetDomainsOk = false
                     break
                 }

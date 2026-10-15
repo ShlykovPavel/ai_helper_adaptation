@@ -2,10 +2,10 @@ import Foundation
 import AppKit
 import IOKit.pwr_mgt
 
-/// GestapoPowerGuard отвечает за предотвращение засыпания системы при блокировке экрана
+/// TunnelGuardPowerGuard отвечает за предотвращение засыпания системы при блокировке экрана
 /// и управление Grace Period (10-секундное окно после открытия крышки ноутбука).
 @MainActor
-final class GestapoPowerGuard {
+final class TunnelGuardPowerGuard {
     private var assertionID: IOPMAssertionID = 0
     private var isSystemSleeping: Bool = false
     private var wakeGracePeriodUntil: TimeInterval = 0.0
@@ -70,7 +70,7 @@ final class GestapoPowerGuard {
     /// Управление системным sleep assertion.
     /// kIOPMAssertionTypePreventUserIdleSystemSleep позволяет экрану гаснуть и блокироваться,
     /// но процессор и сетевой стек продолжают непрерывно работать.
-    func updateSleepAssertion(shouldHold: Bool, reason: String = "Gestapo VPN Protection Active") {
+    func updateSleepAssertion(shouldHold: Bool, reason: String = "TunnelGuard VPN Protection Active") {
         if shouldHold {
             if assertionID == 0 {
                 var newID: IOPMAssertionID = 0

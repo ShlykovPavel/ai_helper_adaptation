@@ -42,17 +42,17 @@ struct IslandViewContent: View {
             #endif
         case .securityPanic:
             SecurityPanicView(state: state)
-        case .gestapoShield:
-            GestapoShieldCardView(state: state)
+        case .tunnelGuardShield:
+            TunnelGuardShieldCardView(state: state)
         }
     }
 }
 
-// MARK: - Gestapo Security Panic View
+// MARK: - TunnelGuard Security Panic View
 
 struct SecurityPanicView: View {
     @ObservedObject var state: AppState
-    @ObservedObject private var watchdog = GestapoWatchdog.shared
+    @ObservedObject private var watchdog = TunnelGuardWatchdog.shared
 
     var body: some View {
         ZStack {
@@ -62,7 +62,7 @@ struct SecurityPanicView: View {
                     Image(systemName: "exclamationmark.shield.fill")
                         .foregroundColor(Color(hex: "#FF5460"))
                         .font(.system(size: 13, weight: .bold))
-                    Text("GESTAPO SECURITY ALARM")
+                    Text("TUNNELGUARD SECURITY ALARM")
                         .font(.system(size: 13, weight: .bold))
                         .foregroundColor(Color(hex: "#FF5460"))
                 }
@@ -93,12 +93,12 @@ struct SecurityPanicView: View {
     }
 }
 
-// MARK: - Gestapo shield card
+// MARK: - TunnelGuard shield card
 
 /// Compact status card opened from the shield in the island header.
-struct GestapoShieldCardView: View {
+struct TunnelGuardShieldCardView: View {
     @ObservedObject var state: AppState
-    @ObservedObject private var watchdog = GestapoWatchdog.shared
+    @ObservedObject private var watchdog = TunnelGuardWatchdog.shared
     @State private var selectedProbeDomain = "claude.ai"
     @State private var showGatewayPopover = false
 
@@ -135,7 +135,7 @@ struct GestapoShieldCardView: View {
                     Image(systemName: watchdog.protectionStatus == .protected ? "shield.fill" : "exclamationmark.shield.fill")
                         .foregroundColor(statusColor)
                         .font(.system(size: 13, weight: .bold))
-                    Text("GESTAPO GUARD")
+                    Text("TUNNELGUARD")
                         .font(.system(size: 13, weight: .bold))
                         .foregroundColor(statusColor)
                     Spacer()
@@ -264,7 +264,7 @@ struct GestapoShieldCardView: View {
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(Color(hex: "#B8BBC2"))
                     Button("Журнал") {
-                        let path = (NSHomeDirectory() as NSString).appendingPathComponent("Library/Logs/Gestapo/watchdog.log")
+                        let path = (NSHomeDirectory() as NSString).appendingPathComponent("Library/Logs/TunnelGuard/watchdog.log")
                         NSWorkspace.shared.open(URL(fileURLWithPath: path))
                     }
                     .buttonStyle(.plain)
