@@ -10,7 +10,7 @@ if [ -d "NotchBuddy/build/ModuleCache.noindex" ]; then
     CACHE_ARGS=(-module-cache-path "NotchBuddy/build/ModuleCache.noindex")
 fi
 
-swiftc -swift-version 6 -strict-concurrency=complete "${CACHE_ARGS[@]}" \
+swiftc -swift-version 6 -strict-concurrency=complete "${CACHE_ARGS[@]+"${CACHE_ARGS[@]}"}" \
     NotchBuddy/Sources/App/TunnelGuardAppHunter.swift \
     tests/TunnelGuardAppHunterSafeTests.swift \
     -o "$TEST_DIR/tunnelguard-app-hunter-safe-tests"
