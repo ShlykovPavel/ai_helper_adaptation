@@ -174,7 +174,13 @@ function askedQuestions(tool: string, input: Record<string, unknown>): AskedQues
       }));
     // A question cut short by the relay would be answered under the wrong text.
     if (!question || question.endsWith("…") || options.length < 2) return null;
-    out.push({ question, options, multiSelect: raw.multiSelect === true });
+    const header = typeof raw?.header === "string" ? raw.header : undefined;
+    out.push({
+      question,
+      ...(header ? { header } : {}),
+      options,
+      multiSelect: raw.multiSelect === true,
+    });
   }
   return out.length > 0 ? out : null;
 }
@@ -350,10 +356,9 @@ function handleHook(island: Island, payload: HookPayload) {
 
     case "PostToolUse":
       supersedeStop();
-      // The question was answered in the terminal: the card would be lying.
+      // The request or question was answered (remotely via Telegram or in the terminal): the card would be lying.
       if (
-        payload.tool_name === "AskUserQuestion" &&
-        State.pendingApproval?.questions &&
+        State.pendingApproval &&
         State.pendingApproval.sessionId === (payload.session_id ?? "")
       ) {
         if (pendingTimeout != null) window.clearTimeout(pendingTimeout);

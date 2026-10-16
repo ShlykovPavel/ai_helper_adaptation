@@ -55,6 +55,7 @@ export interface ApprovalInfo {
 /** One question of an AskUserQuestion call. */
 export interface AskedQuestion {
   question: string;
+  header?: string;
   options: { label: string; description: string }[];
   multiSelect: boolean;
 }

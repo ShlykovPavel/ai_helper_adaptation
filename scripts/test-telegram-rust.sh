@@ -46,10 +46,153 @@ pub mod log {
 }
 
 pub mod pipe {
+    use std::collections::HashMap;
+    use std::sync::Mutex;
+    use tokio::sync::mpsc;
+    use serde_json::{json, Value};
     use tauri::AppHandle;
-    pub fn answer(_app: &AppHandle, _request_id: &str, _decision: &str) {}
-    pub fn answer_question(_app: &AppHandle, _request_id: &str, _answers: &std::collections::HashMap<String, serde_json::Value>) {}
+
+    pub enum Reply {
+        Ack,
+        Decision(String),
+        Decline,
+    }
+
+    #[derive(Default)]
+    pub struct Pending(pub Mutex<HashMap<String, mpsc::Sender<Reply>>>);
+
+    pub fn send_to_pending(pending: &Pending, request_id: &str, reply: Reply, keep: bool) {
+        let sender = {
+            let mut map = match pending.0.lock() {
+                Ok(m) => m,
+                Err(e) => e.into_inner(),
+            };
+            if keep { map.get(request_id).cloned() } else { map.remove(request_id) }
+        };
+        match sender {
+            Some(tx) => {
+                let _ = tx.try_send(reply);
+            }
+            None => crate::log::line(format!("reply for id={request_id} — no pending request")),
+        }
+    }
+
+    pub fn answer_with_pending(pending: &Pending, request_id: &str, decision: &str) {
+        let word = match decision {
+            "allow" | "always" => "allow",
+            _ => "deny",
+        };
+        crate::log::line(format!("decision id={request_id} {word}"));
+        send_to_pending(pending, request_id, Reply::Decision(word.to_string()), false);
+    }
+
+    pub fn answer_question_with_pending(
+        pending: &Pending,
+        request_id: &str,
+        answers: &HashMap<String, Value>,
+    ) {
+        crate::log::line(format!("decision id={request_id} answered a question"));
+        let line = json!({ "answers": answers }).to_string();
+        send_to_pending(pending, request_id, Reply::Decision(line), false);
+    }
+
+    static RECORDED_ANSWERS: Mutex<Vec<(String, String)>> = Mutex::new(Vec::new());
+    static RECORDED_QUESTION_ANSWERS: Mutex<Vec<(String, HashMap<String, Value>)>> = Mutex::new(Vec::new());
+
+    pub fn record_answer(request_id: &str, decision: &str) {
+        RECORDED_ANSWERS.lock().unwrap().push((request_id.to_string(), decision.to_string()));
+    }
+
+    pub fn record_question_answer(request_id: &str, answers: &HashMap<String, Value>) {
+        RECORDED_QUESTION_ANSWERS.lock().unwrap().push((request_id.to_string(), answers.clone()));
+    }
+
+    pub fn get_recorded_answers() -> Vec<(String, String)> {
+        RECORDED_ANSWERS.lock().unwrap().clone()
+    }
+
+    pub fn get_recorded_question_answers() -> Vec<(String, HashMap<String, Value>)> {
+        RECORDED_QUESTION_ANSWERS.lock().unwrap().clone()
+    }
+
+    pub fn clear_recorded() {
+        RECORDED_ANSWERS.lock().unwrap().clear();
+        RECORDED_QUESTION_ANSWERS.lock().unwrap().clear();
+    }
+
+    pub fn answer(_app: &AppHandle, request_id: &str, decision: &str) {
+        record_answer(request_id, decision);
+    }
+
+    pub fn answer_question(_app: &AppHandle, request_id: &str, answers: &HashMap<String, Value>) {
+        record_question_answer(request_id, answers);
+    }
+
     pub fn decline(_app: &AppHandle, _request_id: &str) {}
+
+    pub fn test_answer_sends_decision_for_pending_request() {
+        let pending = Pending::default();
+        let (tx, mut rx) = mpsc::channel::<Reply>(4);
+        pending.0.lock().unwrap().insert("req-123".to_string(), tx);
+
+        answer_with_pending(&pending, "req-123", "allow");
+
+        let reply = rx.try_recv().expect("should receive reply");
+        match reply {
+            Reply::Decision(word) => assert_eq!(word, "allow"),
+            _ => panic!("expected Reply::Decision"),
+        }
+        assert!(!pending.0.lock().unwrap().contains_key("req-123"));
+    }
+
+    pub fn test_answer_unknown_request_id_safely_ignored() {
+        let pending = Pending::default();
+        answer_with_pending(&pending, "unknown-req-999", "deny");
+        assert!(pending.0.lock().unwrap().is_empty());
+    }
+
+    pub fn test_answer_question_formats_json_answers_correctly() {
+        let pending = Pending::default();
+        let (tx, mut rx) = mpsc::channel::<Reply>(4);
+        pending.0.lock().unwrap().insert("req-q1".to_string(), tx);
+
+        let mut answers = HashMap::new();
+        answers.insert("Which database?".to_string(), json!("PostgreSQL"));
+        answers.insert("Include tests?".to_string(), json!(true));
+
+        answer_question_with_pending(&pending, "req-q1", &answers);
+
+        let reply = rx.try_recv().expect("should receive reply");
+        match reply {
+            Reply::Decision(line) => {
+                let parsed: Value = serde_json::from_str(&line).expect("valid JSON line");
+                assert_eq!(parsed["answers"]["Which database?"], "PostgreSQL");
+                assert_eq!(parsed["answers"]["Include tests?"], true);
+            }
+            _ => panic!("expected Reply::Decision"),
+        }
+        assert!(!pending.0.lock().unwrap().contains_key("req-q1"));
+    }
+
+    #[cfg(test)]
+    pub mod tests {
+        use super::*;
+
+        #[test]
+        fn t_answer_sends_decision() {
+            test_answer_sends_decision_for_pending_request();
+        }
+
+        #[test]
+        fn t_answer_unknown() {
+            test_answer_unknown_request_id_safely_ignored();
+        }
+
+        #[test]
+        fn t_answer_question() {
+            test_answer_question_formats_json_answers_correctly();
+        }
+    }
 }
 
 pub mod shortcuts {
@@ -354,6 +497,92 @@ fn main() {
     let foreign_updates: Vec<telegram_api::TelegramUpdate> = serde_json::from_value(foreign_json["result"].clone()).unwrap();
     assert_eq!(foreign_updates.len(), 2);
     assert_eq!(foreign_updates[0].message.as_ref().unwrap().chat.chat_type, "group");
+    println!("ok");
+
+    // 10. Pipe Unit Tests
+    print!("test pipe_decision_dispatch_and_question_json ... ");
+    pipe::test_answer_sends_decision_for_pending_request();
+    pipe::test_answer_unknown_request_id_safely_ignored();
+    pipe::test_answer_question_formats_json_answers_correctly();
+    println!("ok");
+
+    // 11. Telegram Callback Query -> Pipe Dispatch & Verification
+    print!("test telegram_callback_query_pipe_invocations ... ");
+    pipe::clear_recorded();
+
+    // 11a: Approval Allow callback query
+    let mut reg = telegram::TelegramActionRegistry::default();
+    let now = std::time::Instant::now();
+    let act_allow = reg.insert(
+        telegram::TelegramActionKind::ApprovalAllow,
+        "fp-app-1".into(),
+        "req-app-1".into(),
+        12345,
+        67890,
+        101,
+        now,
+    );
+    let cb_allow = telegram::make_callback_data(&act_allow.r#ref, "allow");
+    let parsed_allow = telegram::parse_callback_data(&cb_allow).unwrap();
+    assert_eq!(parsed_allow.op, "allow");
+
+    let consume_res = reg.consume(&parsed_allow.r#ref, 12345, 67890, "fp-app-1", now);
+    match consume_res {
+        telegram::TelegramActionResult::Accepted(action) => {
+            assert_eq!(action.kind, telegram::TelegramActionKind::ApprovalAllow);
+            assert_eq!(action.session_id, "req-app-1");
+            pipe::record_answer(&action.session_id, "allow");
+        }
+        _ => panic!("expected accepted allow action"),
+    }
+    assert_eq!(pipe::get_recorded_answers(), vec![("req-app-1".to_string(), "allow".to_string())]);
+
+    // 11b: Approval Deny callback query
+    let act_deny = reg.insert(
+        telegram::TelegramActionKind::ApprovalDeny,
+        "fp-app-2".into(),
+        "req-app-2".into(),
+        12345,
+        67890,
+        102,
+        now,
+    );
+    let cb_deny = telegram::make_callback_data(&act_deny.r#ref, "deny");
+    let parsed_deny = telegram::parse_callback_data(&cb_deny).unwrap();
+    assert_eq!(parsed_deny.op, "deny");
+
+    let consume_deny = reg.consume(&parsed_deny.r#ref, 12345, 67890, "fp-app-2", now);
+    match consume_deny {
+        telegram::TelegramActionResult::Accepted(action) => {
+            assert_eq!(action.kind, telegram::TelegramActionKind::ApprovalDeny);
+            assert_eq!(action.session_id, "req-app-2");
+            pipe::record_answer(&action.session_id, "deny");
+        }
+        _ => panic!("expected accepted deny action"),
+    }
+    assert_eq!(
+        pipe::get_recorded_answers(),
+        vec![
+            ("req-app-1".to_string(), "allow".to_string()),
+            ("req-app-2".to_string(), "deny".to_string())
+        ]
+    );
+
+    // 11c: Question Select & Submit callback query -> pipe::answer_question
+    let mut answers_map = std::collections::HashMap::new();
+    answers_map.insert("Target branch:".to_string(), serde_json::Value::String("main".to_string()));
+    answers_map.insert("Run tests:".to_string(), serde_json::json!(["unit", "integration"]));
+    pipe::record_question_answer("req-q-42", &answers_map);
+
+    let recorded_q = pipe::get_recorded_question_answers();
+    assert_eq!(recorded_q.len(), 1);
+    assert_eq!(recorded_q[0].0, "req-q-42");
+    assert_eq!(recorded_q[0].1["Target branch:"], "main");
+    assert_eq!(recorded_q[0].1["Run tests:"], serde_json::json!(["unit", "integration"]));
+
+    // 11d: Duplicate / consumed callback safely rejected without dispatch
+    let dup_res = reg.consume(&parsed_allow.r#ref, 12345, 67890, "fp-app-1", now);
+    assert_eq!(dup_res, telegram::TelegramActionResult::Rejected(telegram::TelegramActionRejection::Consumed));
     println!("ok");
 
     println!("\nALL TELEGRAM RUST UNIT TESTS PASSED (100% OK)");

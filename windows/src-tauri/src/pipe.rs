@@ -221,6 +221,9 @@ async fn handle(app: AppHandle, mut pipe: impl Relay) {
         if event != "StatusLine" {
             log::line(format!("hook {event}"));
         }
+        let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            crate::telegram::on_hook(&app, payload.clone());
+        }));
         let _ = app.emit_to(WINDOW_LABEL, "hook", payload);
         pipe.finish();
         return;
@@ -235,6 +238,9 @@ async fn handle(app: AppHandle, mut pipe: impl Relay) {
     crate::recap::note_request(&app, &id, &payload);
     payload["request_id"] = json!(id);
     log::line(format!("hook PermissionRequest id={id}"));
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        crate::telegram::on_pending_approval(&app, &payload);
+    }));
     let _ = app.emit_to(WINDOW_LABEL, "hook", payload);
 
     let decision = wait_for_decision(&id, &mut rx).await;
@@ -314,10 +320,12 @@ fn loggable(decision: &str) -> &str {
     if decision.starts_with('{') { "a question" } else { decision }
 }
 
-fn send(app: &AppHandle, request_id: &str, reply: Reply, keep: bool) {
+pub(crate) fn send_to_pending(pending: &Pending, request_id: &str, reply: Reply, keep: bool) {
     let sender = {
-        let pending = app.state::<Pending>();
-        let mut map = pending.0.lock().unwrap();
+        let mut map = match pending.0.lock() {
+            Ok(m) => m,
+            Err(e) => e.into_inner(),
+        };
         if keep { map.get(request_id).cloned() } else { map.remove(request_id) }
     };
     match sender {
@@ -325,6 +333,14 @@ fn send(app: &AppHandle, request_id: &str, reply: Reply, keep: bool) {
             let _ = tx.try_send(reply);
         }
         None => log::line(format!("reply for id={request_id} — no pending request")),
+    }
+}
+
+fn send(app: &AppHandle, request_id: &str, reply: Reply, keep: bool) {
+    if let Some(pending) = app.try_state::<Pending>() {
+        send_to_pending(&pending, request_id, reply, keep);
+    } else {
+        log::line(format!("reply for id={request_id} — no pending state"));
     }
 }
 
@@ -359,3 +375,75 @@ pub fn answer_question(app: &AppHandle, request_id: &str, answers: &HashMap<Stri
     let line = json!({ "answers": answers }).to_string();
     send(app, request_id, Reply::Decision(line), false);
 }
+
+pub fn answer_with_pending(pending: &Pending, request_id: &str, decision: &str) {
+    let word = match decision {
+        "allow" | "always" => "allow",
+        _ => "deny",
+    };
+    log::line(format!("decision id={request_id} {word}"));
+    send_to_pending(pending, request_id, Reply::Decision(word.to_string()), false);
+}
+
+pub fn answer_question_with_pending(
+    pending: &Pending,
+    request_id: &str,
+    answers: &HashMap<String, serde_json::Value>,
+) {
+    log::line(format!("decision id={request_id} answered a question"));
+    let line = json!({ "answers": answers }).to_string();
+    send_to_pending(pending, request_id, Reply::Decision(line), false);
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    #[test]
+    pub fn test_answer_sends_decision_for_pending_request() {
+        let pending = Pending::default();
+        let (tx, mut rx) = mpsc::channel::<Reply>(4);
+        pending.0.lock().unwrap().insert("req-123".to_string(), tx);
+
+        answer_with_pending(&pending, "req-123", "allow");
+
+        let reply = rx.try_recv().expect("should receive reply");
+        match reply {
+            Reply::Decision(word) => assert_eq!(word, "allow"),
+            _ => panic!("expected Reply::Decision"),
+        }
+        assert!(!pending.0.lock().unwrap().contains_key("req-123"));
+    }
+
+    #[test]
+    pub fn test_answer_unknown_request_id_safely_ignored() {
+        let pending = Pending::default();
+        answer_with_pending(&pending, "unknown-req-999", "deny");
+        assert!(pending.0.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    pub fn test_answer_question_formats_json_answers_correctly() {
+        let pending = Pending::default();
+        let (tx, mut rx) = mpsc::channel::<Reply>(4);
+        pending.0.lock().unwrap().insert("req-q1".to_string(), tx);
+
+        let mut answers = HashMap::new();
+        answers.insert("Which database?".to_string(), json!("PostgreSQL"));
+        answers.insert("Include tests?".to_string(), json!(true));
+
+        answer_question_with_pending(&pending, "req-q1", &answers);
+
+        let reply = rx.try_recv().expect("should receive reply");
+        match reply {
+            Reply::Decision(line) => {
+                let parsed: Value = serde_json::from_str(&line).expect("valid JSON line");
+                assert_eq!(parsed["answers"]["Which database?"], "PostgreSQL");
+                assert_eq!(parsed["answers"]["Include tests?"], true);
+            }
+            _ => panic!("expected Reply::Decision"),
+        }
+        assert!(!pending.0.lock().unwrap().contains_key("req-q1"));
+    }
+}
+
