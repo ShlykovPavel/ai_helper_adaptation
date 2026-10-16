@@ -205,6 +205,35 @@ struct HubMochiScene: View {
     }
 }
 
+public enum HubMascotResolver {
+    public static var isShapeshifterActive: Bool {
+        return MascotSettings.selectedMascot == .shapeshifter
+    }
+}
+
+/// Dynamic mascot view for Hub header (switches between Mochi and Astral Morph)
+struct HubLiveMascot: View {
+    var color = "#F5F6F8"
+    var size: CGFloat = 28
+    var state: BotState = .idle
+    var outfit: Outfit = .none
+
+    var body: some View {
+        if MascotSettings.selectedMascot == .shapeshifter {
+            ShapeshifterCompactView(
+                size: CGSize(width: size, height: size),
+                lookX: 0,
+                lookY: 0,
+                shape: MascotSettings.shape,
+                provider: .antigravity
+            )
+            .frame(width: size, height: size)
+        } else {
+            HubLiveMochi(color: color, size: size, state: state, outfit: outfit)
+        }
+    }
+}
+
 /// One Mochi that stays where it is (the logo, the empty pages).
 struct HubLiveMochi: View {
     var color = "#F5F6F8"
@@ -226,6 +255,17 @@ struct HubLiveMochi: View {
 struct HubHeroTheme {
     var color: Color
     var cast: [HubMochiSpec]
+    public var colorHex: String = ""
+
+    public var usesShapeshifterHero: Bool {
+        MascotSettings.selectedMascot == .shapeshifter
+    }
+
+    init(color: Color, cast: [HubMochiSpec], colorHex: String = "") {
+        self.color = color
+        self.cast = cast
+        self.colorHex = colorHex
+    }
 
     static func of(_ page: HubPage) -> HubHeroTheme {
         func m(_ color: String, _ size: CGFloat, _ start: CGFloat, outfit: Outfit = .none,
@@ -234,38 +274,38 @@ struct HubHeroTheme {
         }
         switch page {
         case .dictation:
-            return .init(color: Color(hex: "#FB923C"), cast: [m("#F5F6F8", 66, 0.2), m("#FB923C", 52, 0.65), m("#F472B6", 44, 0.95, outfit: .bow)])
+            return .init(color: Color(hex: "#FB923C"), cast: [m("#F5F6F8", 66, 0.2), m("#FB923C", 52, 0.65), m("#F472B6", 44, 0.95, outfit: .bow)], colorHex: "#FB923C")
         case .notes:
-            return .init(color: Color(hex: "#3B9EFF"), cast: [m("#3B9EFF", 58, 0.1, outfit: .roundGlasses), m("#34D399", 50, 0.5), m("#A78BFA", 46, 0.9)])
+            return .init(color: Color(hex: "#3B9EFF"), cast: [m("#3B9EFF", 58, 0.1, outfit: .roundGlasses), m("#34D399", 50, 0.5), m("#A78BFA", 46, 0.9)], colorHex: "#3B9EFF")
         case .insights:
-            return .init(color: Color(hex: "#34D399"), cast: [m("#F7B32B", 62, 0.3, outfit: .crown), m("#34D399", 48, 0.75), m("#F5F6F8", 40, 1)])
+            return .init(color: Color(hex: "#34D399"), cast: [m("#F7B32B", 62, 0.3, outfit: .crown), m("#34D399", 48, 0.75), m("#F5F6F8", 40, 1)], colorHex: "#34D399")
         case .dictionary:
-            return .init(color: Color(hex: "#A78BFA"), cast: [m("#A78BFA", 60, 0.2, outfit: .roundGlasses), m("#F5F6F8", 48, 0.8, outfit: .beanie)])
+            return .init(color: Color(hex: "#A78BFA"), cast: [m("#A78BFA", 60, 0.2, outfit: .roundGlasses), m("#F5F6F8", 48, 0.8, outfit: .beanie)], colorHex: "#A78BFA")
         case .snippets:
-            return .init(color: Color(hex: "#F7B32B"), cast: [m("#F7B32B", 56, 0.15, state: .working), m("#FB923C", 46, 0.6), m("#F5F6F8", 40, 0.95)])
+            return .init(color: Color(hex: "#F7B32B"), cast: [m("#F7B32B", 56, 0.15, state: .working), m("#FB923C", 46, 0.6), m("#F5F6F8", 40, 0.95)], colorHex: "#F7B32B")
         case .styles:
-            return .init(color: Color(hex: "#F472B6"), cast: [m("#F472B6", 60, 0.25, outfit: .sunglasses), m("#F5F6F8", 48, 0.7, outfit: .bow), m("#22D3EE", 42, 1, outfit: .partyHat)])
+            return .init(color: Color(hex: "#F472B6"), cast: [m("#F472B6", 60, 0.25, outfit: .sunglasses), m("#F5F6F8", 48, 0.7, outfit: .bow), m("#22D3EE", 42, 1, outfit: .partyHat)], colorHex: "#F472B6")
         case .settings:
-            return .init(color: Color(hex: "#8E939C"), cast: [m("#F5F6F8", 56, 0.3), m("#8E939C", 46, 0.95, state: .sleeping, roams: false)])
+            return .init(color: Color(hex: "#8E939C"), cast: [m("#F5F6F8", 56, 0.3), m("#8E939C", 46, 0.95, state: .sleeping, roams: false)], colorHex: "#8E939C")
         case .general:
-            return .init(color: Color(hex: "#8E939C"), cast: [m("#F5F6F8", 60, 0.4, outfit: .scarf), m("#FB923C", 46, 0.85)])
+            return .init(color: Color(hex: "#8E939C"), cast: [m("#F5F6F8", 60, 0.4, outfit: .scarf), m("#FB923C", 46, 0.85)], colorHex: "#8E939C")
         case .pills:
             return .init(color: Color(hex: "#F5A524"), cast: [m("#F5A524", 44, 0.05), m("#3B9EFF", 44, 0.3), m("#34D399", 44, 0.55),
-                                                               m("#E07950", 44, 0.8), m("#A78BFA", 44, 1)])
+                                                               m("#E07950", 44, 0.8), m("#A78BFA", 44, 1)], colorHex: "#F5A524")
         case .agents:
             return .init(color: Color(hex: "#3B9EFF"), cast: [m("#3B9EFF", 56, 0.1, state: .working, roams: false),
                                                                m("#E07950", 50, 0.5, state: .thinking, roams: false),
-                                                               m("#34D399", 50, 0.9)])
+                                                               m("#34D399", 50, 0.9)], colorHex: "#3B9EFF")
         case .chat:
-            return .init(color: Color(hex: "#E07950"), cast: [m("#E07950", 58, 0.3, state: .thinking, roams: false), m("#F5F6F8", 48, 0.85)])
+            return .init(color: Color(hex: "#E07950"), cast: [m("#E07950", 58, 0.3, state: .thinking, roams: false), m("#F5F6F8", 48, 0.85)], colorHex: "#E07950")
         case .integrations:
-            return .init(color: Color(hex: "#7C5CFF"), cast: [m("#7C5CFF", 54, 0.15), m("#22D3EE", 46, 0.55), m("#F7B32B", 42, 0.95)])
+            return .init(color: Color(hex: "#7C5CFF"), cast: [m("#7C5CFF", 54, 0.15), m("#22D3EE", 46, 0.55), m("#F7B32B", 42, 0.95)], colorHex: "#7C5CFF")
         case .voice:
-            return .init(color: Color(hex: "#F97316"), cast: [m("#F97316", 60, 0.3), m("#F5F6F8", 48, 0.85, outfit: .roundGlasses)])
+            return .init(color: Color(hex: "#F97316"), cast: [m("#F97316", 60, 0.3), m("#F5F6F8", 48, 0.85, outfit: .roundGlasses)], colorHex: "#F97316")
         case .shortcuts:
-            return .init(color: Color(hex: "#6366F1"), cast: [m("#6366F1", 56, 0.2, outfit: .sunglasses), m("#F5F6F8", 46, 0.8)])
+            return .init(color: Color(hex: "#6366F1"), cast: [m("#6366F1", 56, 0.2, outfit: .sunglasses), m("#F5F6F8", 46, 0.8)], colorHex: "#6366F1")
         case .tunnelGuard:
-            return .init(color: Color(hex: "#30D158"), cast: [m("#30D158", 58, 0.2, outfit: .sunglasses), m("#F5F6F8", 48, 0.8)])
+            return .init(color: Color(hex: "#30D158"), cast: [m("#30D158", 58, 0.2, outfit: .sunglasses), m("#F5F6F8", 48, 0.8)], colorHex: "#30D158")
         }
     }
 }
@@ -285,11 +325,24 @@ struct HubHero<Trailing: View>: View {
         ZStack(alignment: .bottomTrailing) {
             HubHeroBackdrop(color: theme.color, light: light)
                 .allowsHitTesting(false)
-            HubMochiScene(cast: theme.cast, range: 0...1)
+            if theme.usesShapeshifterHero && page == .tunnelGuard {
+                ShapeshifterExpandedView(
+                    size: CGSize(width: compact ? 70 : 96, height: compact ? 70 : 96),
+                    action: .approval,
+                    shape: MascotSettings.shape,
+                    provider: .antigravity
+                )
                 .id(page)
-                .frame(width: compact ? 280 : 340, height: compact ? 92 : 128)
-                .padding(.trailing, 18)
+                .frame(width: compact ? 280 : 340, height: compact ? 92 : 128, alignment: .trailing)
+                .padding(.trailing, 28)
                 .padding(.bottom, 6)
+            } else {
+                HubMochiScene(cast: theme.cast, range: 0...1)
+                    .id(page)
+                    .frame(width: compact ? 280 : 340, height: compact ? 92 : 128)
+                    .padding(.trailing, 18)
+                    .padding(.bottom, 6)
+            }
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(title)
