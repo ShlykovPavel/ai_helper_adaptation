@@ -44,6 +44,8 @@ struct IslandViewContent: View {
             SecurityPanicView(state: state)
         case .tunnelGuardShield:
             TunnelGuardShieldCardView(state: state)
+        case .deadTunnelPrompt:
+            DeadTunnelPromptView(state: state)
         }
     }
 }
@@ -82,6 +84,46 @@ struct SecurityPanicView: View {
                             .font(.system(size: 10))
                             .foregroundColor(Color(hex: "#FFB4BA"))
                             .lineLimit(1)
+                    }
+                }
+            }
+            .padding(.leading, 116)
+            .padding(.trailing, 16)
+            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+// MARK: - TunnelGuard Dead Tunnel Prompt View
+
+struct DeadTunnelPromptView: View {
+    @ObservedObject var state: AppState
+    @ObservedObject private var watchdog = TunnelGuardWatchdog.shared
+
+    var body: some View {
+        ZStack {
+            CardBackground(wash: .amber)
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(Color(hex: "#FF9F0A"))
+                        .font(.system(size: 13, weight: .bold))
+                    Text("TUNNELGUARD: VPN НЕ ОТВЕЧАЕТ")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(Color(hex: "#FF9F0A"))
+                }
+                Text(state.deadTunnelPromptText.isEmpty ? "Пинг через VPN не проходит. Агенты временно заморожены (SIGSTOP)." : state.deadTunnelPromptText)
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(hex: "#F5F6F8").opacity(0.9))
+                    .lineLimit(2)
+                    .truncationMode(.tail)
+                HStack(spacing: 8) {
+                    PrimaryButton("Усыпить агентов") {
+                        watchdog.userConfirmedDeadTunnelKill()
+                    }
+                    SecondaryButton("Отклонить и ждать") {
+                        watchdog.userRequestedDeadTunnelWait()
                     }
                 }
             }
