@@ -319,6 +319,7 @@ struct HubHero<Trailing: View>: View {
     var compact = false
     @ViewBuilder var trailing: () -> Trailing
     @StateObject private var light = HubHeroLight()
+    @Environment(\.hubVisible) private var visible
 
     var body: some View {
         let theme = HubHeroTheme.of(page)
@@ -330,7 +331,8 @@ struct HubHero<Trailing: View>: View {
                     size: CGSize(width: compact ? 70 : 96, height: compact ? 70 : 96),
                     action: .approval,
                     shape: MascotSettings.shape,
-                    provider: .antigravity
+                    provider: .antigravity,
+                    isPaused: !visible
                 )
                 .id(page)
                 .frame(width: compact ? 280 : 340, height: compact ? 92 : 128, alignment: .trailing)
