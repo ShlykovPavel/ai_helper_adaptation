@@ -3350,8 +3350,7 @@ def tunnel_guard_kill_agent_and_exit():
         }
     }
     try:
-        sys.stdout.write(json.dumps(deny_payload) + "\\n")
-        sys.stdout.flush()
+        print(json.dumps(deny_payload), flush=True)
     except (BrokenPipeError, IOError, Exception):
         pass
 
@@ -3529,8 +3528,7 @@ def main():
                     answers = resp_obj.get('answers', {})
                     questions = payload.get('tool_input', {}).get('questions', [])
                     out = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'allow', 'updatedInput': {'questions': questions, 'answers': answers}}}
-                    sys.stdout.write(json.dumps(out) + '\\n')
-                    sys.stdout.flush()
+                    print(json.dumps(out), flush=True)
                     sys.exit(0)
                 # 'ask' or unknown: fall through → no output → Claude Code asks in terminal
         except Exception:
@@ -3610,8 +3608,7 @@ def main():
                 if agent == 'hermes':
                     hermes_choice = 'once' if decision == 'allow' else decision
                     if hermes_choice in ('once', 'always', 'deny'):
-                        sys.stdout.write(json.dumps({'choice': hermes_choice}) + '\\n')
-                        sys.stdout.flush()
+                        print(json.dumps({'choice': hermes_choice}), flush=True)
                     sys.exit(0)
                 if decision in ('allow', 'always'):
                     # Copilot/Muse use {"permissionDecision":"allow"} directly
@@ -3624,24 +3621,21 @@ def main():
                     else:
                         # Claude Code / Codex plain allow
                         out = {'hookSpecificOutput': {'hookEventName': 'PermissionRequest', 'decision': {'behavior': 'allow'}}}
-                    sys.stdout.write(json.dumps(out) + '\\n')
-                    sys.stdout.flush()
+                    print(json.dumps(out), flush=True)
                     sys.exit(0)
                 elif decision == 'deny':
                     if agent in ('copilot', 'muse'):
                         out = {'permissionDecision': 'deny'}
                     else:
                         out = {'hookSpecificOutput': {'hookEventName': 'PermissionRequest', 'decision': {'behavior': 'deny', 'message': 'Denied from Coucou'}}}
-                    sys.stdout.write(json.dumps(out) + '\\n')
-                    sys.stdout.flush()
+                    print(json.dumps(out), flush=True)
                     sys.exit(0)
                 elif decision == 'answer':
                     # AskUserQuestion answered from the notch
                     answers = resp_obj.get('answers', {})
                     questions = payload.get('tool_input', {}).get('questions', [])
                     out = {'hookSpecificOutput': {'hookEventName': 'PermissionRequest', 'decision': {'behavior': 'allow', 'updatedInput': {'questions': questions, 'answers': answers}}}}
-                    sys.stdout.write(json.dumps(out) + '\\n')
-                    sys.stdout.flush()
+                    print(json.dumps(out), flush=True)
                     sys.exit(0)
                 # 'ask' or unknown: fall through → no output → agent re-asks
         except Exception:
@@ -3650,8 +3644,7 @@ def main():
         # Copilot is fail-closed: must always output valid JSON so it re-asks rather than deny
         # Hermes: no output → json.loads raises in plugin → transport_fallback: builtin activates
         if agent == 'copilot':
-            sys.stdout.write('{"permissionDecision":"ask"}\\n')
-            sys.stdout.flush()
+            print('{"permissionDecision":"ask"}', flush=True)
         sys.exit(0)
 
     # All other events: fire-and-forget (0.3s timeout, never blocks)
@@ -3659,7 +3652,7 @@ def main():
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         s.settimeout(0.3)
         s.connect(socket_path)
-        s.sendall((json.dumps(payload) + '\\n').encode())
+        s.sendall((json.dumps(payload) + '\n').encode())
         s.close()
     except Exception:
         pass  # Always exit cleanly — never block the agent
@@ -3667,11 +3660,9 @@ def main():
     # Antigravity needs a decision on PreToolUse ({} reads as a denial). "ask" keeps its own
     # permission prompt (and the user's Always Allow); Coucou never allows a tool by itself.
     if agent == 'antigravity' and event == 'PreToolUse':
-        sys.stdout.write('{"decision":"ask"}\\n')
-        sys.stdout.flush()
+        print('{"decision":"ask"}', flush=True)
     elif agent in ('gemini', 'antigravity', 'muse', 'copilot'):
-        sys.stdout.write('{}\\n')
-        sys.stdout.flush()
+        print('{}', flush=True)
 
 try:
     main()

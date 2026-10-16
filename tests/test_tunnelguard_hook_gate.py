@@ -44,7 +44,9 @@ def extract_hook_scripts():
     if not m_wrapper or not m_python:
         raise ValueError("Не удалось извлечь nbHookShellWrapper или nbHookPythonGitHub из HookServer.swift")
 
-    wrapper_code = m_wrapper.group(1).strip() + "\n"
+    # В Swift multiline строках \\n компилируется в \n (один слэш).
+    # Декодируем Swift string escape sequence, чтобы тестовые скрипты совпадали с результатом Swift write(to:).
+    wrapper_code = m_wrapper.group(1).replace("\\\\n", "\\n").strip() + "\n"
     python_code = m_python.group(1).strip() + "\n"
     return wrapper_code, python_code
 
@@ -1276,8 +1278,7 @@ class TestTunnelGuardL1GateScenariosE2E(unittest.TestCase):
         )
 
         self.assertEqual(res.returncode, 1, "При утечке хук обязан возвращать код 1")
-        cleaned_json = res.stdout.strip().replace("\\n", "").strip()
-        data = json.loads(cleaned_json)
+        data = json.loads(res.stdout.strip())
         self.assertIn("hookSpecificOutput", data)
         self.assertEqual(data["hookSpecificOutput"]["permissionDecision"], "deny")
         self.assertIn("VPN ОТКЛЮЧЕН", data["hookSpecificOutput"]["message"])
