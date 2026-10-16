@@ -1284,22 +1284,29 @@ final class HookServer: @unchecked Sendable {
 
     // MARK: - nb-hook script installation
 
+    @discardableResult
+    static func writeHookFiles(to dir: URL = supportDir) throws -> (wrapper: URL, python: URL) {
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try? FileManager.default.setAttributes([.posixPermissions: 0o700 as NSNumber], ofItemAtPath: dir.path)
+        let wrapperURL = dir.appendingPathComponent("nb-hook")
+        try nbHookShellWrapper.write(to: wrapperURL, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755 as NSNumber], ofItemAtPath: wrapperURL.path)
+        let pyURL = dir.appendingPathComponent("nb-hook.py")
+        try nbHookPythonGitHub.write(to: pyURL, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755 as NSNumber], ofItemAtPath: pyURL.path)
+        return (wrapperURL, pyURL)
+    }
+
+    func writeHookFiles(to dir: URL = supportDir) throws {
+        try Self.writeHookFiles(to: dir)
+    }
+
     func installHookScript() {
         #if APPSTORE
         // In App Store mode the script is written during settings hook installation
         // (requires NSOpenPanel to ~/.claude chosen by the user)
         #else
-        let dir = Self.supportDir
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        try? FileManager.default.setAttributes([.posixPermissions: 0o700 as NSNumber], ofItemAtPath: dir.path)
-        // nb-hook: shell wrapper (always exits 0, calls nb-hook.py via python3)
-        let wrapperURL = URL(fileURLWithPath: Self.hookScriptPath)
-        try? nbHookShellWrapper.write(to: wrapperURL, atomically: true, encoding: .utf8)
-        _ = try? FileManager.default.setAttributes([.posixPermissions: 0o755 as NSNumber], ofItemAtPath: wrapperURL.path)
-        // nb-hook.py: Python relay
-        let pyURL = wrapperURL.deletingLastPathComponent().appendingPathComponent("nb-hook.py")
-        try? nbHookPythonGitHub.write(to: pyURL, atomically: true, encoding: .utf8)
-        _ = try? FileManager.default.setAttributes([.posixPermissions: 0o755 as NSNumber], ofItemAtPath: pyURL.path)
+        try? Self.writeHookFiles(to: Self.supportDir)
         #endif
     }
 

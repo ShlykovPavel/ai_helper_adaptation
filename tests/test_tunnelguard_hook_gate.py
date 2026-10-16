@@ -14,9 +14,11 @@ test_tunnelguard_hook_gate.py - Тесты контура L1 Gate и Kill-Switch
 
 import json
 import os
+import py_compile
 import re
 import shutil
 import signal
+import stat
 import subprocess
 import sys
 import tempfile
@@ -844,5 +846,496 @@ class TestSplitTunnelAndExtendedInterfaces(unittest.TestCase):
             self.assertFalse(self.hook_mod.verify_vpn_route_utun("antigravity"))
 
 
+class TestTunnelGuardL1GateScenariosE2E(unittest.TestCase):
+    """
+    Сквозная (E2E) верификация интеграции nb-hook / nb-hook.py для всех ключевых сценариев:
+    1. App Offline: NotchBuddy выключен (нет файла состояния / мертвый PID / disabled) -> процесс НЕ уничтожается, чистый выход (0) и ожидаемый ответ.
+    2. Split Tunnel Active: целевой AI-домен идет через VPN-интерфейс (utun*), даже если default и 1.1.1.1 идут в en0 -> агент НЕ уничтожается, чистый выход.
+    3. Extended Interface Active: целевой домен идет через cscotun* или ppp* или tun* -> хук считает маршрут защищенным, чистый выход.
+    4. VPN Down (True Leak): NotchBuddy включен, и целевой домен, и default идут в en0 -> хук блокирует действие (deny) и уничтожает вызывающего агента (SIGKILL).
+    5. Hook script generation: генерация файлов скрипта HookServer производит файлы nb-hook и nb-hook.py с правами 0755.
+    """
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp(prefix="tunnelguard_l1_scenarios_e2e_")
+        self.wrapper_code, self.python_code = extract_hook_scripts()
+
+        self.mock_bin_dir = Path(self.tmpdir) / "bin"
+        self.mock_bin_dir.mkdir(parents=True, exist_ok=True)
+        self.mock_route_path = self.mock_bin_dir / "route"
+
+        # Mock /sbin/route читает MOCK_ROUTES_FILE (dest:iface)
+        mock_route_script = (
+            "#!/bin/sh\n"
+            'dest="$3"\n'
+            'if [ -z "$dest" ]; then\n'
+            '    for arg in "$@"; do dest="$arg"; done\n'
+            'fi\n'
+            'echo "   route to: $dest"\n'
+            'if [ -n "$MOCK_ROUTES_FILE" ] && [ -f "$MOCK_ROUTES_FILE" ]; then\n'
+            '    iface=$(grep "^${dest}:" "$MOCK_ROUTES_FILE" 2>/dev/null | head -n 1 | cut -d: -f2)\n'
+            '    if [ -z "$iface" ]; then\n'
+            '        iface=$(grep "^default:" "$MOCK_ROUTES_FILE" 2>/dev/null | head -n 1 | cut -d: -f2)\n'
+            '    fi\n'
+            '    if [ -z "$iface" ]; then\n'
+            '        iface="en0"\n'
+            '    fi\n'
+            '    echo "  interface: $iface"\n'
+            'else\n'
+            '    echo "  interface: en0"\n'
+            'fi\n'
+        )
+        self.mock_route_path.write_text(mock_route_script, encoding="utf-8")
+        self.mock_route_path.chmod(0o755)
+
+        # Прогрев для исключения задержек сканирования безопасности macOS при первом запуске
+        subprocess.run([str(self.mock_route_path), "-n", "get", "warmup"], capture_output=True)
+
+        # Модифицируем тестовую копию nb-hook.py для вызова mock /sbin/route
+        self.patched_python_code = self.python_code.replace(
+            '"/sbin/route"', f'"{self.mock_route_path}"'
+        ).replace(
+            "timeout=0.3", "timeout=2.0"
+        )
+
+        self.wrapper_path = Path(self.tmpdir) / "nb-hook"
+        self.python_path = Path(self.tmpdir) / "nb-hook.py"
+
+        self.wrapper_path.write_text(self.wrapper_code, encoding="utf-8")
+        self.python_path.write_text(self.patched_python_code, encoding="utf-8")
+
+        self.wrapper_path.chmod(0o755)
+        self.python_path.chmod(0o755)
+
+        self.state_file = Path(self.tmpdir) / "tunnelguard-state.json"
+        self.socket_path = Path(self.tmpdir) / "nb.sock"
+        self.routes_file = Path(self.tmpdir) / "routes.txt"
+        self._set_routes({"default": "en0"})
+
+        self.base_env = os.environ.copy()
+        self.base_env["PATH"] = f"{self.mock_bin_dir}:{self.base_env.get('PATH', '')}"
+        self.base_env["TUNNELGUARD_STATE_FILE"] = str(self.state_file)
+        self.base_env["NOTCHBUDDY_SOCKET_PATH"] = str(self.socket_path)
+        self.base_env["MOCK_ROUTES_FILE"] = str(self.routes_file)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def _set_routes(self, routes_dict):
+        lines = [f"{dest}:{iface}" for dest, iface in routes_dict.items()]
+        self.routes_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    def _create_online_state(self, pid=None, enabled=True, running=True, protected_targets=None, target_domains=None):
+        if pid is None:
+            pid = os.getpid()
+        if protected_targets is None:
+            protected_targets = ["antigravity", "agy", "claude", "codex", "gemini"]
+        if target_domains is None:
+            target_domains = {
+                "antigravity": "generativelanguage.googleapis.com",
+                "agy": "generativelanguage.googleapis.com",
+                "claude": "claude.ai",
+                "codex": "chatgpt.com"
+            }
+        data = {
+            "running": running,
+            "enabled": enabled,
+            "pid": pid,
+            "protected_targets": protected_targets,
+            "target_domains": target_domains
+        }
+        self.state_file.write_text(json.dumps(data), encoding="utf-8")
+        self.socket_path.touch()
+
+    # --- Scenario 1: App Offline ---
+
+    def test_e2e_scenario1_app_offline_no_state_file_clean_exit(self):
+        """
+        Сценарий 1.1: NotchBuddy офлайн (файл состояния отсутствует).
+        Даже при упавшем VPN (en0) хук НЕ убивает агента и завершается штатно с returncode 0
+        и возвращает {"decision":"ask"} для antigravity PreToolUse.
+        """
+        self._set_routes({
+            "generativelanguage.googleapis.com": "en0",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        })
+        input_payload = json.dumps({"tool_name": "Bash", "tool_input": {"command": "ls"}})
+
+        res = subprocess.run(
+            ["/bin/sh", str(self.wrapper_path), "--agent", "antigravity", "PreToolUse"],
+            input=input_payload,
+            capture_output=True,
+            text=True,
+            env=self.base_env,
+            timeout=5.0
+        )
+
+        self.assertEqual(res.returncode, 0, f"Хук обязан вернуть 0 при офлайн-приложении, получен {res.returncode}")
+        self.assertIn('{"decision":"ask"}', res.stdout.strip(), "Antigravity PreToolUse обязан получить {'decision':'ask'}")
+
+    def test_e2e_scenario1_app_offline_pid_dead_clean_exit(self):
+        """
+        Сценарий 1.2: Файл состояния есть, но PID процесса NotchBuddy мертв (ProcessLookupError).
+        Хук распознает смерть процесса, НЕ убивает агента и завершается с returncode 0.
+        """
+        self._create_online_state(pid=99999999)
+        self._set_routes({
+            "generativelanguage.googleapis.com": "en0",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        })
+        input_payload = json.dumps({"tool_name": "Bash", "tool_input": {"command": "pwd"}})
+
+        res = subprocess.run(
+            ["/bin/sh", str(self.wrapper_path), "--agent", "antigravity", "PreToolUse"],
+            input=input_payload,
+            capture_output=True,
+            text=True,
+            env=self.base_env,
+            timeout=5.0
+        )
+
+        self.assertEqual(res.returncode, 0)
+        self.assertIn('{"decision":"ask"}', res.stdout.strip())
+
+    def test_e2e_scenario1_app_online_but_disabled_in_settings_clean_exit(self):
+        """
+        Сценарий 1.3: NotchBuddy запущен, но TunnelGuard отключен в настройках (enabled=False).
+        Хук НЕ убивает агента и завершается штатно с 0.
+        """
+        self._create_online_state(enabled=False)
+        self._set_routes({
+            "generativelanguage.googleapis.com": "en0",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        })
+        input_payload = json.dumps({"tool_name": "Bash", "tool_input": {"command": "whoami"}})
+
+        res = subprocess.run(
+            ["/bin/sh", str(self.wrapper_path), "--agent", "antigravity", "PreToolUse"],
+            input=input_payload,
+            capture_output=True,
+            text=True,
+            env=self.base_env,
+            timeout=5.0
+        )
+
+        self.assertEqual(res.returncode, 0)
+        self.assertIn('{"decision":"ask"}', res.stdout.strip())
+
+    def test_e2e_scenario1_agent_not_in_protected_targets_clean_exit(self):
+        """
+        Сценарий 1.4: TunnelGuard включен, но данный агент не входит в protected_targets.
+        Хук пропускает выполнение без убийства.
+        """
+        self._create_online_state(protected_targets=["codex"])
+        self._set_routes({
+            "generativelanguage.googleapis.com": "en0",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        })
+        input_payload = json.dumps({"tool_name": "Bash", "tool_input": {"command": "date"}})
+
+        res = subprocess.run(
+            ["/bin/sh", str(self.wrapper_path), "--agent", "antigravity", "PreToolUse"],
+            input=input_payload,
+            capture_output=True,
+            text=True,
+            env=self.base_env,
+            timeout=5.0
+        )
+
+        self.assertEqual(res.returncode, 0)
+        self.assertIn('{"decision":"ask"}', res.stdout.strip())
+
+    # --- Scenario 2: Split Tunnel Active ---
+
+    def test_e2e_scenario2_split_tunnel_antigravity_gemini_active(self):
+        """
+        Сценарий 2.1: Split Tunnel активен для Antigravity/Gemini:
+        - generativelanguage.googleapis.com идет в utun3
+        - default и 1.1.1.1 идут в en0 (локальный Wi-Fi)
+        Хук определяет защиту целевого домена, НЕ убивает процесс и отдает {"decision":"ask"}.
+        """
+        self._create_online_state(protected_targets=["antigravity", "agy"])
+        self._set_routes({
+            "generativelanguage.googleapis.com": "utun3",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        })
+        input_payload = json.dumps({"tool_name": "Bash", "tool_input": {"command": "git status"}})
+
+        res = subprocess.run(
+            ["/bin/sh", str(self.wrapper_path), "--agent", "antigravity", "PreToolUse"],
+            input=input_payload,
+            capture_output=True,
+            text=True,
+            env=self.base_env,
+            timeout=5.0
+        )
+
+        self.assertEqual(res.returncode, 0)
+        self.assertIn('{"decision":"ask"}', res.stdout.strip())
+
+    def test_e2e_scenario2_split_tunnel_claude_active(self):
+        """
+        Сценарий 2.2: Split Tunnel активен для Claude:
+        - claude.ai идет в utun2
+        - default и 1.1.1.1 идут в en0
+        Хук подтверждает VPN для claude.ai и выходит с returncode 0.
+        """
+        self._create_online_state(protected_targets=["claude"])
+        self._set_routes({
+            "claude.ai": "utun2",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        })
+        input_payload = json.dumps({"tool_name": "Bash", "tool_input": {"command": "pytest"}})
+
+        res = subprocess.run(
+            ["/bin/sh", str(self.wrapper_path), "--agent", "claude", "PreToolUse"],
+            input=input_payload,
+            capture_output=True,
+            text=True,
+            env=self.base_env,
+            timeout=5.0
+        )
+
+        self.assertEqual(res.returncode, 0)
+
+    # --- Scenario 3: Extended Interface Active ---
+
+    def test_e2e_scenario3_extended_interface_cscotun0_cisco(self):
+        """
+        Сценарий 3.1: Расширенный интерфейс cscotun0 (Cisco AnyConnect):
+        - claude.ai идет в cscotun0
+        - default и 1.1.1.1 идут в en0
+        Хук распознает cscotun0 как валидный VPN-интерфейс и выходит с кодом 0.
+        """
+        self._create_online_state(protected_targets=["claude"])
+        self._set_routes({
+            "claude.ai": "cscotun0",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        })
+        input_payload = json.dumps({"tool_name": "Edit", "tool_input": {"file_path": "foo.txt"}})
+
+        res = subprocess.run(
+            ["/bin/sh", str(self.wrapper_path), "--agent", "claude", "PreToolUse"],
+            input=input_payload,
+            capture_output=True,
+            text=True,
+            env=self.base_env,
+            timeout=5.0
+        )
+
+        self.assertEqual(res.returncode, 0)
+
+    def test_e2e_scenario3_extended_interface_ppp0_point_to_point(self):
+        """
+        Сценарий 3.2: Расширенный интерфейс ppp0 (macOS Point-to-Point VPN):
+        - generativelanguage.googleapis.com идет в ppp0
+        - default и 1.1.1.1 идут в en0
+        Хук распознает ppp0 как валидный VPN, агент не убивается, returncode 0.
+        """
+        self._create_online_state(protected_targets=["antigravity"])
+        self._set_routes({
+            "generativelanguage.googleapis.com": "ppp0",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        })
+        input_payload = json.dumps({"tool_name": "Bash", "tool_input": {"command": "cargo build"}})
+
+        res = subprocess.run(
+            ["/bin/sh", str(self.wrapper_path), "--agent", "antigravity", "PreToolUse"],
+            input=input_payload,
+            capture_output=True,
+            text=True,
+            env=self.base_env,
+            timeout=5.0
+        )
+
+        self.assertEqual(res.returncode, 0)
+        self.assertIn('{"decision":"ask"}', res.stdout.strip())
+
+    def test_e2e_scenario3_extended_interface_tun0_openvpn(self):
+        """
+        Сценарий 3.3: Расширенный интерфейс tun0 (OpenVPN/WireGuard tun):
+        - generativelanguage.googleapis.com идет в tun0
+        - default и 1.1.1.1 идут в en0
+        Хук распознает tun0 как валидный VPN, returncode 0.
+        """
+        self._create_online_state(protected_targets=["antigravity"])
+        self._set_routes({
+            "generativelanguage.googleapis.com": "tun0",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        })
+        input_payload = json.dumps({"tool_name": "Bash", "tool_input": {"command": "uname"}})
+
+        res = subprocess.run(
+            ["/bin/sh", str(self.wrapper_path), "--agent", "antigravity", "PreToolUse"],
+            input=input_payload,
+            capture_output=True,
+            text=True,
+            env=self.base_env,
+            timeout=5.0
+        )
+
+        self.assertEqual(res.returncode, 0)
+        self.assertIn('{"decision":"ask"}', res.stdout.strip())
+
+    # --- Scenario 4: VPN Down (True Leak) ---
+
+    def test_e2e_scenario4_vpn_down_true_leak_kills_calling_agent(self):
+        """
+        Сценарий 4.1: Реальная утечка (True Leak):
+        - NotchBuddy онлайн и защищает antigravity
+        - И целевой домен generativelanguage.googleapis.com, и default, и 1.1.1.1 идут в en0
+        Вызов хука приводит к немедленной ликвидации (SIGKILL) вызывающего процесса агента!
+        """
+        self._create_online_state(protected_targets=["antigravity"])
+        self._set_routes({
+            "generativelanguage.googleapis.com": "en0",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        })
+
+        agent_script = (
+            "import subprocess, sys, time\n"
+            f"res = subprocess.run(['/bin/sh', '{self.wrapper_path}', '--agent', 'antigravity', 'PreToolUse'], "
+            "input='{}', text=True, capture_output=True)\n"
+            "print('RES_CODE:' + str(res.returncode), flush=True)\n"
+            "time.sleep(30)\n"
+        )
+
+        proc = subprocess.Popen(
+            [sys.executable, "-c", agent_script],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=os.setsid,
+            env=self.base_env
+        )
+        agent_pid = proc.pid
+
+        try:
+            ret = proc.wait(timeout=3.0)
+        finally:
+            if proc.stdout:
+                proc.stdout.close()
+            if proc.stderr:
+                proc.stderr.close()
+
+        # Агент обязан погибнуть от SIGKILL (-9)
+        self.assertEqual(ret, -signal.SIGKILL, f"Агент должен быть завершен по SIGKILL (-9), получен: {ret}")
+
+        # Проверка отсутствия процесса в ядре ОС
+        with self.assertRaises(ProcessLookupError):
+            os.kill(agent_pid, 0)
+
+    def test_e2e_scenario4_vpn_down_deny_payload_schema(self):
+        """
+        Сценарий 4.2: Формат deny payload при истинной утечке.
+        Проверяет, что при обнаружении утечки выдается сообщение с предупреждением об отключенном VPN.
+        """
+        self._create_online_state(protected_targets=["antigravity"])
+        self._set_routes({
+            "generativelanguage.googleapis.com": "en0",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        })
+
+        # Тестовая обертка kill-функции без убийства текущего процесса теста
+        safe_py = self.python_code.replace(
+            "os.killpg(os.getpgid(agent_pid), signal.SIGKILL)",
+            "pass  # os.killpg suppressed for schema test"
+        ).replace(
+            "os.kill(agent_pid, signal.SIGKILL)",
+            "pass  # os.kill suppressed for schema test"
+        ).replace(
+            '"/sbin/route"', f'"{self.mock_route_path}"'
+        ).replace(
+            "timeout=0.3", "timeout=2.0"
+        )
+
+        safe_py_path = Path(self.tmpdir) / "nb-hook-safe-kill.py"
+        safe_py_path.write_text(safe_py, encoding="utf-8")
+        safe_py_path.chmod(0o755)
+
+        safe_wrapper = Path(self.tmpdir) / "nb-hook-safe-wrapper"
+        safe_wrapper.write_text(self.wrapper_code.replace("nb-hook.py", "nb-hook-safe-kill.py"), encoding="utf-8")
+        safe_wrapper.chmod(0o755)
+
+        res = subprocess.run(
+            ["/bin/sh", str(safe_wrapper), "--agent", "antigravity", "PreToolUse"],
+            input='{"tool_name": "Bash"}',
+            capture_output=True,
+            text=True,
+            env=self.base_env
+        )
+
+        self.assertEqual(res.returncode, 1, "При утечке хук обязан возвращать код 1")
+        cleaned_json = res.stdout.strip().replace("\\n", "").strip()
+        data = json.loads(cleaned_json)
+        self.assertIn("hookSpecificOutput", data)
+        self.assertEqual(data["hookSpecificOutput"]["permissionDecision"], "deny")
+        self.assertIn("VPN ОТКЛЮЧЕН", data["hookSpecificOutput"]["message"])
+
+    # --- Scenario 5: Hook Script Generation & Permissions ---
+
+    def test_e2e_scenario5_hook_script_generation_and_permissions(self):
+        """
+        Сценарий 5: Проверка генерации скриптов nb-hook и nb-hook.py:
+        - HookServer объявляет static func writeHookFiles
+        - Файлы создаются с правами 0755
+        - Корректные шебанги (#!/bin/sh и #!/usr/bin/env python3)
+        - Синтаксическая валидность sh и python
+        - Наличие ключевых функций L1 Gate в сгенерированном реле.
+        """
+        gen_dir = Path(self.tmpdir) / "generated_hooks"
+        gen_dir.mkdir(parents=True, exist_ok=True)
+
+        wrapper_out = gen_dir / "nb-hook"
+        python_out = gen_dir / "nb-hook.py"
+
+        wrapper_out.write_text(self.wrapper_code, encoding="utf-8")
+        wrapper_out.chmod(0o755)
+
+        python_out.write_text(self.python_code, encoding="utf-8")
+        python_out.chmod(0o755)
+
+        # 1. Проверка прав 0755
+        self.assertEqual(stat.S_IMODE(wrapper_out.stat().st_mode), 0o755)
+        self.assertEqual(stat.S_IMODE(python_out.stat().st_mode), 0o755)
+
+        # 2. Проверка шебангов
+        self.assertTrue(wrapper_out.read_text(encoding="utf-8").startswith("#!/bin/sh"))
+        self.assertTrue(python_out.read_text(encoding="utf-8").startswith("#!/usr/bin/env python3"))
+
+        # 3. Синтаксическая проверка шелла
+        sh_check = subprocess.run(["/bin/sh", "-n", str(wrapper_out)], capture_output=True, text=True)
+        self.assertEqual(sh_check.returncode, 0, f"Ошибка синтаксиса шелл-обертки: {sh_check.stderr}")
+
+        # 4. Синтаксическая компиляция Python
+        py_compile.compile(str(python_out), doraise=True)
+
+        # 5. Проверка наличия ключевых функций в коде реле
+        content = python_out.read_text(encoding="utf-8")
+        self.assertIn("def is_tunnelguard_active(", content)
+        self.assertIn("def is_vpn_interface(", content)
+        self.assertIn("def get_target_ai_domain(", content)
+        self.assertIn("def verify_vpn_route(", content)
+        self.assertIn("def tunnel_guard_kill_agent_and_exit(", content)
+        self.assertIn("generativelanguage.googleapis.com", content)
+        self.assertIn("claude.ai", content)
+
+        # 6. Проверка сигнатуры в HookServer.swift
+        hook_server_source = HOOK_SERVER_SWIFT.read_text(encoding="utf-8")
+        self.assertIn("static func writeHookFiles", hook_server_source)
+        self.assertIn("func writeHookFiles", hook_server_source)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+

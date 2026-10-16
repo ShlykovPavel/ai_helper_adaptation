@@ -165,10 +165,10 @@ Run:
 - Verify: `HookServer.swift` write methods (`writeAgyHooks`, `installAndWriteClaudeHooksAppStore`, etc.)
 - Test: Interactive/CLI test of `nb-hook.py` directly with mock inputs.
 
-- [ ] **Step 1: Test hook generation with new Python template**
+- [x] **Step 1: Test hook generation with new Python template**
 Ensure `HookServer.swift` compiles cleanly and generates the updated `nb-hook.py`.
 
-- [ ] **Step 2: Run End-to-End simulation with offline app and split tunnel**
+- [x] **Step 2: Run End-to-End simulation with offline app and split tunnel**
 Run test simulating:
 1. `nb-hook.py` executed by `agy` with NotchBuddy closed $\to$ Process continues normally (no SIGKILL).
 2. `nb-hook.py` executed by `agy` with NotchBuddy open, split-tunnel active (`generativelanguage.googleapis.com` on `utun`) $\to$ Process continues normally (no SIGKILL).
