@@ -56,13 +56,13 @@
   ```
 - Lifecycle: written on `start()`, updated when `isEnabled` or `targets` change, updated with `"running": false` and `"enabled": false` on `stop()` / `applicationWillTerminate()`.
 
-- [ ] **Step 1: Write unit test for state file persistence in `tests/TunnelGuardStateSyncTests.swift`**
+- [x] **Step 1: Write unit test for state file persistence in `tests/TunnelGuardStateSyncTests.swift`**
 Verify that `syncRuntimeStateFile()` writes valid JSON with current PID, enabled flag, and targets, and that `cleanupRuntimeStateFile()` marks running/enabled as false.
 
-- [ ] **Step 2: Implement `syncRuntimeStateFile()` and `cleanupRuntimeStateFile()` in `TunnelGuardWatchdog.swift`**
+- [x] **Step 2: Implement `syncRuntimeStateFile()` and `cleanupRuntimeStateFile()` in `TunnelGuardWatchdog.swift`**
 Add state file management methods to `TunnelGuardWatchdog`. Call `syncRuntimeStateFile()` from `start()`, `loadPersistedSettings()`, and property observers for `isEnabled` and `targets`. Call `cleanupRuntimeStateFile()` in `stop()`.
 
-- [ ] **Step 3: Run Swift tests to verify compilation and state sync**
+- [x] **Step 3: Run Swift tests to verify compilation and state sync**
 Run: `swiftc tests/TunnelGuardStateSyncTests.swift NotchBuddy/Sources/App/TunnelGuardWatchdog.swift ...` or test script to confirm state file creation and cleanup.
 
 ---

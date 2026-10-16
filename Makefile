@@ -1,6 +1,6 @@
 .PHONY: test test-tunnelguard test-tunnelguard-safe test-tunnelguard-swift-safe \
         test-tunnelguard-phase2-safe test-tunnelguard-phase3-safe test-tunnelguard-watchdog \
-        test-tunnelguard-python-safe test-tunnelguard-all test-tunnelguard-dangerous \
+        test-tunnelguard-state-sync test-tunnelguard-python-safe test-tunnelguard-all test-tunnelguard-dangerous \
         build build-release release-build release \
         package dist
 
@@ -10,7 +10,7 @@ test: test-tunnelguard-safe
 
 test-tunnelguard: test-tunnelguard-safe
 
-test-tunnelguard-safe: test-tunnelguard-swift-safe test-tunnelguard-phase2-safe test-tunnelguard-phase3-safe test-tunnelguard-watchdog test-tunnelguard-python-safe
+test-tunnelguard-safe: test-tunnelguard-swift-safe test-tunnelguard-phase2-safe test-tunnelguard-phase3-safe test-tunnelguard-watchdog test-tunnelguard-state-sync test-tunnelguard-python-safe
 
 test-tunnelguard-swift-safe:
 	./scripts/test-tunnelguard-phase1-safe.sh
@@ -23,6 +23,9 @@ test-tunnelguard-phase3-safe:
 
 test-tunnelguard-watchdog:
 	./scripts/test-tunnelguard-watchdog.sh
+
+test-tunnelguard-state-sync:
+	./scripts/test-tunnelguard-state-sync.sh
 
 test-tunnelguard-python-safe:
 	PYTHONPATH=tests python3 -m unittest -v \
