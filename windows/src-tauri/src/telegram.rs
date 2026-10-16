@@ -485,6 +485,38 @@ fn get_state() -> MutexGuard<'static, TelegramInner> {
         .unwrap_or_else(PoisonError::into_inner)
 }
 
+pub fn format_question_prompt(prefix: &str, header: Option<&str>, question: &str) -> String {
+    let header_clean = header.map(|h| h.trim()).filter(|h| !h.is_empty());
+    match header_clean {
+        Some(h) if h != question.trim() => {
+            format!("{prefix}\n{h}\n{question}")
+        }
+        _ => {
+            format!("{prefix}\n{question}")
+        }
+    }
+}
+
+pub fn reset_state_for_test() {
+    let mut st = get_state();
+    st.queue = NotificationQueue::default();
+    st.last_finished_key = None;
+    st.registry = TelegramActionRegistry::default();
+    st.active_questions.clear();
+}
+
+pub fn get_last_finished_key() -> Option<String> {
+    get_state().last_finished_key.clone()
+}
+
+pub fn get_queue_len() -> usize {
+    get_state().queue.len()
+}
+
+pub fn pop_queued_notification() -> Option<QueuedNotification> {
+    get_state().queue.pop_front()
+}
+
 // ── Public Service Interface ────────────────────────────────────────────────
 
 pub struct TelegramService;
@@ -782,7 +814,7 @@ async fn handle_update_internal(app: &AppHandle, api: &TelegramApi, update: Tele
                                 }
                                 if let Some(sr) = &aq.submit_ref {
                                     buttons.push(vec![InlineKeyboardButton {
-                                        text: "Отправить".to_string(),
+                                        text: "Submit".to_string(),
                                         callback_data: Some(make_callback_data(sr, "submit")),
                                         url: None,
                                     }]);
@@ -801,8 +833,11 @@ async fn handle_update_internal(app: &AppHandle, api: &TelegramApi, update: Tele
                             if q_idx + 1 < aq.questions.len() {
                                 aq.current_index = q_idx + 1;
                                 let next_q = &aq.questions[aq.current_index];
-                                let header_str = next_q.header.as_deref().unwrap_or(&next_q.question);
-                                aq.prompt_text = format!("❓ Question [{}/{}]\n{}\n{}", aq.current_index + 1, aq.questions.len(), header_str, next_q.question);
+                                aq.prompt_text = format_question_prompt(
+                                    &format!("❓ Question [{}/{}]", aq.current_index + 1, aq.questions.len()),
+                                    next_q.header.as_deref(),
+                                    &next_q.question,
+                                );
                                 let mut buttons = Vec::new();
                                 let mut new_option_refs = HashMap::new();
                                 {
@@ -915,6 +950,16 @@ async fn handle_update_internal(app: &AppHandle, api: &TelegramApi, update: Tele
 
         match consume_result {
             TelegramActionResult::Accepted(action) => {
+                match action.kind {
+                    TelegramActionKind::ApprovalAllow => {
+                        crate::pipe::answer(app, &action.session_id, "allow");
+                    }
+                    TelegramActionKind::ApprovalDeny => {
+                        crate::pipe::answer(app, &action.session_id, "deny");
+                    }
+                    _ => {}
+                }
+
                 let decision_text = match action.kind {
                     TelegramActionKind::ApprovalAllow => "Approved",
                     TelegramActionKind::ApprovalDeny => "Denied",
@@ -930,16 +975,6 @@ async fn handle_update_internal(app: &AppHandle, api: &TelegramApi, update: Tele
                     let _ = api
                         .edit_message(chat_id, action.message_id, Some(decision_text), None)
                         .await;
-                }
-
-                match action.kind {
-                    TelegramActionKind::ApprovalAllow => {
-                        crate::pipe::answer(app, &action.session_id, "allow");
-                    }
-                    TelegramActionKind::ApprovalDeny => {
-                        crate::pipe::answer(app, &action.session_id, "deny");
-                    }
-                    _ => {}
                 }
             }
             TelegramActionResult::Rejected(TelegramActionRejection::Consumed)
@@ -1060,8 +1095,11 @@ pub fn on_pending_approval(app: &AppHandle, payload: &serde_json::Value) {
             .unwrap_or("Claude Code");
 
         let first_q = &parsed_questions[0];
-        let header_str = first_q.header.as_deref().unwrap_or(&first_q.question);
-        let prompt_text = format!("❓ {}\n{}\n{}", agent, header_str, first_q.question);
+        let prompt_text = format_question_prompt(
+            &format!("❓ {}", agent),
+            first_q.header.as_deref(),
+            &first_q.question,
+        );
         let safe_text = truncate_text(&prompt_text, 3500);
 
         let now = Instant::now();
@@ -1106,7 +1144,7 @@ pub fn on_pending_approval(app: &AppHandle, payload: &serde_json::Value) {
                     now,
                 );
                 buttons.push(vec![InlineKeyboardButton {
-                    text: "Отправить".to_string(),
+                    text: "Submit".to_string(),
                     callback_data: Some(make_callback_data(&sub.r#ref, "submit")),
                     url: None,
                 }]);
@@ -1286,6 +1324,142 @@ pub fn on_pending_approval(app: &AppHandle, payload: &serde_json::Value) {
     });
 }
 
+pub fn handle_hook(
+    settings: &settings::Settings,
+    payload: &serde_json::Value,
+) -> Option<QueuedNotification> {
+    if !settings.telegram_enabled {
+        return None;
+    }
+
+    let kind = payload
+        .get("hook_event_name")
+        .or_else(|| payload.get("type"))
+        .or_else(|| payload.get("kind"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let kind_lower = kind.to_ascii_lowercase();
+
+    let is_finished = kind_lower == "stop" || kind_lower == "finished";
+    let is_error = kind_lower == "stopfailure" || kind_lower == "error";
+
+    if !is_finished && !is_error {
+        return None;
+    }
+
+    if is_finished && !settings.telegram_notify_finished {
+        return None;
+    }
+
+    let agent = payload
+        .get("coucou_agent")
+        .or_else(|| payload.get("agent"))
+        .or_else(|| payload.get("agentName"))
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+        .unwrap_or("Agent");
+
+    let project = payload
+        .get("project")
+        .or_else(|| payload.get("projectName"))
+        .and_then(|v| v.as_str())
+        .map(String::from)
+        .or_else(|| {
+            payload
+                .get("cwd")
+                .and_then(|v| v.as_str())
+                .map(|cwd| {
+                    let trimmed = cwd.trim_end_matches(['/', '\\']);
+                    trimmed.rsplit(['/', '\\']).next().unwrap_or_default().to_string()
+                })
+        })
+        .unwrap_or_default();
+
+    let last_line = payload
+        .get("last_assistant_message")
+        .or_else(|| payload.get("lastLine"))
+        .or_else(|| payload.get("finalText"))
+        .or_else(|| payload.get("message"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+
+    let session_id = payload
+        .get("session_id")
+        .or_else(|| payload.get("sessionId"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+
+    let key = format!("{session_id}:{agent}:{project}:{last_line}");
+    {
+        let mut st = get_state();
+        if st.last_finished_key.as_deref() == Some(&key) {
+            return None;
+        }
+        st.last_finished_key = Some(key);
+    }
+
+    let text = if is_error {
+        if project.is_empty() {
+            if last_line.is_empty() {
+                format!("{agent} stopped with an error.")
+            } else {
+                format!("{agent} stopped with an error.\n{last_line}")
+            }
+        } else {
+            if last_line.is_empty() {
+                format!("{agent} stopped with an error on {project}.")
+            } else {
+                format!("{agent} stopped with an error on {project}.\n{last_line}")
+            }
+        }
+    } else {
+        if project.is_empty() {
+            if last_line.is_empty() {
+                format!("{agent} finished working.")
+            } else {
+                format!("{agent} finished working.\n{last_line}")
+            }
+        } else {
+            if last_line.is_empty() {
+                format!("{agent} finished working on {project}.")
+            } else {
+                format!("{agent} finished working on {project}.\n{last_line}")
+            }
+        }
+    };
+    let safe_text = truncate_text(&text, 3500);
+
+    let notif_kind = if is_error {
+        NotificationKind::Error
+    } else {
+        NotificationKind::Finished
+    };
+
+    let notif = QueuedNotification {
+        id: format!(
+            "notif-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_nanos()
+        ),
+        kind: notif_kind,
+        text: safe_text,
+        created_at: Instant::now(),
+    };
+
+    let can_send = {
+        let mut st = get_state();
+        st.queue.push(notif.clone())
+    };
+
+    if can_send {
+        Some(notif)
+    } else {
+        None
+    }
+}
+
 pub fn on_hook(app: &AppHandle, payload: serde_json::Value) {
     let shared = app.state::<Shared>();
     let settings = shared.settings.lock().unwrap().clone();
@@ -1302,70 +1476,12 @@ pub fn on_hook(app: &AppHandle, payload: serde_json::Value) {
         _ => return,
     };
 
-    let kind = payload
-        .get("type")
-        .or_else(|| payload.get("kind"))
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
-
-    if kind == "stop" || kind == "finished" {
-        if !settings.telegram_notify_finished {
-            return;
-        }
-        let agent = payload
-            .get("agent")
-            .or_else(|| payload.get("agentName"))
-            .and_then(|v| v.as_str())
-            .unwrap_or("Agent");
-        let project = payload
-            .get("project")
-            .or_else(|| payload.get("projectName"))
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
-        let last_line = payload
-            .get("lastLine")
-            .or_else(|| payload.get("finalText"))
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
-
-        let key = format!("{agent}:{project}:{last_line}");
-        {
-            let mut st = get_state();
-            if st.last_finished_key.as_deref() == Some(&key) {
-                return;
-            }
-            st.last_finished_key = Some(key);
-        }
-
-        let text = if project.is_empty() {
-            format!("{agent} finished working.\n{last_line}")
-        } else {
-            format!("{agent} finished working on {project}.\n{last_line}")
-        };
-        let safe_text = truncate_text(&text, 3500);
-
-        let can_send = {
-            let mut st = get_state();
-            st.queue.push(QueuedNotification {
-                id: format!(
-                    "notif-{}",
-                    std::time::SystemTime::now()
-                        .duration_since(std::time::UNIX_EPOCH)
-                        .unwrap_or_default()
-                        .as_nanos()
-                ),
-                kind: NotificationKind::Finished,
-                text: safe_text.clone(),
-                created_at: Instant::now(),
-            })
-        };
-
-        if can_send {
-            tauri::async_runtime::spawn(async move {
-                let api = TelegramApi::new(&token);
-                let _ = api.send_message(chat_id, &safe_text, None).await;
-            });
-        }
+    if let Some(notif) = handle_hook(&settings, &payload) {
+        let text = notif.text;
+        tauri::async_runtime::spawn(async move {
+            let api = TelegramApi::new(&token);
+            let _ = api.send_message(chat_id, &text, None).await;
+        });
     }
 }
 
@@ -2011,4 +2127,99 @@ mod tests {
             serde_json::json!(["Auth", "Tracing"])
         );
     }
+
+    #[test]
+    fn test_format_question_prompt() {
+        // Absent header
+        assert_eq!(
+            format_question_prompt("❓ Claude", None, "Which database?"),
+            "❓ Claude\nWhich database?"
+        );
+        // Header equal to question
+        assert_eq!(
+            format_question_prompt("❓ Claude", Some("Which database?"), "Which database?"),
+            "❓ Claude\nWhich database?"
+        );
+        // Empty header
+        assert_eq!(
+            format_question_prompt("❓ Claude", Some("   "), "Which database?"),
+            "❓ Claude\nWhich database?"
+        );
+        // Header different from question
+        assert_eq!(
+            format_question_prompt("❓ Claude", Some("Database"), "Which database?"),
+            "❓ Claude\nDatabase\nWhich database?"
+        );
+        // Multi-question prompt
+        assert_eq!(
+            format_question_prompt("❓ Question [2/3]", Some("Testing"), "Run tests?"),
+            "❓ Question [2/3]\nTesting\nRun tests?"
+        );
+        assert_eq!(
+            format_question_prompt("❓ Question [2/3]", None, "Run tests?"),
+            "❓ Question [2/3]\nRun tests?"
+        );
+    }
+
+    #[test]
+    fn test_on_hook_handling_and_deduplication() {
+        reset_state_for_test();
+        let mut settings = settings::Settings::default();
+        settings.telegram_enabled = true;
+        settings.telegram_notify_finished = true;
+        settings.telegram_paired_chat_id = Some(12345);
+        settings.telegram_paired_user_id = Some(67890);
+
+        let payload = serde_json::json!({
+            "hook_event_name": "Stop",
+            "session_id": "s1",
+            "last_assistant_message": "Turn done",
+            "coucou_agent": "Claude"
+        });
+
+        // First call: parsed, queued as Finished, correct message text
+        let notif = handle_hook(&settings, &payload).expect("should handle hook");
+        assert_eq!(notif.kind, NotificationKind::Finished);
+        assert_eq!(notif.text, "Claude finished working.\nTurn done");
+
+        {
+            let st = get_state();
+            assert_eq!(st.queue.len(), 1);
+            assert_eq!(st.last_finished_key.as_deref(), Some("s1:Claude::Turn done"));
+        }
+
+        // Duplicate call with same payload: deduplicated, returns None, queue unchanged
+        let dup = handle_hook(&settings, &payload);
+        assert!(dup.is_none());
+        {
+            let st = get_state();
+            assert_eq!(st.queue.len(), 1);
+        }
+
+        // Project extracted from cwd
+        let payload_cwd = serde_json::json!({
+            "hook_event_name": "finished",
+            "session_id": "s2",
+            "finalText": "Finished compilation",
+            "coucou_agent": "AgentSmith",
+            "cwd": "/home/user/code/my-project/"
+        });
+        let notif_cwd = handle_hook(&settings, &payload_cwd).expect("should handle cwd hook");
+        assert_eq!(notif_cwd.kind, NotificationKind::Finished);
+        assert_eq!(notif_cwd.text, "AgentSmith finished working on my-project.\nFinished compilation");
+
+        // StopFailure / error kind
+        let payload_err = serde_json::json!({
+            "hook_event_name": "StopFailure",
+            "session_id": "s3",
+            "message": "Process aborted",
+            "agent": "Claude"
+        });
+        let notif_err = handle_hook(&settings, &payload_err).expect("should handle StopFailure");
+        assert_eq!(notif_err.kind, NotificationKind::Error);
+        assert_eq!(notif_err.text, "Claude stopped with an error.\nProcess aborted");
+
+        reset_state_for_test();
+    }
 }
+

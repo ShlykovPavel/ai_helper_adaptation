@@ -585,6 +585,73 @@ fn main() {
     assert_eq!(dup_res, telegram::TelegramActionResult::Rejected(telegram::TelegramActionRejection::Consumed));
     println!("ok");
 
+    // 12. Hook processing, message formatting, and deduplication
+    print!("test on_hook_processing_formatting_and_deduplication ... ");
+    telegram::reset_state_for_test();
+    let mut hook_settings = settings::Settings::default();
+    hook_settings.telegram_enabled = true;
+    hook_settings.telegram_notify_finished = true;
+    hook_settings.telegram_paired_chat_id = Some(12345);
+    hook_settings.telegram_paired_user_id = Some(67890);
+
+    let raw_stop_payload = serde_json::json!({
+        "hook_event_name": "Stop",
+        "session_id": "s1",
+        "last_assistant_message": "Turn done",
+        "coucou_agent": "Claude"
+    });
+
+    let notif = telegram::handle_hook(&hook_settings, &raw_stop_payload).expect("should handle hook event");
+    assert_eq!(notif.kind, telegram::NotificationKind::Finished);
+    assert_eq!(notif.text, "Claude finished working.\nTurn done");
+    assert_eq!(telegram::get_last_finished_key().as_deref(), Some("s1:Claude::Turn done"));
+    assert_eq!(telegram::get_queue_len(), 1);
+
+    // Verify deduplication via last_finished_key
+    let dup_notif = telegram::handle_hook(&hook_settings, &raw_stop_payload);
+    assert!(dup_notif.is_none());
+    assert_eq!(telegram::get_queue_len(), 1);
+
+    // Verify cwd -> project derivation
+    let raw_cwd_payload = serde_json::json!({
+        "hook_event_name": "finished",
+        "session_id": "s2",
+        "lastLine": "Build success",
+        "agent": "Claude Code",
+        "cwd": "/home/user/workspace/awesome-repo/"
+    });
+    let notif_cwd = telegram::handle_hook(&hook_settings, &raw_cwd_payload).expect("should handle cwd hook");
+    assert_eq!(notif_cwd.kind, telegram::NotificationKind::Finished);
+    assert_eq!(notif_cwd.text, "Claude Code finished working on awesome-repo.\nBuild success");
+
+    // Verify StopFailure / error kind
+    let raw_err_payload = serde_json::json!({
+        "hook_event_name": "StopFailure",
+        "session_id": "s3",
+        "message": "Crash occurred",
+        "agentName": "Claude"
+    });
+    let notif_err = telegram::handle_hook(&hook_settings, &raw_err_payload).expect("should handle StopFailure");
+    assert_eq!(notif_err.kind, telegram::NotificationKind::Error);
+    assert_eq!(notif_err.text, "Claude stopped with an error.\nCrash occurred");
+
+    // Question prompt formatting: no duplicate question when header is absent or equal
+    assert_eq!(
+        telegram::format_question_prompt("❓ Claude", None, "Do you approve?"),
+        "❓ Claude\nDo you approve?"
+    );
+    assert_eq!(
+        telegram::format_question_prompt("❓ Claude", Some("Do you approve?"), "Do you approve?"),
+        "❓ Claude\nDo you approve?"
+    );
+    assert_eq!(
+        telegram::format_question_prompt("❓ Claude", Some("Confirmation"), "Do you approve?"),
+        "❓ Claude\nConfirmation\nDo you approve?"
+    );
+
+    telegram::reset_state_for_test();
+    println!("ok");
+
     println!("\nALL TELEGRAM RUST UNIT TESTS PASSED (100% OK)");
 }
 EOF
