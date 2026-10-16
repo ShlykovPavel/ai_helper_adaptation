@@ -27,16 +27,16 @@
 **Files:**
 - Modify: `NotchBuddy/Sources/App/TunnelGuardNetworkWorker.swift:250-265`
 
-- [ ] Step 1: Update Split-Tunnel domain check in `TunnelGuardNetworkWorker.checkStatus`:
+- [x] Step 1: Update Split-Tunnel domain check in `TunnelGuardNetworkWorker.checkStatus`:
   - When iterating over `targetDomains`:
     - Call `resolveDomain(domain)`.
     - If `resolvedIp.isEmpty`, use any existing cached IP from `dnsCache[domain]`.
     - If `resolvedIp` is still empty, do NOT mark `targetDomainsOk = false`. An unresolvable domain cannot leak traffic. Continue to next domain.
     - If `resolvedIp` is present, check `domainIface = getRouteInterface(dest: resolvedIp, timeoutSeconds: routeTimeout)`.
     - Only mark `targetDomainsOk = false` if `!domainIface.isEmpty && !TunnelGuardWatchdog.isVpnInterface(domainIface)`. If `domainIface.isEmpty` (route lookup timed out or failed), do not treat it as a leak.
-- [ ] Step 2: In `resolveDomain`, retain the cached IP indefinitely as fallback if subsequent `getaddrinfo` calls fail during network hiccups.
-- [ ] Step 3: Run `make test-tunnelguard-safe` in worktree to verify existing tests pass.
-- [ ] Step 4: Commit changes:
+- [x] Step 2: In `resolveDomain`, retain the cached IP indefinitely as fallback if subsequent `getaddrinfo` calls fail during network hiccups.
+- [x] Step 3: Run `make test-tunnelguard-safe` in worktree to verify existing tests pass.
+- [x] Step 4: Commit changes:
   `git commit -m "fix(tunnelguard): do not treat DNS failure or route timeout as split-tunnel leak"`
 
 ---
@@ -46,17 +46,17 @@
 **Files:**
 - Modify: `NotchBuddy/Sources/App/TunnelGuardWatchdog.swift:240-310`
 
-- [ ] Step 1: In `handleNetworkSnapshot`:
+- [x] Step 1: In `handleNetworkSnapshot`:
   - Priority ordering:
     - If `snapshot.deadTunnelDetected`: `failureReason = "Завис VPN туннель (нет ответа на пинг)"`.
     - Else if `splitTunnelCheck && !snapshot.targetDomainsOk`: `failureReason = "Утечка трафика целевых AI-доменов в незащищенный интерфейс"`.
     - Else if `!splitTunnelCheck && !snapshot.isVpn`: `failureReason = "VPN отключен! Обнаружен интерфейс: ..."`
-- [ ] Step 2: In Level-Trigger (`!wasHealthy && !currentlyHealthy`):
+- [x] Step 2: In Level-Trigger (`!wasHealthy && !currentlyHealthy`):
   - In `if isDeadTunnelPromptActive`:
     - Only abort prompt and escalate to hard kill if the connection actually dropped to a non-VPN interface (`!snapshot.isVpn` or `snapshot.iface == "en0"`), OR if `splitTunnelCheck && !snapshot.targetDomainsOk && !snapshot.deadTunnelDetected`.
     - If `snapshot.deadTunnelDetected == true`, do NOT dismiss the prompt or execute hard kill on repeated ticks! Keep the agents suspended (`SIGSTOP`) and prompt active.
-- [ ] Step 3: Run `make test-tunnelguard-safe` in worktree to verify Watchdog prompt tests pass.
-- [ ] Step 4: Commit changes:
+- [x] Step 3: Run `make test-tunnelguard-safe` in worktree to verify Watchdog prompt tests pass.
+- [x] Step 4: Commit changes:
   `git commit -m "fix(tunnelguard): prevent dead tunnel prompt from being aborted on level-triggered ticks"`
 
 ---
@@ -67,7 +67,7 @@
 - Modify: `NotchBuddy/Sources/App/IslandWindowController.swift:329-331`
 - Modify: `NotchBuddy/Sources/App/AppState.swift:32-37`
 
-- [ ] Step 1: In `IslandWindowController.swift`:
+- [x] Step 1: In `IslandWindowController.swift`:
   - Update `fsm.isHeldOpen` to include `.deadTunnelPrompt` and `.securityPanic`:
     ```swift
     fsm.isHeldOpen = {
@@ -77,10 +77,10 @@
         AppState.shared.view == .securityPanic
     }
     ```
-- [ ] Step 2: In `AppState.swift`:
+- [x] Step 2: In `AppState.swift`:
   - In `triggerDeadTunnelPrompt(...)`, post notification or ensure `fsm.openedExternally()` is synchronized so FSM does not collapse the island.
-- [ ] Step 3: Run `make build` in worktree.
-- [ ] Step 4: Commit changes:
+- [x] Step 3: Run `make build` in worktree.
+- [x] Step 4: Commit changes:
   `git commit -m "fix(island): hold island open for deadTunnelPrompt and securityPanic"`
 
 ---
@@ -91,22 +91,22 @@
 - Create: `tests/TunnelGuardSplitLeakSafetyTests.swift`
 - Modify: `scripts/test-tunnelguard-phase3-safe.sh`
 
-- [ ] Step 1: Write `tests/TunnelGuardSplitLeakSafetyTests.swift`:
+- [x] Step 1: Write `tests/TunnelGuardSplitLeakSafetyTests.swift`:
   - Verify that when DNS fails (`resolveDomain` returns `""`), `checkStatus` returns `targetDomainsOk == true`.
   - Verify that when route query returns empty string (`""`), `checkStatus` returns `targetDomainsOk == true`.
   - Verify that only when `domainIface == "en0"` does `checkStatus` return `targetDomainsOk == false`.
   - Verify that when `isDeadTunnelPromptActive == true` and repeated ticks occur with `deadTunnelDetected == true`, the prompt remains active and processes are NOT killed.
-- [ ] Step 2: Wire `tests/TunnelGuardSplitLeakSafetyTests.swift` into `scripts/test-tunnelguard-phase3-safe.sh`.
-- [ ] Step 3: Run `make test-tunnelguard-safe` and verify that all test suites pass.
-- [ ] Step 4: Commit changes:
+- [x] Step 2: Wire `tests/TunnelGuardSplitLeakSafetyTests.swift` into `scripts/test-tunnelguard-phase3-safe.sh`.
+- [x] Step 3: Run `make test-tunnelguard-safe` and verify that all test suites pass.
+- [x] Step 4: Commit changes:
   `git commit -m "test(tunnelguard): add unit tests for DNS failure safety and prompt persistence"`
 
 ---
 
 ### Task 5: End-to-End Build and Verification
 
-- [ ] Step 1: Run `make test-tunnelguard-safe` in worktree and confirm all 9 safe test suites pass.
-- [ ] Step 2: Run `make build` and verify clean build with `** BUILD SUCCEEDED **`.
-- [ ] Step 3: Mark all plan checkboxes complete in `docs/superpowers/plans/2026-10-16-fix-dead-tunnel-split-leak-override.md`.
-- [ ] Step 4: Commit documentation updates:
+- [x] Step 1: Run `make test-tunnelguard-safe` in worktree and confirm all 9 safe test suites pass.
+- [x] Step 2: Run `make build` and verify clean build with `** BUILD SUCCEEDED **`.
+- [x] Step 3: Mark all plan checkboxes complete in `docs/superpowers/plans/2026-10-16-fix-dead-tunnel-split-leak-override.md`.
+- [x] Step 4: Commit documentation updates:
   `git commit -m "docs: complete dead tunnel split leak override plan"`
