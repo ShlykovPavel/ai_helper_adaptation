@@ -1284,22 +1284,29 @@ final class HookServer: @unchecked Sendable {
 
     // MARK: - nb-hook script installation
 
+    @discardableResult
+    static func writeHookFiles(to dir: URL = supportDir) throws -> (wrapper: URL, python: URL) {
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try? FileManager.default.setAttributes([.posixPermissions: 0o700 as NSNumber], ofItemAtPath: dir.path)
+        let wrapperURL = dir.appendingPathComponent("nb-hook")
+        try nbHookShellWrapper.write(to: wrapperURL, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755 as NSNumber], ofItemAtPath: wrapperURL.path)
+        let pyURL = dir.appendingPathComponent("nb-hook.py")
+        try nbHookPythonGitHub.write(to: pyURL, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755 as NSNumber], ofItemAtPath: pyURL.path)
+        return (wrapperURL, pyURL)
+    }
+
+    func writeHookFiles(to dir: URL = supportDir) throws {
+        try Self.writeHookFiles(to: dir)
+    }
+
     func installHookScript() {
         #if APPSTORE
         // In App Store mode the script is written during settings hook installation
         // (requires NSOpenPanel to ~/.claude chosen by the user)
         #else
-        let dir = Self.supportDir
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        try? FileManager.default.setAttributes([.posixPermissions: 0o700 as NSNumber], ofItemAtPath: dir.path)
-        // nb-hook: shell wrapper (always exits 0, calls nb-hook.py via python3)
-        let wrapperURL = URL(fileURLWithPath: Self.hookScriptPath)
-        try? nbHookShellWrapper.write(to: wrapperURL, atomically: true, encoding: .utf8)
-        _ = try? FileManager.default.setAttributes([.posixPermissions: 0o755 as NSNumber], ofItemAtPath: wrapperURL.path)
-        // nb-hook.py: Python relay
-        let pyURL = wrapperURL.deletingLastPathComponent().appendingPathComponent("nb-hook.py")
-        try? nbHookPythonGitHub.write(to: pyURL, atomically: true, encoding: .utf8)
-        _ = try? FileManager.default.setAttributes([.posixPermissions: 0o755 as NSNumber], ofItemAtPath: pyURL.path)
+        try? Self.writeHookFiles(to: Self.supportDir)
         #endif
     }
 
@@ -3199,13 +3206,110 @@ def _get_route_interface(dest):
         pass
     return ""
 
-def verify_vpn_route_utun():
+def is_tunnelguard_active(agent_name="", state_file=None, socket_path=None):
+    if state_file is None:
+        state_file = os.environ.get('TUNNELGUARD_STATE_FILE') or os.environ.get('_TUNNELGUARD_STATE_FILE') or os.path.expanduser('~/Library/Application Support/NotchBuddy/tunnelguard-state.json')
+    if not os.path.exists(state_file):
+        return False
+    try:
+        with open(state_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except Exception:
+        return False
+
+    if not data.get("running") or not data.get("enabled"):
+        return False
+
+    pid = data.get("pid")
+    if not pid:
+        return False
+    try:
+        pid = int(pid)
+        if pid <= 0:
+            return False
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except (ValueError, TypeError):
+        return False
+    except Exception:
+        pass
+
+    # Check if this agent is in protected targets
+    targets = data.get("protected_targets", [])
+    if isinstance(targets, list) and targets:
+        # Normalize agent name: agy / antigravity, etc.
+        norm = "agy" if agent_name in ("antigravity", "agy-cli") else agent_name
+        # Match against targets: target could be "agy", "agy-cli", "claude", etc.
+        target_matched = False
+        for t in targets:
+            t_norm = "agy" if t in ("antigravity", "agy-cli") else t
+            if t == agent_name or t == norm or t_norm == norm or norm in t:
+                target_matched = True
+                break
+        if not target_matched and agent_name:
+            return False
+
+    if socket_path is None:
+        socket_path = os.environ.get('NOTCHBUDDY_SOCKET_PATH') or os.environ.get('_NOTCHBUDDY_SOCKET_PATH') or os.path.expanduser('~/Library/Application Support/NotchBuddy/nb.sock')
+    if not os.path.exists(socket_path):
+        return False
+
+    return True
+
+def is_vpn_interface(iface):
+    vpn_prefixes = ("utun", "tun", "tap", "ppp", "cscotun", "fctun", "ipsec")
+    return bool(iface and iface.startswith(vpn_prefixes))
+
+def get_target_ai_domain(agent_name="", state_file=None):
+    if state_file is None:
+        state_file = os.environ.get('TUNNELGUARD_STATE_FILE') or os.environ.get('_TUNNELGUARD_STATE_FILE') or os.path.expanduser('~/Library/Application Support/NotchBuddy/tunnelguard-state.json')
+    if os.path.exists(state_file):
+        try:
+            with open(state_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            domains = data.get("target_domains", {})
+            if isinstance(domains, dict):
+                if agent_name in domains:
+                    return domains[agent_name]
+                norm = "agy" if agent_name in ("antigravity", "agy-cli") else agent_name
+                if norm in domains:
+                    return domains[norm]
+        except Exception:
+            pass
+    mapping = {
+        "antigravity": "generativelanguage.googleapis.com",
+        "agy": "generativelanguage.googleapis.com",
+        "agy-cli": "generativelanguage.googleapis.com",
+        "gemini": "generativelanguage.googleapis.com",
+        "gemini-cli": "generativelanguage.googleapis.com",
+        "claude": "claude.ai",
+        "claude-cli": "claude.ai",
+        "claude-desktop": "claude.ai",
+        "codex": "chatgpt.com",
+        "codex-cli": "chatgpt.com",
+        "cursor": "cursor.sh",
+        "cursor-agent": "cursor.sh",
+        "cursor-agent-cli": "cursor.sh",
+    }
+    return mapping.get(agent_name, "")
+
+def verify_vpn_route(agent_name="", state_file=None):
+    domain = get_target_ai_domain(agent_name, state_file=state_file)
+    if domain:
+        domain_iface = _get_route_interface(domain)
+        if is_vpn_interface(domain_iface):
+            return True
     iface = _get_route_interface("1.1.1.1")
-    if not iface.startswith("utun"):
-        def_iface = _get_route_interface("default")
-        if def_iface.startswith("utun"):
-            iface = def_iface
-    return iface.startswith("utun")
+    if is_vpn_interface(iface):
+        return True
+    def_iface = _get_route_interface("default")
+    if is_vpn_interface(def_iface):
+        return True
+    return False
+
+def verify_vpn_route_utun(agent_name=""):
+    return verify_vpn_route(agent_name)
 
 def get_real_agent_pid():
     # Определение PID реального процесса агента через обход дерева процессов вверх
@@ -3318,9 +3422,21 @@ def normalize_tool_fields(payload):
         payload['cwd'] = payload['workdir']
 
 def main():
-    # ШЛАГБАУМ TUNNELGUARD: блокируем до чтения stdin
-    if not verify_vpn_route_utun():
-        tunnel_guard_kill_agent_and_exit()
+    agent = ''
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] == '--agent' and i + 1 < len(args):
+            agent = args[i + 1]
+            break
+        i += 1
+    if not agent and os.environ.get('CLAUDE_CODE_ENTRYPOINT') == 'claude-desktop':
+        agent = 'claude-desktop'
+
+    # ШЛАГБАУМ TUNNELGUARD: блокируем только если TunnelGuard активен в NotchBuddy
+    if is_tunnelguard_active(agent):
+        if not verify_vpn_route(agent):
+            tunnel_guard_kill_agent_and_exit()
 
     raw = b''
     payload = {}
@@ -3335,7 +3451,7 @@ def main():
         if '--statusline' not in sys.argv[1:]:
             return
 
-    socket_path = os.path.expanduser(
+    socket_path = os.environ.get('NOTCHBUDDY_SOCKET_PATH') or os.environ.get('_NOTCHBUDDY_SOCKET_PATH') or os.path.expanduser(
         '~/Library/Application Support/NotchBuddy/nb.sock'
     )
 

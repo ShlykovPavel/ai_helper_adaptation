@@ -51,6 +51,7 @@ final class TunnelGuardWatchdog: ObservableObject {
                 }
                 powerGuard.updateSleepAssertion(shouldHold: false)
             }
+            syncRuntimeStateFile()
         }
     }
     @Published var continuousKill: Bool = true
@@ -71,7 +72,14 @@ final class TunnelGuardWatchdog: ObservableObject {
     @Published var progressiveTimeoutEnabled: Bool = true
     @Published var maxPingFails: Int = 3
     @Published var deadTunnelAction: String = "prompt" // "prompt" | "kill"
-    @Published var targets: [TunnelGuardTargetApp] = TunnelGuardAppHunter.defaultTargets
+    @Published var targets: [TunnelGuardTargetApp] = TunnelGuardAppHunter.defaultTargets {
+        didSet {
+            syncRuntimeStateFile()
+        }
+    }
+
+    /// Директория для записи runtime state файла (по умолчанию nil -> defaultStateDirectoryURL).
+    var stateDirectoryURL: URL? = nil
 
     /// Домены, по которым пользователь может вручную проверить маршрут и внешний IP.
     var ipProbeDomains: [String] {
@@ -101,11 +109,13 @@ final class TunnelGuardWatchdog: ObservableObject {
     init(
         powerGuard: TunnelGuardPowerGuard = TunnelGuardPowerGuard(),
         networkWorker: TunnelGuardNetworkWorker = TunnelGuardNetworkWorker(),
-        settingsDefaults: UserDefaults = .standard
+        settingsDefaults: UserDefaults = .standard,
+        stateDirectoryURL: URL? = nil
     ) {
         self.powerGuard = powerGuard
         self.networkWorker = networkWorker
         self.settingsDefaults = settingsDefaults
+        self.stateDirectoryURL = stateDirectoryURL
         loadPersistedSettings()
     }
 
@@ -114,6 +124,7 @@ final class TunnelGuardWatchdog: ObservableObject {
         // AppStorage-backed preferences here so the first network check uses
         // the user's persisted policy and target selection.
         loadPersistedSettings()
+        syncRuntimeStateFile()
         checkNetwork()
 
         // Таймер в режиме .common для работы даже при открытых системных меню
@@ -173,15 +184,19 @@ final class TunnelGuardWatchdog: ObservableObject {
                 reason: "TunnelGuard VPN Protection Active"
             )
         }
+
+        syncRuntimeStateFile()
     }
 
     func stop() {
         monitorTimer?.invalidate()
         monitorTimer = nil
         powerGuard.releaseOnTerminate()
+        cleanupRuntimeStateFile()
     }
 
     func applicationWillTerminate() {
+        cleanupRuntimeStateFile()
         stop()
     }
 
@@ -461,7 +476,8 @@ final class TunnelGuardWatchdog: ObservableObject {
     // MARK: - Статические утилиты (Nonisolated для Swift 6 и обратной совместимости)
 
     nonisolated static func isVpnInterface(_ iface: String) -> Bool {
-        iface.hasPrefix("utun")
+        let prefixes = ["utun", "tun", "tap", "ppp", "cscotun", "fctun", "ipsec"]
+        return prefixes.contains { iface.hasPrefix($0) }
     }
 
     nonisolated static func parseInterface(fromRouteOutput output: String) -> String {
@@ -571,6 +587,72 @@ final class TunnelGuardWatchdog: ObservableObject {
             } else {
                 try? data.write(to: logFile)
             }
+        }
+    }
+
+    // MARK: - Runtime State Synchronization
+
+    nonisolated static var defaultStateDirectoryURL: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("NotchBuddy", isDirectory: true)
+    }
+
+    nonisolated static var defaultStateFileURL: URL {
+        defaultStateDirectoryURL.appendingPathComponent("tunnelguard-state.json")
+    }
+
+    nonisolated static func stateFileURL(for directoryURL: URL?) -> URL {
+        let dir = directoryURL ?? defaultStateDirectoryURL
+        if dir.pathExtension == "json" {
+            return dir
+        }
+        return dir.appendingPathComponent("tunnelguard-state.json")
+    }
+
+    func syncRuntimeStateFile(stateDirURL: URL? = nil) {
+        let targetDir = stateDirURL ?? stateDirectoryURL
+        let payload = buildRuntimeStatePayload(running: true)
+        writeRuntimeStatePayload(payload, stateDirURL: targetDir)
+    }
+
+    func cleanupRuntimeStateFile(stateDirURL: URL? = nil) {
+        let targetDir = stateDirURL ?? stateDirectoryURL
+        let payload = buildRuntimeStatePayload(running: false)
+        writeRuntimeStatePayload(payload, stateDirURL: targetDir)
+    }
+
+    private func buildRuntimeStatePayload(running: Bool) -> [String: Any] {
+        let activeCliTargets = targets.filter { $0.type == .cli }.map(\.binaryOrBundleId)
+        var domains: [String: String] = [:]
+        for target in targets where target.type == .cli && !target.domain.isEmpty {
+            domains[target.binaryOrBundleId] = target.domain
+        }
+        if let agyDomain = domains["agy"] {
+            domains["antigravity"] = agyDomain
+        }
+        if let cursorDomain = domains["cursor-agent"] {
+            domains["cursor"] = cursorDomain
+        }
+
+        return [
+            "running": running,
+            "enabled": running ? isEnabled : false,
+            "pid": Int(ProcessInfo.processInfo.processIdentifier),
+            "protected_targets": activeCliTargets,
+            "target_domains": domains,
+            "updated_at": Date().timeIntervalSince1970
+        ]
+    }
+
+    private func writeRuntimeStatePayload(_ payload: [String: Any], stateDirURL: URL?) {
+        let fileURL = Self.stateFileURL(for: stateDirURL)
+        let targetDir = fileURL.deletingLastPathComponent()
+        do {
+            try FileManager.default.createDirectory(at: targetDir, withIntermediateDirectories: true)
+            let data = try JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
+            try data.write(to: fileURL, options: .atomic)
+        } catch {
+            Self.logSecurityEvent("⚠️ Не удалось записать tunnelguard-state.json: \(error.localizedDescription)")
         }
     }
 }
