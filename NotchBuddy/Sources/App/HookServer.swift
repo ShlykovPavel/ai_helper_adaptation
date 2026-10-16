@@ -131,7 +131,16 @@ final class HookServer: @unchecked Sendable {
             sessionId: entry.sessionId,
             agentId: entry.pillId,
             agentName: "",
-            kind: .approvalResolved
+            kind: .approvalResolved,
+            approval: ApprovalSnapshot(
+                id: entry.id,
+                tool: entry.tool,
+                command: entry.command,
+                inputKey: entry.inputKey,
+                pillId: entry.pillId,
+                sessionId: entry.sessionId,
+                projectName: entry.projectName
+            )
         ))
         let source = approvalSources.removeValue(forKey: id)
         if let json {

@@ -14,16 +14,22 @@ final class TelegramBotController {
         let chatId: Int64
         let messageId: Int64
         let promptText: String
+        let allowRef: String
+        let denyRef: String
     }
 
     struct ActiveQuestionContext {
         let fingerprint: String
         let sessionId: String
+        let agentName: String
+        let projectPart: String
         let items: [AskQuestionItem]
         var selections: [[String]]
+        var currentQuestionIndex: Int
         let chatId: Int64
         let messageId: Int64
-        let promptText: String
+        let basePromptText: String
+        var promptText: String
         var awaitingText: Bool
         var optionRefs: [String: (questionIndex: Int, optionLabel: String)]
         var submitRef: String?
@@ -36,6 +42,8 @@ final class TelegramBotController {
     private(set) var isRunning: Bool = false
     private var polling: TelegramPolling?
     private var api: TelegramBotAPI?
+    private let isCustomAPI: Bool
+    private let isCustomPolling: Bool
     private let registry: TelegramActionRegistry
 
     private let settingsProvider: @Sendable () -> TelegramSettings
@@ -47,7 +55,15 @@ final class TelegramBotController {
 
     private var cancellables = Set<AnyCancellable>()
 
-    private(set) var activeApproval: ActiveApprovalContext?
+    private(set) var activeApprovals: [UUID: ActiveApprovalContext] = [:]
+    private var activeApprovalsBySession: [String: ActiveApprovalContext] = [:]
+    private var approvalSessionByRef: [String: String] = [:]
+    private var approvalRefs: [String: UUID] = [:]
+
+    var activeApproval: ActiveApprovalContext? {
+        activeApprovals.values.first
+    }
+
     private(set) var activeQuestion: ActiveQuestionContext?
 
     private var lastFinishedKey: String?
@@ -67,7 +83,9 @@ final class TelegramBotController {
         clock: any TelegramClock = SystemTelegramClock()
     ) {
         self.api = api
+        self.isCustomAPI = (api != nil)
         self.polling = polling
+        self.isCustomPolling = (polling != nil)
         self.clock = clock
         self.registry = registry ?? TelegramActionRegistry(clock: clock)
 
@@ -114,16 +132,17 @@ final class TelegramBotController {
 
     func start() {
         guard !isRunning else { return }
-        isRunning = true
 
         let currentSettings = settingsProvider()
         guard currentSettings.enabled else { return }
+
+        isRunning = true
 
         if api == nil, let token = tokenProvider(), !token.isEmpty {
             api = TelegramBotAPI(token: token)
         }
 
-        if let api = api, currentSettings.pairedChatId != nil {
+        if let api = api {
             if polling == nil {
                 polling = TelegramPolling(api: api) { [weak self] update in
                     await self?.handle(update: update)
@@ -147,7 +166,7 @@ final class TelegramBotController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] pending in
                 guard let self = self else { return }
-                if pending == nil && self.activeApproval != nil {
+                if pending == nil && !self.activeApprovals.isEmpty {
                     self.handle(event: TelegramEvent(
                         sessionId: "",
                         agentId: "",
@@ -181,9 +200,17 @@ final class TelegramBotController {
                 await p.stop()
             }
         }
-        polling = nil
+        if !isCustomPolling {
+            polling = nil
+        }
+        if !isCustomAPI {
+            api = nil
+        }
         isRunning = false
-        activeApproval = nil
+        activeApprovals.removeAll()
+        activeApprovalsBySession.removeAll()
+        approvalSessionByRef.removeAll()
+        approvalRefs.removeAll()
         activeQuestion = nil
     }
 
@@ -273,30 +300,58 @@ final class TelegramBotController {
 
                 do {
                     let msgId = try await api.sendMessage(chatId: chatId, text: safeText, keyboard: keyboard)
-                    self.activeApproval = ActiveApprovalContext(
+                    let approvalId = approval.id ?? UUID()
+                    let context = ActiveApprovalContext(
                         id: approval.id,
                         fingerprint: approval.fingerprint,
                         sessionId: approval.sessionId,
                         chatId: chatId,
                         messageId: msgId,
-                        promptText: safeText
+                        promptText: safeText,
+                        allowRef: allowAction.ref,
+                        denyRef: denyAction.ref
                     )
+                    self.activeApprovals[approvalId] = context
+                    self.activeApprovalsBySession[approval.sessionId] = context
+                    self.approvalRefs[allowAction.ref] = approvalId
+                    self.approvalRefs[denyAction.ref] = approvalId
+                    self.approvalSessionByRef[allowAction.ref] = approval.sessionId
+                    self.approvalSessionByRef[denyAction.ref] = approval.sessionId
                 } catch {
                     // Ignored on network error
                 }
             }
 
         case .approvalResolved:
-            if let active = activeApproval {
+            let targetId = event.approval?.id
+            let toResolve: [ActiveApprovalContext]
+            if let targetId = targetId, let active = activeApprovals.removeValue(forKey: targetId) {
+                if activeApprovalsBySession[active.sessionId]?.id == targetId {
+                    activeApprovalsBySession.removeValue(forKey: active.sessionId)
+                }
+                toResolve = [active]
+            } else if targetId == nil {
+                toResolve = Array(activeApprovals.values)
+                activeApprovals.removeAll()
+                activeApprovalsBySession.removeAll()
+            } else {
+                toResolve = []
+            }
+
+            for active in toResolve {
+                approvalRefs.removeValue(forKey: active.allowRef)
+                approvalRefs.removeValue(forKey: active.denyRef)
+                approvalSessionByRef.removeValue(forKey: active.allowRef)
+                approvalSessionByRef.removeValue(forKey: active.denyRef)
                 let msgId = active.messageId
                 let chat = active.chatId
                 let prompt = active.promptText
-                activeApproval = nil
                 Task { [weak self] in
+                    let updatedText = Self.capText(prompt + "\n\n(Обработано)")
                     try? await self?.api?.editMessage(
                         chatId: chat,
                         messageId: msgId,
-                        text: prompt + "\n\n(Обработано)",
+                        text: updatedText,
                         keyboard: nil
                     )
                 }
@@ -316,79 +371,57 @@ final class TelegramBotController {
                 )
             }
             guard !items.isEmpty else { return }
-            let q0 = items[0]
+
+            let projectPart = event.projectName.map { " (\($0))" } ?? ""
+            let baseHeader = "❓ \(event.agentName)\(projectPart)"
 
             Task { [weak self] in
                 guard let self = self, let api = self.api else { return }
-                var optionRefs: [String: (questionIndex: Int, optionLabel: String)] = [:]
-                var buttons: [[TelegramInlineKeyboardButton]] = []
 
-                var row: [TelegramInlineKeyboardButton] = []
-                for opt in q0.options {
-                    let action = await self.registry.insert(
-                        kind: .questionSelect,
-                        fingerprint: questionSnap.fingerprint,
-                        sessionId: event.sessionId,
-                        chatId: chatId,
-                        userId: userId
-                    )
-                    optionRefs[action.ref] = (0, opt.label)
-                    let btnText = q0.multiSelect ? "◻️ \(opt.label)" : opt.label
-                    row.append(TelegramInlineKeyboardButton(text: btnText, callbackData: "c:\(action.ref):select"))
-                    if row.count == 1 || !q0.multiSelect {
-                        buttons.append(row)
-                        row = []
-                    }
-                }
-                if !row.isEmpty { buttons.append(row) }
-
-                var submitRef: String? = nil
-                if q0.multiSelect {
-                    let subAction = await self.registry.insert(
-                        kind: .questionSubmit,
-                        fingerprint: questionSnap.fingerprint,
-                        sessionId: event.sessionId,
-                        chatId: chatId,
-                        userId: userId
-                    )
-                    submitRef = subAction.ref
-                    buttons.append([TelegramInlineKeyboardButton(text: "Отправить", callbackData: "c:\(subAction.ref):submit")])
-                }
-
-                let textAction = await self.registry.insert(
-                    kind: .questionText,
+                var context = ActiveQuestionContext(
                     fingerprint: questionSnap.fingerprint,
                     sessionId: event.sessionId,
+                    agentName: event.agentName,
+                    projectPart: projectPart,
+                    items: items,
+                    selections: Array(repeating: [], count: items.count),
+                    currentQuestionIndex: 0,
                     chatId: chatId,
-                    userId: userId
+                    messageId: 0,
+                    basePromptText: baseHeader,
+                    promptText: "",
+                    awaitingText: false,
+                    optionRefs: [:],
+                    submitRef: nil,
+                    textRef: nil,
+                    terminalRef: nil
                 )
-                let textRef = textAction.ref
-                buttons.append([TelegramInlineKeyboardButton(text: "Ответить текстом", callbackData: "c:\(textAction.ref):text")])
 
-                let projectPart = event.projectName.map { " (\($0))" } ?? ""
-                let header = "❓ \(event.agentName)\(projectPart)"
-                let promptText = "\(header)\n\(q0.question)"
-                let safeText = Self.capText(promptText)
+                let ui = await self.buildQuestionUI(for: &context, chatId: chatId, userId: userId)
 
-                let keyboard = TelegramInlineKeyboard(buttons)
                 do {
-                    let msgId = try await api.sendMessage(chatId: chatId, text: safeText, keyboard: keyboard)
-                    self.activeQuestion = ActiveQuestionContext(
-                        fingerprint: questionSnap.fingerprint,
-                        sessionId: event.sessionId,
-                        items: items,
-                        selections: Array(repeating: [], count: items.count),
+                    let msgId = try await api.sendMessage(chatId: chatId, text: ui.text, keyboard: ui.keyboard)
+                    let updatedContext = ActiveQuestionContext(
+                        fingerprint: context.fingerprint,
+                        sessionId: context.sessionId,
+                        agentName: context.agentName,
+                        projectPart: context.projectPart,
+                        items: context.items,
+                        selections: context.selections,
+                        currentQuestionIndex: context.currentQuestionIndex,
                         chatId: chatId,
                         messageId: msgId,
-                        promptText: safeText,
+                        basePromptText: context.basePromptText,
+                        promptText: ui.text,
                         awaitingText: false,
-                        optionRefs: optionRefs,
-                        submitRef: submitRef,
-                        textRef: textRef,
-                        terminalRef: nil
+                        optionRefs: context.optionRefs,
+                        submitRef: context.submitRef,
+                        textRef: context.textRef,
+                        terminalRef: context.terminalRef
                     )
+                    self.activeQuestion = updatedContext
                 } catch {
-                    // Ignored
+                    // Ignored on network error
                 }
             }
 
@@ -399,15 +432,96 @@ final class TelegramBotController {
                 let prompt = active.promptText
                 activeQuestion = nil
                 Task { [weak self] in
+                    let updatedText = Self.capText(prompt + "\n\n(Обработано)")
                     try? await self?.api?.editMessage(
                         chatId: chat,
                         messageId: msgId,
-                        text: prompt + "\n\n(Обработано)",
+                        text: updatedText,
                         keyboard: nil
                     )
                 }
             }
         }
+    }
+
+    // MARK: - UI Builder for Questions
+
+    private func buildQuestionUI(
+        for active: inout ActiveQuestionContext,
+        chatId: Int64,
+        userId: Int64
+    ) async -> (text: String, keyboard: TelegramInlineKeyboard) {
+        let qIndex = active.currentQuestionIndex
+        let item = active.items[qIndex]
+
+        var optionRefs: [String: (questionIndex: Int, optionLabel: String)] = [:]
+        var buttons: [[TelegramInlineKeyboardButton]] = []
+
+        var row: [TelegramInlineKeyboardButton] = []
+        for opt in item.options {
+            let action = await registry.insert(
+                kind: .questionSelect,
+                fingerprint: active.fingerprint,
+                sessionId: active.sessionId,
+                chatId: chatId,
+                userId: userId
+            )
+            optionRefs[action.ref] = (qIndex, opt.label)
+            let isSelected = active.selections[qIndex].contains(opt.label)
+            let btnText = item.multiSelect ? (isSelected ? "☑️ \(opt.label)" : "◻️ \(opt.label)") : opt.label
+            row.append(TelegramInlineKeyboardButton(text: btnText, callbackData: "c:\(action.ref):select"))
+            if row.count == 1 || !item.multiSelect {
+                buttons.append(row)
+                row = []
+            }
+        }
+        if !row.isEmpty { buttons.append(row) }
+
+        var submitRef: String? = nil
+        if item.multiSelect {
+            let subAction = await registry.insert(
+                kind: .questionSubmit,
+                fingerprint: active.fingerprint,
+                sessionId: active.sessionId,
+                chatId: chatId,
+                userId: userId
+            )
+            submitRef = subAction.ref
+            buttons.append([TelegramInlineKeyboardButton(text: "Отправить", callbackData: "c:\(subAction.ref):submit")])
+        }
+
+        let textAction = await registry.insert(
+            kind: .questionText,
+            fingerprint: active.fingerprint,
+            sessionId: active.sessionId,
+            chatId: chatId,
+            userId: userId
+        )
+        let textRef = textAction.ref
+        buttons.append([TelegramInlineKeyboardButton(text: "Ответить текстом", callbackData: "c:\(textAction.ref):text")])
+
+        let termAction = await registry.insert(
+            kind: .questionTerminal,
+            fingerprint: active.fingerprint,
+            sessionId: active.sessionId,
+            chatId: chatId,
+            userId: userId
+        )
+        let terminalRef = termAction.ref
+        buttons.append([TelegramInlineKeyboardButton(text: "Ответить в терминале", callbackData: "c:\(termAction.ref):terminal")])
+
+        active.optionRefs = optionRefs
+        active.submitRef = submitRef
+        active.textRef = textRef
+        active.terminalRef = terminalRef
+
+        let countPart = active.items.count > 1 ? " [\(qIndex + 1)/\(active.items.count)]" : ""
+        let header = "❓ \(active.agentName)\(active.projectPart)\(countPart)"
+        let promptText = "\(header)\n\(item.question)"
+        let safeText = Self.capText(promptText)
+        active.promptText = safeText
+
+        return (safeText, TelegramInlineKeyboard(buttons))
     }
 
     // MARK: - Update Handling (from Telegram Bot API)
@@ -452,7 +566,7 @@ final class TelegramBotController {
             let chatType = TelegramChatType(rawValue: message.chat.type) ?? .group
             let chat = TelegramChat(id: message.chat.id, userId: message.from?.id ?? 0, username: message.chat.username, type: chatType)
             let expectedNonce = UserDefaults.standard.string(forKey: "telegram.pairingNonce") ?? ""
-            let expectedUserId = message.from?.id ?? 0
+            let expectedUserId = (UserDefaults.standard.object(forKey: "telegram.expectedUserId") as? NSNumber)?.int64Value ?? (message.from?.id ?? 0)
             let acceptResult = TelegramPairing.accept(
                 start: text,
                 expectedNonce: expectedNonce,
@@ -479,19 +593,31 @@ final class TelegramBotController {
         // Handle reply to awaiting text question
         if var active = activeQuestion, active.awaitingText {
             active.awaitingText = false
-            if active.selections.isEmpty { active.selections = [[]] }
-            active.selections[0] = [text]
+            let qIndex = active.currentQuestionIndex
+            while active.selections.count <= qIndex {
+                active.selections.append([])
+            }
+            active.selections[qIndex] = [text]
 
-            let answers = AskQuestion.buildAnswers(questions: active.items, selections: active.selections)
-            onQuestionAnswers?(answers)
+            if qIndex + 1 < active.items.count {
+                // Advance to next question
+                active.currentQuestionIndex = qIndex + 1
+                let ui = await buildQuestionUI(for: &active, chatId: active.chatId, userId: pairedUserId)
+                activeQuestion = active
+                try? await api?.editMessage(chatId: active.chatId, messageId: active.messageId, text: ui.text, keyboard: ui.keyboard)
+            } else {
+                // All questions completed!
+                let answers = AskQuestion.buildAnswers(questions: active.items, selections: active.selections)
+                onQuestionAnswers?(answers)
 
-            let msgId = active.messageId
-            let chat = active.chatId
-            let prompt = active.promptText
-            activeQuestion = nil
+                let msgId = active.messageId
+                let chat = active.chatId
+                let prompt = active.promptText
+                activeQuestion = nil
 
-            let updatedText = prompt + "\n\nОтветил: \(text)"
-            try? await api?.editMessage(chatId: chat, messageId: msgId, text: updatedText, keyboard: nil)
+                let updatedText = Self.capText(prompt + "\n\nОтветил: \(text)")
+                try? await api?.editMessage(chatId: chat, messageId: msgId, text: updatedText, keyboard: nil)
+            }
         }
     }
 
@@ -522,8 +648,15 @@ final class TelegramBotController {
 
         // Approval callback
         if op == "allow" || op == "deny" {
-            guard let active = activeApproval else {
+            guard let sess = approvalSessionByRef[ref],
+                  let active = activeApprovalsBySession[sess] else {
                 try? await api?.answerCallbackQuery(id: cb.id, text: "Срок действия истёк", showAlert: false)
+                return
+            }
+
+            // Ensure decision matches approvals.head if a head approval is active
+            if let headId = AppState.shared.pendingApproval?.id, let thisId = active.id, headId != thisId {
+                try? await api?.answerCallbackQuery(id: cb.id, text: "Сначала ответьте на текущий запрос", showAlert: true)
                 return
             }
 
@@ -535,9 +668,16 @@ final class TelegramBotController {
                 try? await api?.answerCallbackQuery(id: cb.id, text: nil, showAlert: false)
 
                 let decisionLabel = (decision == "allow") ? "Разрешить" : "Запретить"
-                let updatedText = active.promptText + "\n\nОтветил: \(decisionLabel)"
+                let updatedText = Self.capText(active.promptText + "\n\nОтветил: \(decisionLabel)")
                 let msgId = active.messageId
-                activeApproval = nil
+                if let approvalId = active.id {
+                    activeApprovals.removeValue(forKey: approvalId)
+                }
+                activeApprovalsBySession.removeValue(forKey: sess)
+                approvalRefs.removeValue(forKey: active.allowRef)
+                approvalRefs.removeValue(forKey: active.denyRef)
+                approvalSessionByRef.removeValue(forKey: active.allowRef)
+                approvalSessionByRef.removeValue(forKey: active.denyRef)
                 try? await api?.editMessage(chatId: chatId, messageId: msgId, text: updatedText, keyboard: nil)
 
             case .rejected:
@@ -574,69 +714,47 @@ final class TelegramBotController {
 
                     try? await api?.answerCallbackQuery(id: cb.id, text: nil, showAlert: false)
 
-                    // Rebuild inline buttons with updated checkbox marks
-                    var newOptionRefs: [String: (questionIndex: Int, optionLabel: String)] = [:]
-                    var rows: [[TelegramInlineKeyboardButton]] = []
-                    var currentRow: [TelegramInlineKeyboardButton] = []
-                    for opt in item.options {
-                        let isSelected = active.selections[qIndex].contains(opt.label)
-                        let newAction = await registry.insert(
-                            kind: .questionSelect,
-                            fingerprint: active.fingerprint,
-                            sessionId: active.sessionId,
-                            chatId: chatId,
-                            userId: fromId
-                        )
-                        newOptionRefs[newAction.ref] = (qIndex, opt.label)
-                        let icon = isSelected ? "☑️ " : "◻️ "
-                        currentRow.append(TelegramInlineKeyboardButton(text: icon + opt.label, callbackData: "c:\(newAction.ref):select"))
-                        if currentRow.count == 1 {
-                            rows.append(currentRow)
-                            currentRow = []
-                        }
-                    }
-                    if !currentRow.isEmpty { rows.append(currentRow) }
-
-                    let newSubmitAction = await registry.insert(
-                        kind: .questionSubmit,
-                        fingerprint: active.fingerprint,
-                        sessionId: active.sessionId,
-                        chatId: chatId,
-                        userId: fromId
-                    )
-                    rows.append([TelegramInlineKeyboardButton(text: "Отправить", callbackData: "c:\(newSubmitAction.ref):submit")])
-
-                    let newTextAction = await registry.insert(
-                        kind: .questionText,
-                        fingerprint: active.fingerprint,
-                        sessionId: active.sessionId,
-                        chatId: chatId,
-                        userId: fromId
-                    )
-                    rows.append([TelegramInlineKeyboardButton(text: "Ответить текстом", callbackData: "c:\(newTextAction.ref):text")])
-
-                    active.optionRefs = newOptionRefs
-                    active.submitRef = newSubmitAction.ref
-                    active.textRef = newTextAction.ref
+                    let ui = await buildQuestionUI(for: &active, chatId: chatId, userId: fromId)
                     activeQuestion = active
 
                     try? await api?.editMessage(
                         chatId: chatId,
                         messageId: active.messageId,
-                        text: active.promptText,
-                        keyboard: TelegramInlineKeyboard(rows)
+                        text: ui.text,
+                        keyboard: ui.keyboard
                     )
                 } else {
-                    // Single-select: immediately resolves
+                    // Single-select: record selection
                     active.selections[qIndex] = [label]
-                    let answers = AskQuestion.buildAnswers(questions: active.items, selections: active.selections)
-                    onQuestionAnswers?(answers)
                     try? await api?.answerCallbackQuery(id: cb.id, text: nil, showAlert: false)
 
-                    let updatedText = active.promptText + "\n\nОтветил: \(label)"
-                    let msgId = active.messageId
-                    activeQuestion = nil
-                    try? await api?.editMessage(chatId: chatId, messageId: msgId, text: updatedText, keyboard: nil)
+                    if qIndex + 1 < active.items.count {
+                        // Advance to next question!
+                        active.currentQuestionIndex = qIndex + 1
+                        let ui = await buildQuestionUI(for: &active, chatId: chatId, userId: fromId)
+                        activeQuestion = active
+                        try? await api?.editMessage(
+                            chatId: chatId,
+                            messageId: active.messageId,
+                            text: ui.text,
+                            keyboard: ui.keyboard
+                        )
+                    } else {
+                        // All questions answered!
+                        let answers = AskQuestion.buildAnswers(questions: active.items, selections: active.selections)
+                        onQuestionAnswers?(answers)
+
+                        let summary: String
+                        if active.items.count == 1 {
+                            summary = label
+                        } else {
+                            summary = active.selections.map { $0.joined(separator: ", ") }.joined(separator: "; ")
+                        }
+                        let updatedText = Self.capText(active.promptText + "\n\nОтветил: \(summary)")
+                        let msgId = active.messageId
+                        activeQuestion = nil
+                        try? await api?.editMessage(chatId: chatId, messageId: msgId, text: updatedText, keyboard: nil)
+                    }
                 }
 
             case .rejected:
@@ -647,23 +765,44 @@ final class TelegramBotController {
 
         // Question Submit (Multi-select)
         if op == "submit" {
-            guard let active = activeQuestion, let submitRef = active.submitRef, submitRef == ref else {
+            guard var active = activeQuestion, let submitRef = active.submitRef, submitRef == ref else {
                 try? await api?.answerCallbackQuery(id: cb.id, text: "Срок действия истёк", showAlert: false)
+                return
+            }
+
+            let qIndex = active.currentQuestionIndex
+            if active.selections[qIndex].isEmpty {
+                try? await api?.answerCallbackQuery(id: cb.id, text: "Выберите хотя бы один вариант", showAlert: true)
                 return
             }
 
             let result = await registry.consume(ref: ref, chatId: chatId, userId: fromId, now: clock.now, fingerprint: active.fingerprint)
             switch result {
             case .accepted:
-                let answers = AskQuestion.buildAnswers(questions: active.items, selections: active.selections)
-                onQuestionAnswers?(answers)
                 try? await api?.answerCallbackQuery(id: cb.id, text: nil, showAlert: false)
 
-                let picked = active.selections.flatMap { $0 }.joined(separator: ", ")
-                let updatedText = active.promptText + "\n\nОтветил: \(picked)"
-                let msgId = active.messageId
-                activeQuestion = nil
-                try? await api?.editMessage(chatId: chatId, messageId: msgId, text: updatedText, keyboard: nil)
+                if qIndex + 1 < active.items.count {
+                    // Advance to next question
+                    active.currentQuestionIndex = qIndex + 1
+                    let ui = await buildQuestionUI(for: &active, chatId: chatId, userId: fromId)
+                    activeQuestion = active
+                    try? await api?.editMessage(
+                        chatId: chatId,
+                        messageId: active.messageId,
+                        text: ui.text,
+                        keyboard: ui.keyboard
+                    )
+                } else {
+                    // All questions completed!
+                    let answers = AskQuestion.buildAnswers(questions: active.items, selections: active.selections)
+                    onQuestionAnswers?(answers)
+
+                    let summary = active.selections.map { $0.joined(separator: ", ") }.joined(separator: "; ")
+                    let updatedText = Self.capText(active.promptText + "\n\nОтветил: \(summary)")
+                    let msgId = active.messageId
+                    activeQuestion = nil
+                    try? await api?.editMessage(chatId: chatId, messageId: msgId, text: updatedText, keyboard: nil)
+                }
 
             case .rejected:
                 try? await api?.answerCallbackQuery(id: cb.id, text: "Срок действия истёк", showAlert: false)
@@ -691,13 +830,37 @@ final class TelegramBotController {
             return
         }
 
+        // Question Terminal
+        if op == "terminal" {
+            guard let active = activeQuestion, let terminalRef = active.terminalRef, terminalRef == ref else {
+                try? await api?.answerCallbackQuery(id: cb.id, text: "Срок действия истёк", showAlert: false)
+                return
+            }
+
+            let result = await registry.consume(ref: ref, chatId: chatId, userId: fromId, now: clock.now, fingerprint: active.fingerprint)
+            switch result {
+            case .accepted:
+                onQuestionAsk?()
+                try? await api?.answerCallbackQuery(id: cb.id, text: nil, showAlert: false)
+
+                let updatedText = Self.capText(active.promptText + "\n\n(Отвечено в терминале)")
+                let msgId = active.messageId
+                activeQuestion = nil
+                try? await api?.editMessage(chatId: chatId, messageId: msgId, text: updatedText, keyboard: nil)
+
+            case .rejected:
+                try? await api?.answerCallbackQuery(id: cb.id, text: "Срок действия истёк", showAlert: false)
+            }
+            return
+        }
+
         // Unknown op
         try? await api?.answerCallbackQuery(id: cb.id, text: "Срок действия истёк", showAlert: false)
     }
 
     // MARK: - Utilities
 
-    private static func capText(_ text: String) -> String {
+    static func capText(_ text: String) -> String {
         String(text.unicodeScalars.prefix(3500))
     }
 

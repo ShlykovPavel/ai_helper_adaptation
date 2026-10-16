@@ -67,6 +67,11 @@ struct TelegramControllerTestRunner {
         await testQuestionTextAnswer()
         await testLocalResolutionRemovesKeyboard()
         await testDisabledTelegramRejectsCallbacksAndSendsNoMessages()
+        await testPollingStartsWhenUnpaired()
+        await testMultipleApprovalsInQueueAndHeadValidation()
+        await testMultiQuestionHandlingWithoutPartialDispatch()
+        await testSettingsChangedResetsAPIWithNewToken()
+        await testEditMessageLengthCapping()
         print("All TelegramControllerTests PASSED!")
     }
 
@@ -653,5 +658,235 @@ struct TelegramControllerTestRunner {
         assert(ans.count == 1, "Expected answerCallbackQuery for disabled Telegram")
         assert(ans[0].body["text"] as? String == "Telegram отключён")
         print("  ✓ Disabled Telegram behavior: PASS")
+    }
+
+    // 11. Polling starts when unpaired
+    static func testPollingStartsWhenUnpaired() async {
+        let transport = MockTelegramTransport()
+        let api = TelegramBotAPI(transport: transport)
+        let unpairSettings = TelegramSettings(
+            enabled: true,
+            notifyFinished: true,
+            notifyQuestions: true,
+            notifyApprovals: true,
+            pairedChatId: nil,
+            pairedUserId: nil,
+            pairedBotUsername: nil
+        )
+        let controller = TelegramBotController(
+            api: api,
+            settings: unpairSettings
+        )
+        controller.start()
+        assert(controller.isRunning, "Controller should be running when enabled even if unpaired")
+
+        // Wait for polling task to call deleteWebhook / getUpdates
+        try? await Task.sleep(nanoseconds: 100_000_000)
+        let reqs = await transport.requests
+        let hasGetUpdatesOrDeleteWebhook = reqs.contains { $0.method == "getUpdates" || $0.method == "deleteWebhook" }
+        assert(hasGetUpdatesOrDeleteWebhook, "Polling should begin even when unpaired")
+        controller.stop()
+        assert(!controller.isRunning, "Controller should stop")
+        print("  ✓ Polling starts when unpaired: PASS")
+    }
+
+    // 12. Multiple approvals in queue and head validation
+    static func testMultipleApprovalsInQueueAndHeadValidation() async {
+        let transport = MockTelegramTransport()
+        let api = TelegramBotAPI(transport: transport)
+        let recorder = TestHookServerRecorder()
+        let controller = TelegramBotController(
+            api: api,
+            settings: makeSettings(),
+            onApprovalDecision: { recorder.recordDecision($0, id: $1) }
+        )
+
+        let id1 = UUID()
+        let id2 = UUID()
+        let snap1 = ApprovalSnapshot(id: id1, tool: "Bash", command: "cmd1", pillId: "p1", sessionId: "s1")
+        let snap2 = ApprovalSnapshot(id: id2, tool: "Bash", command: "cmd2", pillId: "p2", sessionId: "s2")
+
+        controller.handle(event: TelegramEvent(sessionId: "s1", agentId: "p1", agentName: "Agent 1", kind: .approval, approval: snap1))
+        controller.handle(event: TelegramEvent(sessionId: "s2", agentId: "p2", agentName: "Agent 2", kind: .approval, approval: snap2))
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        assert(controller.activeApprovals.count == 2, "Both approvals should be tracked in activeApprovals")
+        let app1 = controller.activeApprovals[id1]!
+        let app2 = controller.activeApprovals[id2]!
+
+        // Simulate AppState queue with snap1 at head
+        AppState.shared.pendingApproval = ApprovalInfo(sessionId: "s1", tool: "Bash", command: "cmd1", inputKey: "", pillId: "p1", id: id1)
+
+        // Try to approve snap2 first (not head) -> rejected with alert, not recorded
+        let cb2 = TelegramUpdate(
+            updateId: 9001,
+            callbackQuery: TelegramCallbackQuery(
+                id: "cb-app2",
+                from: TelegramUser(id: pairedUserId, firstName: "Owner"),
+                message: TelegramMessage(messageId: app2.messageId, chat: TelegramMessageChat(id: pairedChatId, type: "private")),
+                data: "c:\(app2.allowRef):allow"
+            )
+        )
+        await controller.handle(update: cb2)
+        assert(recorder.decisions.isEmpty, "Decision for non-head approval must not be recorded")
+
+        // Approve snap1 (head) -> succeeds
+        let cb1 = TelegramUpdate(
+            updateId: 9002,
+            callbackQuery: TelegramCallbackQuery(
+                id: "cb-app1",
+                from: TelegramUser(id: pairedUserId, firstName: "Owner"),
+                message: TelegramMessage(messageId: app1.messageId, chat: TelegramMessageChat(id: pairedChatId, type: "private")),
+                data: "c:\(app1.allowRef):allow"
+            )
+        )
+        await controller.handle(update: cb1)
+        assert(recorder.decisions.count == 1, "Decision for head approval must be recorded")
+        assert(recorder.decisions[0].id == id1)
+        assert(controller.activeApprovals[id1] == nil, "Snap1 should be removed after decision")
+        assert(controller.activeApprovals[id2] != nil, "Snap2 should remain active")
+
+        // Now local resolution resolves snap2
+        controller.handle(event: TelegramEvent(sessionId: "s2", agentId: "p2", agentName: "Agent 2", kind: .approvalResolved, approval: snap2))
+        try? await Task.sleep(nanoseconds: 50_000_000)
+        assert(controller.activeApprovals[id2] == nil, "Snap2 should be resolved and removed")
+
+        AppState.shared.pendingApproval = nil
+        print("  ✓ Multiple approvals in queue: PASS")
+    }
+
+    // 13. Multi-question handling without partial dispatch
+    static func testMultiQuestionHandlingWithoutPartialDispatch() async {
+        let transport = MockTelegramTransport()
+        let api = TelegramBotAPI(transport: transport)
+        let recorder = TestHookServerRecorder()
+        let controller = TelegramBotController(
+            api: api,
+            settings: makeSettings(),
+            onQuestionAnswers: { recorder.recordAnswers($0) },
+            onQuestionAsk: { recorder.recordAsk() }
+        )
+
+        let item1 = QuestionItemSnapshot(
+            question: "Question 1?",
+            header: "Q1",
+            options: [QuestionOptionSnapshot(label: "Opt1A"), QuestionOptionSnapshot(label: "Opt1B")],
+            multiSelect: false
+        )
+        let item2 = QuestionItemSnapshot(
+            question: "Question 2?",
+            header: "Q2",
+            options: [QuestionOptionSnapshot(label: "Opt2A"), QuestionOptionSnapshot(label: "Opt2B")],
+            multiSelect: false
+        )
+        let qSnap = QuestionSnapshot(items: [item1, item2])
+        controller.handle(event: TelegramEvent(
+            sessionId: "multi-sess",
+            agentId: "agent1",
+            agentName: "Agent",
+            kind: .question,
+            question: qSnap
+        ))
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        guard let activeQ1 = controller.activeQuestion else {
+            fatalError("activeQuestion should be set")
+        }
+        assert(activeQ1.currentQuestionIndex == 0)
+
+        // Select first question option Opt1A
+        let opt1Ref = activeQ1.optionRefs.first { $0.value.optionLabel == "Opt1A" }!.key
+        let update1 = TelegramUpdate(
+            updateId: 9101,
+            callbackQuery: TelegramCallbackQuery(
+                id: "cb-q1",
+                from: TelegramUser(id: pairedUserId, firstName: "Owner"),
+                message: TelegramMessage(messageId: activeQ1.messageId, chat: TelegramMessageChat(id: pairedChatId, type: "private")),
+                data: "c:\(opt1Ref):select"
+            )
+        )
+        await controller.handle(update: update1)
+
+        // Verify NO partial answers dispatched!
+        assert(recorder.answers.isEmpty, "Partial answer must never be dispatched to HookServer")
+
+        // Verify active question advanced to Question 2
+        guard let activeQ2 = controller.activeQuestion else {
+            fatalError("activeQuestion should still be active for Q2")
+        }
+        assert(activeQ2.currentQuestionIndex == 1)
+
+        // Select second question option Opt2B
+        let opt2Ref = activeQ2.optionRefs.first { $0.value.optionLabel == "Opt2B" }!.key
+        let update2 = TelegramUpdate(
+            updateId: 9102,
+            callbackQuery: TelegramCallbackQuery(
+                id: "cb-q2",
+                from: TelegramUser(id: pairedUserId, firstName: "Owner"),
+                message: TelegramMessage(messageId: activeQ2.messageId, chat: TelegramMessageChat(id: pairedChatId, type: "private")),
+                data: "c:\(opt2Ref):select"
+            )
+        )
+        await controller.handle(update: update2)
+
+        // Full answers must now be dispatched
+        assert(recorder.answers.count == 1, "Full answers should be dispatched once all questions are answered")
+        let fullAnswers = recorder.answers[0]
+        assert(fullAnswers["Question 1?"] as? String == "Opt1A")
+        assert(fullAnswers["Question 2?"] as? String == "Opt2B")
+        assert(controller.activeQuestion == nil, "activeQuestion should be cleared after completion")
+        print("  ✓ Multi-question handling without partial dispatch: PASS")
+    }
+
+    // 14. SettingsChanged resets API with new token
+    static func testSettingsChangedResetsAPIWithNewToken() async {
+        final class TokenHolder: @unchecked Sendable {
+            var token: String = "token-alpha"
+        }
+        let holder = TokenHolder()
+        let controller = TelegramBotController(
+            settings: makeSettings(),
+            tokenProvider: { holder.token }
+        )
+
+        controller.start()
+        assert(controller.isRunning)
+
+        holder.token = "token-beta"
+        controller.settingsChanged()
+        assert(controller.isRunning)
+
+        controller.stop()
+        assert(!controller.isRunning)
+        print("  ✓ SettingsChanged resets API with new token: PASS")
+    }
+
+    // 15. editMessage length capping
+    static func testEditMessageLengthCapping() async {
+        let transport = MockTelegramTransport()
+        let api = TelegramBotAPI(transport: transport)
+        let controller = TelegramBotController(
+            api: api,
+            settings: makeSettings()
+        )
+
+        // Send a question, then resolve it with long text
+        let longQuestion = String(repeating: "A", count: 4000)
+        let item = QuestionItemSnapshot(question: longQuestion, header: "", options: [QuestionOptionSnapshot(label: "O1"), QuestionOptionSnapshot(label: "O2")], multiSelect: false)
+        let snap = QuestionSnapshot(items: [item])
+        controller.handle(event: TelegramEvent(sessionId: "sess-long", agentId: "agent", agentName: "Agent", kind: .question, question: snap))
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        // Trigger resolution
+        controller.handle(event: TelegramEvent(sessionId: "sess-long", agentId: "agent", agentName: "Agent", kind: .questionResolved))
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        let edits = (await transport.requests).filter { $0.method == "editMessageText" }
+        assert(!edits.isEmpty, "editMessageText should be called")
+        for edit in edits {
+            let text = edit.body["text"] as? String ?? ""
+            assert(text.unicodeScalars.count <= 3500, "editMessage text must be capped to <= 3500 Unicode scalars")
+        }
+        print("  ✓ editMessage length capping: PASS")
     }
 }
