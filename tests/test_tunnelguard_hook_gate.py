@@ -173,6 +173,179 @@ class TestTunnelGuardHookVPNCheck(unittest.TestCase):
             self.assertEqual(iface, "", "При таймауте интерфейс обязан быть пустой строкой")
 
 
+class TestTunnelGuardAppActiveCheck(unittest.TestCase):
+    """Тестирование функции is_tunnelguard_active в nb-hook.py (Point 1)."""
+
+    @classmethod
+    def setUpClass(cls):
+        _, python_code = extract_hook_scripts()
+        cls.hook_mod = load_hook_module(python_code)
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp(prefix="tunnelguard_active_check_")
+        self.state_file = Path(self.tmpdir) / "tunnelguard-state.json"
+        self.socket_path = Path(self.tmpdir) / "nb.sock"
+        self.socket_path.touch()
+
+    def tearDown(self):
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def _write_state(self, data):
+        self.state_file.write_text(json.dumps(data), encoding="utf-8")
+
+    def test_state_file_missing(self):
+        """Если файл состояния отсутствует, хук считает приложение оффлайн (False)."""
+        res = self.hook_mod.is_tunnelguard_active(
+            agent_name="claude",
+            state_file=str(Path(self.tmpdir) / "nonexistent.json"),
+            socket_path=str(self.socket_path)
+        )
+        self.assertFalse(res)
+
+    def test_unreadable_json(self):
+        """Битый JSON в файле состояния приводит к False."""
+        self.state_file.write_text("{corrupt-json", encoding="utf-8")
+        res = self.hook_mod.is_tunnelguard_active(
+            agent_name="claude",
+            state_file=str(self.state_file),
+            socket_path=str(self.socket_path)
+        )
+        self.assertFalse(res)
+
+    def test_running_or_enabled_false(self):
+        """running=False или enabled=False отключает действие шлагбаума."""
+        # running=False
+        self._write_state({
+            "running": False,
+            "enabled": True,
+            "pid": os.getpid(),
+            "protected_targets": ["claude"]
+        })
+        self.assertFalse(self.hook_mod.is_tunnelguard_active("claude", str(self.state_file), str(self.socket_path)))
+
+        # enabled=False
+        self._write_state({
+            "running": True,
+            "enabled": False,
+            "pid": os.getpid(),
+            "protected_targets": ["claude"]
+        })
+        self.assertFalse(self.hook_mod.is_tunnelguard_active("claude", str(self.state_file), str(self.socket_path)))
+
+        # both False
+        self._write_state({
+            "running": False,
+            "enabled": False,
+            "pid": os.getpid(),
+            "protected_targets": ["claude"]
+        })
+        self.assertFalse(self.hook_mod.is_tunnelguard_active("claude", str(self.state_file), str(self.socket_path)))
+
+    def test_pid_dead_process_lookup_error(self):
+        """Если процесс NotchBuddy умер (ProcessLookupError), шлагбаум возвращает False."""
+        self._write_state({
+            "running": True,
+            "enabled": True,
+            "pid": 99999999,
+            "protected_targets": ["claude"]
+        })
+        with patch("os.kill", side_effect=ProcessLookupError):
+            res = self.hook_mod.is_tunnelguard_active("claude", str(self.state_file), str(self.socket_path))
+            self.assertFalse(res)
+
+    def test_pid_missing_or_invalid(self):
+        """Если PID отсутствует или некорректен, возвращается False."""
+        self._write_state({
+            "running": True,
+            "enabled": True,
+            "protected_targets": ["claude"]
+        })
+        self.assertFalse(self.hook_mod.is_tunnelguard_active("claude", str(self.state_file), str(self.socket_path)))
+
+        self._write_state({
+            "running": True,
+            "enabled": True,
+            "pid": "not-an-int",
+            "protected_targets": ["claude"]
+        })
+        self.assertFalse(self.hook_mod.is_tunnelguard_active("claude", str(self.state_file), str(self.socket_path)))
+
+    def test_agent_not_in_protected_targets(self):
+        """Если агент не включен в protected_targets, защита для него отключена."""
+        self._write_state({
+            "running": True,
+            "enabled": True,
+            "pid": os.getpid(),
+            "protected_targets": ["claude", "agy"]
+        })
+        self.assertFalse(self.hook_mod.is_tunnelguard_active("codex", str(self.state_file), str(self.socket_path)))
+        self.assertFalse(self.hook_mod.is_tunnelguard_active("cursor", str(self.state_file), str(self.socket_path)))
+
+    def test_agent_in_protected_targets_normalization(self):
+        """Нормализация имен агентов (agy / antigravity / agy-cli)."""
+        self._write_state({
+            "running": True,
+            "enabled": True,
+            "pid": os.getpid(),
+            "protected_targets": ["claude", "agy"]
+        })
+        self.assertTrue(self.hook_mod.is_tunnelguard_active("antigravity", str(self.state_file), str(self.socket_path)))
+        self.assertTrue(self.hook_mod.is_tunnelguard_active("agy-cli", str(self.state_file), str(self.socket_path)))
+        self.assertTrue(self.hook_mod.is_tunnelguard_active("agy", str(self.state_file), str(self.socket_path)))
+        self.assertTrue(self.hook_mod.is_tunnelguard_active("claude", str(self.state_file), str(self.socket_path)))
+
+    def test_socket_missing(self):
+        """Если файл состояния в норме, но Unix-сокет NotchBuddy отсутствует, возвращается False."""
+        self._write_state({
+            "running": True,
+            "enabled": True,
+            "pid": os.getpid(),
+            "protected_targets": ["claude"]
+        })
+        res = self.hook_mod.is_tunnelguard_active(
+            "claude",
+            str(self.state_file),
+            str(Path(self.tmpdir) / "nonexistent.sock")
+        )
+        self.assertFalse(res)
+
+    def test_all_valid(self):
+        """Все проверки пройдены -> True."""
+        self._write_state({
+            "running": True,
+            "enabled": True,
+            "pid": os.getpid(),
+            "protected_targets": ["claude"]
+        })
+        res = self.hook_mod.is_tunnelguard_active("claude", str(self.state_file), str(self.socket_path))
+        self.assertTrue(res)
+
+    def test_empty_agent_and_empty_targets(self):
+        """Если protected_targets пуст или агент не указан, при активном приложении возвращается True."""
+        self._write_state({
+            "running": True,
+            "enabled": True,
+            "pid": os.getpid(),
+            "protected_targets": []
+        })
+        self.assertTrue(self.hook_mod.is_tunnelguard_active("", str(self.state_file), str(self.socket_path)))
+        self.assertTrue(self.hook_mod.is_tunnelguard_active("claude", str(self.state_file), str(self.socket_path)))
+
+    def test_environment_variable_overrides(self):
+        """Проверяет переопределение путей через TUNNELGUARD_STATE_FILE и NOTCHBUDDY_SOCKET_PATH."""
+        self._write_state({
+            "running": True,
+            "enabled": True,
+            "pid": os.getpid(),
+            "protected_targets": ["claude"]
+        })
+        with patch.dict(os.environ, {
+            "TUNNELGUARD_STATE_FILE": str(self.state_file),
+            "NOTCHBUDDY_SOCKET_PATH": str(self.socket_path)
+        }):
+            self.assertTrue(self.hook_mod.is_tunnelguard_active("claude"))
+
+
 class TestAgentPIDDetection(unittest.TestCase):
     """Тестирование функции get_real_agent_pid в nb-hook.py."""
 
@@ -307,6 +480,24 @@ class TestTunnelGuardGateE2E(unittest.TestCase):
         self.wrapper_path.chmod(0o755)
         self.python_path.chmod(0o755)
 
+        # Создаем активное мок-состояние NotchBuddy и сокет для E2E тестов
+        self.state_file = Path(self.tmpdir) / "tunnelguard-state.json"
+        self.socket_path = Path(self.tmpdir) / "nb.sock"
+        self.socket_path.touch()
+
+        state_data = {
+            "running": True,
+            "enabled": True,
+            "pid": os.getpid(),
+            "protected_targets": ["claude", "agy", "antigravity", "codex", "gemini"],
+            "target_domains": {}
+        }
+        self.state_file.write_text(json.dumps(state_data), encoding="utf-8")
+
+        self.env = os.environ.copy()
+        self.env["TUNNELGUARD_STATE_FILE"] = str(self.state_file)
+        self.env["NOTCHBUDDY_SOCKET_PATH"] = str(self.socket_path)
+
     def tearDown(self):
         shutil.rmtree(self.tmpdir, ignore_errors=True)
 
@@ -349,7 +540,8 @@ class TestTunnelGuardGateE2E(unittest.TestCase):
             [sys.executable, "-c", agent_script],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            preexec_fn=os.setsid
+            preexec_fn=os.setsid,
+            env=self.env
         )
         agent_pid = proc.pid
 
@@ -392,7 +584,8 @@ class TestTunnelGuardGateE2E(unittest.TestCase):
         res = subprocess.run(
             [sys.executable, str(test_py)],
             capture_output=True,
-            text=True
+            text=True,
+            env=self.env
         )
 
         self.assertEqual(res.returncode, 1, "При падении VPN хук обязан завершаться с кодом 1")
@@ -401,6 +594,77 @@ class TestTunnelGuardGateE2E(unittest.TestCase):
         self.assertEqual(data["hookSpecificOutput"]["hookEventName"], "PreToolUse")
         self.assertEqual(data["hookSpecificOutput"]["permissionDecision"], "deny")
         self.assertIn("VPN ОТКЛЮЧЕН", data["hookSpecificOutput"]["message"])
+
+    def test_e2e_vpn_drop_ignored_when_app_offline(self):
+        """
+        Когда NotchBuddy выключен (offline: нет файла состояния/сокета),
+        падение VPN НЕ приводит к отстрелу агента: хук завершается штатно (код 0).
+        """
+        # Создаем поддельный бинарник /sbin/route, возвращающий en0
+        mock_bin_dir = Path(self.tmpdir) / "bin_offline"
+        mock_bin_dir.mkdir(parents=True, exist_ok=True)
+        mock_route = mock_bin_dir / "route"
+        mock_route.write_text(
+            "#!/bin/sh\n"
+            "echo '   route to: $3'\n"
+            "echo '  interface: en0'\n",
+            encoding="utf-8"
+        )
+        mock_route.chmod(0o755)
+
+        offline_dir = Path(self.tmpdir) / "offline"
+        offline_dir.mkdir(parents=True, exist_ok=True)
+        offline_wrapper = offline_dir / "nb-hook"
+        offline_py = offline_dir / "nb-hook.py"
+
+        patched_py_content = self.python_code.replace(
+            '"/sbin/route"', f'"{mock_route}"'
+        )
+        offline_wrapper.write_text(self.wrapper_code, encoding="utf-8")
+        offline_py.write_text(patched_py_content, encoding="utf-8")
+        offline_wrapper.chmod(0o755)
+        offline_py.chmod(0o755)
+
+        offline_env = os.environ.copy()
+        offline_env["TUNNELGUARD_STATE_FILE"] = str(Path(self.tmpdir) / "nonexistent-state.json")
+        offline_env["NOTCHBUDDY_SOCKET_PATH"] = str(Path(self.tmpdir) / "nonexistent.sock")
+
+        # Создаем процесс агента
+        agent_script = (
+            "import subprocess, sys, time, os\n"
+            f"res = subprocess.run(['/bin/sh', '{offline_wrapper}'], input='', capture_output=True, text=True)\n"
+            "print('RES_CODE:' + str(res.returncode), flush=True)\n"
+            "print('RES_OUT:' + res.stdout.strip(), flush=True)\n"
+            "time.sleep(5)\n"
+        )
+
+        proc = subprocess.Popen(
+            [sys.executable, "-c", agent_script],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=os.setsid,
+            env=offline_env
+        )
+        agent_pid = proc.pid
+
+        # Даем время скрипту выполнить хук
+        time.sleep(0.5)
+
+        # Проверяем, что агент жив (не был уничтожен SIGKILL)
+        self.assertIsNone(proc.poll(), "Агент НЕ должен быть убит, когда NotchBuddy офлайн")
+
+        # Аккуратно завершаем тестовый процесс
+        try:
+            os.killpg(os.getpgid(agent_pid), signal.SIGTERM)
+        except Exception:
+            try:
+                os.kill(agent_pid, signal.SIGTERM)
+            except Exception:
+                pass
+
+        stdout, _ = proc.communicate(timeout=2.0)
+        self.assertIn("RES_CODE:0", stdout.decode(), "Хук обязан завершиться с кодом 0")
 
 
 class TestSimulateVPNDrop(unittest.TestCase):

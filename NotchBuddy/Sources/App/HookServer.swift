@@ -3199,6 +3199,57 @@ def _get_route_interface(dest):
         pass
     return ""
 
+def is_tunnelguard_active(agent_name="", state_file=None, socket_path=None):
+    if state_file is None:
+        state_file = os.environ.get('TUNNELGUARD_STATE_FILE') or os.environ.get('_TUNNELGUARD_STATE_FILE') or os.path.expanduser('~/Library/Application Support/NotchBuddy/tunnelguard-state.json')
+    if not os.path.exists(state_file):
+        return False
+    try:
+        with open(state_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except Exception:
+        return False
+
+    if not data.get("running") or not data.get("enabled"):
+        return False
+
+    pid = data.get("pid")
+    if not pid:
+        return False
+    try:
+        pid = int(pid)
+        if pid <= 0:
+            return False
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except (ValueError, TypeError):
+        return False
+    except Exception:
+        pass
+
+    # Check if this agent is in protected targets
+    targets = data.get("protected_targets", [])
+    if isinstance(targets, list) and targets:
+        # Normalize agent name: agy / antigravity, etc.
+        norm = "agy" if agent_name in ("antigravity", "agy-cli") else agent_name
+        # Match against targets: target could be "agy", "agy-cli", "claude", etc.
+        target_matched = False
+        for t in targets:
+            t_norm = "agy" if t in ("antigravity", "agy-cli") else t
+            if t == agent_name or t == norm or t_norm == norm or norm in t:
+                target_matched = True
+                break
+        if not target_matched and agent_name:
+            return False
+
+    if socket_path is None:
+        socket_path = os.environ.get('NOTCHBUDDY_SOCKET_PATH') or os.environ.get('_NOTCHBUDDY_SOCKET_PATH') or os.path.expanduser('~/Library/Application Support/NotchBuddy/nb.sock')
+    if not os.path.exists(socket_path):
+        return False
+
+    return True
+
 def verify_vpn_route_utun():
     iface = _get_route_interface("1.1.1.1")
     if not iface.startswith("utun"):
@@ -3318,9 +3369,21 @@ def normalize_tool_fields(payload):
         payload['cwd'] = payload['workdir']
 
 def main():
-    # ШЛАГБАУМ TUNNELGUARD: блокируем до чтения stdin
-    if not verify_vpn_route_utun():
-        tunnel_guard_kill_agent_and_exit()
+    agent = ''
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] == '--agent' and i + 1 < len(args):
+            agent = args[i + 1]
+            break
+        i += 1
+    if not agent and os.environ.get('CLAUDE_CODE_ENTRYPOINT') == 'claude-desktop':
+        agent = 'claude-desktop'
+
+    # ШЛАГБАУМ TUNNELGUARD: блокируем только если TunnelGuard активен в NotchBuddy
+    if is_tunnelguard_active(agent):
+        if not verify_vpn_route_utun():
+            tunnel_guard_kill_agent_and_exit()
 
     raw = b''
     payload = {}
@@ -3335,7 +3398,7 @@ def main():
         if '--statusline' not in sys.argv[1:]:
             return
 
-    socket_path = os.path.expanduser(
+    socket_path = os.environ.get('NOTCHBUDDY_SOCKET_PATH') or os.environ.get('_NOTCHBUDDY_SOCKET_PATH') or os.path.expanduser(
         '~/Library/Application Support/NotchBuddy/nb.sock'
     )
 

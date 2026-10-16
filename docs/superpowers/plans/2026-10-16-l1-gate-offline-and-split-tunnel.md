@@ -83,7 +83,7 @@ Run: `swiftc tests/TunnelGuardStateSyncTests.swift NotchBuddy/Sources/App/Tunnel
   6. Checks if socket `~/Library/Application Support/NotchBuddy/nb.sock` exists. If not $\to$ returns `False`.
   7. If all checks pass $\to$ returns `True` (TunnelGuard is active, proceed to VPN verification).
 
-- [ ] **Step 1: Write unit tests in `tests/test_tunnelguard_hook_gate.py` for `is_tunnelguard_active`**
+- [x] **Step 1: Write unit tests in `tests/test_tunnelguard_hook_gate.py` for `is_tunnelguard_active`**
 Add tests covering:
 - App offline (state file missing): returns `False`.
 - App offline (PID dead / process not found): returns `False`.
@@ -91,7 +91,7 @@ Add tests covering:
 - App online and enabled, but agent not in `protected_targets`: returns `False`.
 - App online, enabled, and agent protected: returns `True`.
 
-- [ ] **Step 2: Update `main()` and helper functions in `nbHookPythonGitHub` in `HookServer.swift`**
+- [x] **Step 2: Update `main()` and helper functions in `nbHookPythonGitHub` in `HookServer.swift`**
 Add `is_tunnelguard_active(agent_name)`. In `main()`:
 Extract `--agent <name>` early (or default from argv).
 ```python
@@ -101,7 +101,7 @@ if is_tunnelguard_active(agent):
 ```
 If `is_tunnelguard_active()` is `False`, skip VPN verification entirely and proceed to normal hook relay execution.
 
-- [ ] **Step 3: Run `python3 tests/test_tunnelguard_hook_gate.py` to confirm offline bypass**
+- [x] **Step 3: Run `python3 tests/test_tunnelguard_hook_gate.py` to confirm offline bypass**
 Verify that all existing tests and new offline bypass tests pass.
 
 ---

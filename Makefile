@@ -30,9 +30,11 @@ test-tunnelguard-state-sync:
 test-tunnelguard-python-safe:
 	PYTHONPATH=tests python3 -m unittest -v \
 		test_tunnelguard_hook_gate.TestTunnelGuardHookVPNCheck \
+		test_tunnelguard_hook_gate.TestTunnelGuardAppActiveCheck \
 		test_tunnelguard_hook_gate.TestAgentPIDDetection \
 		test_tunnelguard_hook_gate.TestShellWrapperFailClosed \
-		test_tunnelguard_hook_gate.TestTunnelGuardGateE2E.test_e2e_deny_payload_schema
+		test_tunnelguard_hook_gate.TestTunnelGuardGateE2E.test_e2e_deny_payload_schema \
+		test_tunnelguard_hook_gate.TestTunnelGuardGateE2E.test_e2e_vpn_drop_ignored_when_app_offline
 
 # Полный набор. Включает process-kill тесты и запускается только
 # явной командой; перед запуском убедитесь, что это отдельное окружение.
