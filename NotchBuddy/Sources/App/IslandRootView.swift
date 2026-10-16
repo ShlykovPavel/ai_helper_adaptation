@@ -528,9 +528,15 @@ struct IslandHeader: View {
     @State private var soundHovered = false
     @State private var closeHovered = false
 
-    /// Pending approval or mail draft: the island refuses to fold (fsm.isHeldOpen), so the
+    private var isSecurityLocked: Bool {
+        state.view == .deadTunnelPrompt || state.view == .securityPanic || watchdog.isDeadTunnelPromptActive
+    }
+
+    /// Pending approval or mail draft, or active security alert/prompt: the island refuses to fold (fsm.isHeldOpen), so the
     /// close cross is not shown.
-    private var heldOpen: Bool { state.pendingApproval != nil || state.voiceMailDraft != nil }
+    private var heldOpen: Bool {
+        state.pendingApproval != nil || state.voiceMailDraft != nil || isSecurityLocked
+    }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -563,6 +569,7 @@ struct IslandHeader: View {
                 #endif
                 HStack(spacing: 14) {
                     Button(action: {
+                        guard !isSecurityLocked else { return }
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             state.view = state.view == .tunnelGuardShield ? .overview : .tunnelGuardShield
                         }
@@ -574,9 +581,12 @@ struct IslandHeader: View {
                     }
                     .buttonStyle(.plain)
                     .help("TunnelGuard")
+                    .disabled(isSecurityLocked)
+                    .opacity(isSecurityLocked ? 0.4 : 1.0)
                     .onHover { shieldHovered = $0 }
 
                     Button(action: {
+                        guard !isSecurityLocked else { return }
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             state.view = .settings
                         }
@@ -586,6 +596,8 @@ struct IslandHeader: View {
                             .foregroundColor(state.view == .settings || gearHovered ? Color(hex: "#F5F6F8") : Color(hex: "#8E939C"))
                     }
                     .buttonStyle(.plain)
+                    .disabled(isSecurityLocked)
+                    .opacity(isSecurityLocked ? 0.4 : 1.0)
                     .onHover { gearHovered = $0 }
 
                     Button(action: { state.soundEnabled.toggle() }) {
@@ -636,6 +648,10 @@ struct TabButton: View {
     var preAction: (() -> Void)? = nil
     @State private var isHovered = false
 
+    private var isLocked: Bool {
+        state.view == .deadTunnelPrompt || state.view == .securityPanic || TunnelGuardWatchdog.shared.isDeadTunnelPromptActive
+    }
+
     private var isOn: Bool {
         if view == .overview { return state.view == .overview || state.view == .empty }
         return state.view == view
@@ -643,6 +659,7 @@ struct TabButton: View {
 
     var body: some View {
         Button(action: {
+            guard !isLocked else { return }
             preAction?()
             withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                 state.view = view
@@ -650,15 +667,17 @@ struct TabButton: View {
         }) {
             Image(systemName: icon)
                 .font(.system(size: 13))
-                .foregroundColor(isOn ? Color(hex: "#F5F6F8") : (isHovered ? Color(hex: "#B0B5BE") : Color(hex: "#8E939C")))
+                .foregroundColor(isOn ? Color(hex: "#F5F6F8") : (isHovered && !isLocked ? Color(hex: "#B0B5BE") : Color(hex: "#8E939C")))
                 .frame(width: 30, height: 22)
                 .background(
                     isOn ? Color(hex: "#1D1F23") :
-                    isHovered ? Color.white.opacity(0.07) : Color.clear
+                    (isHovered && !isLocked ? Color.white.opacity(0.07) : Color.clear)
                 )
                 .clipShape(Capsule())
+                .opacity(isLocked ? 0.4 : 1.0)
         }
         .buttonStyle(.plain)
+        .disabled(isLocked)
         .onHover { isHovered = $0 }
     }
 }

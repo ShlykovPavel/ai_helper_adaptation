@@ -69,6 +69,7 @@ enum TunnelGuardSplitLeakSafetyTests {
         try await testSplitTunnelGenuineLeakFlagsUnprotected(tempDir: tempDir)
         testDeadTunnelPromptPersistentOnRepeatedTicksWithSplitCheck()
         testDeadTunnelPromptEscalatesIfInterfaceActuallyDrops()
+        testDeadTunnelPromptEscalatesIfInterfaceDropsWithSplitCheck()
 
         print("TunnelGuardSplitLeakSafetyTests: all passed")
     }
@@ -210,6 +211,49 @@ enum TunnelGuardSplitLeakSafetyTests {
         precondition(AppState.shared.view == .securityPanic, "Hard kill must switch view to .securityPanic")
         precondition(AppState.shared.triggerCount == 1, "Panic must be triggered on interface drop")
         print("  ✓ testDeadTunnelPromptEscalatesIfInterfaceActuallyDrops passed")
+    }
+
+    // MARK: - Test 6: Dead tunnel prompt escalates even if splitTunnelCheck is true when interface drops to en0
+    @MainActor
+    static func testDeadTunnelPromptEscalatesIfInterfaceDropsWithSplitCheck() {
+        AppState.shared.resetTestCounters()
+        let watchdog = TunnelGuardWatchdog()
+        watchdog.targets = []
+        watchdog.alarmSoundEnabled = false
+        watchdog.macNotificationsEnabled = false
+        watchdog.deadTunnelAction = "prompt"
+        watchdog.splitTunnelCheck = true
+
+        // 1. First snapshot: dead tunnel detected in utun
+        let deadSnapshot = NetworkSnapshot(
+            isVpn: true,
+            iface: "utun3",
+            pingOk: false,
+            pingLatencyMs: 0.0,
+            deadTunnelDetected: true,
+            targetDomainsOk: true
+        )
+        watchdog.handleNetworkSnapshot(deadSnapshot, isGrace: false)
+        precondition(watchdog.isDeadTunnelPromptActive == true)
+        precondition(AppState.shared.view == .deadTunnelPrompt)
+
+        // 2. Next snapshot: connection dropped to en0 (isVpn = false, iface = "en0")
+        // Note: DNS may be broken or unresolvable, so targetDomainsOk is true
+        let dropSnapshot = NetworkSnapshot(
+            isVpn: false,
+            iface: "en0",
+            pingOk: false,
+            pingLatencyMs: 0.0,
+            deadTunnelDetected: false,
+            targetDomainsOk: true
+        )
+        watchdog.handleNetworkSnapshot(dropSnapshot, isGrace: false)
+
+        precondition(watchdog.isDeadTunnelPromptActive == false, "Prompt must be dismissed on interface drop escalation even with splitTunnelCheck=true")
+        precondition(watchdog.protectionStatus == .vpnInactive, "Protection status must escalate to .vpnInactive")
+        precondition(AppState.shared.view == .securityPanic, "Hard kill must switch view to .securityPanic")
+        precondition(AppState.shared.triggerCount == 1, "Panic must be triggered on interface drop")
+        print("  ✓ testDeadTunnelPromptEscalatesIfInterfaceDropsWithSplitCheck passed")
     }
 
     // MARK: - Helper

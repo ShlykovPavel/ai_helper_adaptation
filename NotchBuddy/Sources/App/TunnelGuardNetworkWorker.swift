@@ -251,9 +251,7 @@ actor TunnelGuardNetworkWorker {
         var targetDomainsOk = true
         if !targetDomains.isEmpty {
             for domain in targetDomains {
-                let resolvedIp = resolveDomain(domain)
-                // If DNS resolution fails, check if we have any fallback from dnsCache
-                let ipToCheck = !resolvedIp.isEmpty ? resolvedIp : (dnsCache[domain]?.ip ?? "")
+                let ipToCheck = resolveDomain(domain)
                 guard !ipToCheck.isEmpty else {
                     // DNS resolution failure or network glitch is NOT an unprotected traffic leak.
                     // Skip this domain since no IP is available to query routes for.

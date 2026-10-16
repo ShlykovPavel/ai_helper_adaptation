@@ -239,7 +239,13 @@ final class TunnelGuardWatchdog: ObservableObject {
         let currentlyHealthy: Bool
         let failureReason: String
 
-        if snapshot.deadTunnelDetected {
+        // If dead tunnel prompt is active, dropping to non-VPN interface is a critical failure,
+        // not a recovery! (Fixes issue where splitTunnelCheck=true ignored isVpn=false).
+        let interfaceDroppedFromVpn = !snapshot.isVpn || (!snapshot.iface.isEmpty && !Self.isVpnInterface(snapshot.iface))
+        if isDeadTunnelPromptActive && interfaceDroppedFromVpn {
+            currentlyHealthy = false
+            failureReason = "VPN отключен! Обнаружен интерфейс: \(snapshot.iface.isEmpty ? "нет" : snapshot.iface)"
+        } else if snapshot.deadTunnelDetected {
             currentlyHealthy = false
             failureReason = "Завис VPN туннель (нет ответа на пинг)"
         } else if splitTunnelCheck && !snapshot.targetDomainsOk {
@@ -304,7 +310,8 @@ final class TunnelGuardWatchdog: ObservableObject {
                 if interfaceDropped || splitLeakWithoutDeadTunnel {
                     isDeadTunnelPromptActive = false
                     AppState.shared.dismissDeadTunnelPrompt()
-                    executeTunnelGuardHardKill(reason: failureReason, detectedIface: snapshot.iface)
+                    let effectiveReason = failureReason.isEmpty ? "VPN отключен во время ожидания туннеля" : failureReason
+                    executeTunnelGuardHardKill(reason: effectiveReason, detectedIface: snapshot.iface)
                 }
                 // Иначе: пока активен диалог dead-tunnel и туннель всё ещё в utun, НЕ убиваем процессы hard kill, они остаются замороженными (SIGSTOP) в ожидании выбора пользователя
             } else if continuousKill {
@@ -322,10 +329,15 @@ final class TunnelGuardWatchdog: ObservableObject {
             if isDeadTunnelPromptActive {
                 isDeadTunnelPromptActive = false
                 AppState.shared.dismissDeadTunnelPrompt()
-                let activeTargets = targets
-                queue.async {
-                    TunnelGuardAppHunter.resumeAllActiveTargets(targets: activeTargets)
-                    Self.logSecurityEvent("🟢 [WATCHDOG] Туннель восстановился. Агенты возобновлены (SIGCONT).")
+                let isActuallyVpn = snapshot.isVpn && (snapshot.iface.isEmpty || Self.isVpnInterface(snapshot.iface))
+                if isActuallyVpn {
+                    let activeTargets = targets
+                    queue.async {
+                        TunnelGuardAppHunter.resumeAllActiveTargets(targets: activeTargets)
+                        Self.logSecurityEvent("🟢 [WATCHDOG] Туннель восстановился. Агенты возобновлены (SIGCONT).")
+                    }
+                } else {
+                    executeTunnelGuardHardKill(reason: "VPN отключен при выходе из ожидания туннеля", detectedIface: snapshot.iface)
                 }
             } else if AppState.shared.view == .securityPanic {
                 AppState.shared.resetSecurityAlert()
@@ -420,6 +432,7 @@ final class TunnelGuardWatchdog: ObservableObject {
     // MARK: - Аварийная ликвидация (Hard Kill)
 
     func executeTunnelGuardHardKill(reason: String, detectedIface: String = "") {
+        let finalReason = reason.isEmpty ? "VPN соединение разорвано" : reason
         // Активация режима тревоги в чёлке
         AppState.shared.triggerSecurityPanic(
             message: "VPN отключен! AI-агенты принудительно ликвидированы."
@@ -434,14 +447,14 @@ final class TunnelGuardWatchdog: ObservableObject {
         if macNotificationsEnabled {
             TunnelGuardAppHunter.sendMacNotification(
                 title: "🚨 TUNNELGUARD: ТРЕВОГА!",
-                message: reason
+                message: finalReason
             )
         }
 
         // Вынос логирования и ликвидации на фоновую очередь
         let activeTargets = targets
         queue.async {
-            Self.logSecurityEvent("🚨 [KILL-SWITCH] \(reason). Немедленная ликвидация агентов.")
+            Self.logSecurityEvent("🚨 [KILL-SWITCH] \(finalReason). Немедленная ликвидация агентов.")
             let killed = TunnelGuardAppHunter.killAllActiveTargets(targets: activeTargets)
             if !killed.isEmpty {
                 Self.logSecurityEvent("💀 [KILL-SWITCH] Ликвидированы: \(killed.joined(separator: ", "))")

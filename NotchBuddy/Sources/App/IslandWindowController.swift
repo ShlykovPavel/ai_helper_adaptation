@@ -332,7 +332,8 @@ final class IslandWindowController: NSWindowController {
             AppState.shared.pendingApproval != nil ||
             AppState.shared.voiceMailDraft != nil ||
             AppState.shared.view == .deadTunnelPrompt ||
-            AppState.shared.view == .securityPanic
+            AppState.shared.view == .securityPanic ||
+            TunnelGuardWatchdog.shared.isDeadTunnelPromptActive
         }
 
         // Voice: wake phrase detected → open listening island
