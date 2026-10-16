@@ -147,6 +147,10 @@ struct SettingsView: View {
     @AppStorage("tunnelGuard.enabled") private var tunnelGuardEnabled = true
     @AppStorage("tunnelGuard.continuousKill") private var tunnelGuardContinuousKill = true
     @AppStorage("tunnelGuard.pingCheckEnabled") private var tunnelGuardPingCheckEnabled = true
+    @AppStorage("tunnelGuard.basePingTimeout") private var tunnelGuardBasePingTimeout: Double = 2.0
+    @AppStorage("tunnelGuard.progressiveTimeoutEnabled") private var tunnelGuardProgressiveTimeoutEnabled: Bool = true
+    @AppStorage("tunnelGuard.maxPingFails") private var tunnelGuardMaxPingFails: Int = 3
+    @AppStorage("tunnelGuard.deadTunnelAction") private var tunnelGuardDeadTunnelAction: String = "prompt"
     @AppStorage("tunnelGuard.splitTunnelCheck") private var tunnelGuardSplitTunnelCheck = false
     @AppStorage("tunnelGuard.preventSleep") private var tunnelGuardPreventSleep = true
     @AppStorage("tunnelGuard.sleepWakeGuardEnabled") private var tunnelGuardSleepWakeGuardEnabled = true
@@ -317,6 +321,10 @@ struct SettingsView: View {
         tunnelGuard.isEnabled = tunnelGuardEnabled
         tunnelGuard.continuousKill = tunnelGuardContinuousKill
         tunnelGuard.pingCheckEnabled = tunnelGuardPingCheckEnabled
+        tunnelGuard.basePingTimeout = tunnelGuardBasePingTimeout
+        tunnelGuard.progressiveTimeoutEnabled = tunnelGuardProgressiveTimeoutEnabled
+        tunnelGuard.maxPingFails = tunnelGuardMaxPingFails
+        tunnelGuard.deadTunnelAction = tunnelGuardDeadTunnelAction
         tunnelGuard.splitTunnelCheck = tunnelGuardSplitTunnelCheck
         tunnelGuard.preventSleep = tunnelGuardPreventSleep
         tunnelGuard.sleepWakeGuardEnabled = tunnelGuardSleepWakeGuardEnabled
@@ -407,11 +415,56 @@ struct SettingsView: View {
                 Toggle("Включить сторож TunnelGuard (Kill-Switch активен)", isOn: $tunnelGuardEnabled)
                 Toggle("Непрерывный отстрел (Continuous Kill)", isOn: $tunnelGuardContinuousKill)
                 Toggle("Мониторинг зависшего туннеля (ICMP Ping каждые 5 с)", isOn: $tunnelGuardPingCheckEnabled)
+                if tunnelGuardPingCheckEnabled {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("Базовый таймаут пинга")
+                            Spacer()
+                            Picker("", selection: $tunnelGuardBasePingTimeout) {
+                                Text("1.5 с").tag(1.5)
+                                Text("2.0 с").tag(2.0)
+                                Text("3.0 с").tag(3.0)
+                                Text("5.0 с").tag(5.0)
+                            }
+                            .labelsHidden()
+                            .frame(width: 90)
+                        }
+                        Toggle("Прогрессивное увеличение таймаута (Backoff)", isOn: $tunnelGuardProgressiveTimeoutEnabled)
+                            .font(.system(size: 12))
+                        HStack {
+                            Text("Попыток до подтверждения")
+                            Spacer()
+                            Picker("", selection: $tunnelGuardMaxPingFails) {
+                                Text("2").tag(2)
+                                Text("3 (Рекомендуется)").tag(3)
+                                Text("5").tag(5)
+                            }
+                            .labelsHidden()
+                            .frame(width: 140)
+                        }
+                        HStack {
+                            Text("Действие при зависании")
+                            Spacer()
+                            Picker("", selection: $tunnelGuardDeadTunnelAction) {
+                                Text("Спросить в чёлке (SIGSTOP)").tag("prompt")
+                                Text("Сразу ликвидировать (Kill)").tag("kill")
+                            }
+                            .labelsHidden()
+                            .frame(width: 190)
+                        }
+                    }
+                    .padding(.leading, 16)
+                    .padding(.vertical, 2)
+                }
                 Toggle("Проверка Split-Tunneling доменов", isOn: $tunnelGuardSplitTunnelCheck)
             }.padding(6)
             .onChange(of: tunnelGuardEnabled) { _, _ in syncTunnelGuardSettings() }
             .onChange(of: tunnelGuardContinuousKill) { _, _ in syncTunnelGuardSettings() }
             .onChange(of: tunnelGuardPingCheckEnabled) { _, _ in syncTunnelGuardSettings() }
+            .onChange(of: tunnelGuardBasePingTimeout) { _, _ in syncTunnelGuardSettings() }
+            .onChange(of: tunnelGuardProgressiveTimeoutEnabled) { _, _ in syncTunnelGuardSettings() }
+            .onChange(of: tunnelGuardMaxPingFails) { _, _ in syncTunnelGuardSettings() }
+            .onChange(of: tunnelGuardDeadTunnelAction) { _, _ in syncTunnelGuardSettings() }
             .onChange(of: tunnelGuardSplitTunnelCheck) { _, _ in syncTunnelGuardSettings() }
         }
         GroupBox("Управление питанием и крышкой Mac (Power Guard)") {

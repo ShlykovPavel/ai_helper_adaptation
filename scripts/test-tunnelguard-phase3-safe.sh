@@ -17,3 +17,12 @@ swiftc -swift-version 6 -strict-concurrency=complete "${CACHE_ARGS[@]+"${CACHE_A
     tests/TunnelGuardPhase3SafeTests.swift -o "$TEST_DIR/tunnelguard-phase3-safe-tests"
 
 "$TEST_DIR/tunnelguard-phase3-safe-tests"
+
+swiftc -swift-version 6 -strict-concurrency=complete "${CACHE_ARGS[@]+"${CACHE_ARGS[@]}"}" \
+    NotchBuddy/Sources/App/TunnelGuardPowerGuard.swift \
+    NotchBuddy/Sources/App/TunnelGuardNetworkWorker.swift \
+    NotchBuddy/Sources/App/TunnelGuardAppHunter.swift \
+    NotchBuddy/Sources/App/TunnelGuardWatchdog.swift \
+    tests/TunnelGuardWatchdogPromptTests.swift -o "$TEST_DIR/tunnelguard-watchdog-prompt-tests"
+
+"$TEST_DIR/tunnelguard-watchdog-prompt-tests"

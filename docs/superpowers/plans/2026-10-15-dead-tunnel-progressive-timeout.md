@@ -36,7 +36,7 @@
 - Consumes: Target app definitions (`TunnelGuardTargetApp`).
 - Produces: `suspendAllActiveTargets(targets:) -> [String]` and `resumeAllActiveTargets(targets:) -> [String]`.
 
-- [ ] **Step 1: Write test for process suspension and resumption in `tests/TunnelGuardAppHunterSuspendTests.swift`**
+- [x] **Step 1: Write test for process suspension and resumption in `tests/TunnelGuardAppHunterSuspendTests.swift`**
 ```swift
 import Foundation
 
@@ -51,7 +51,7 @@ func testAppHunterSuspendResume() {
 testAppHunterSuspendResume()
 ```
 
-- [ ] **Step 2: Add `suspendAllActiveTargets` and `resumeAllActiveTargets` to `TunnelGuardAppHunter.swift`**
+- [x] **Step 2: Add `suspendAllActiveTargets` and `resumeAllActiveTargets` to `TunnelGuardAppHunter.swift`**
 ```swift
 @discardableResult
 nonisolated static func suspendAllActiveTargets(
@@ -94,11 +94,11 @@ private nonisolated static func sendCliSignal(
 }
 ```
 
-- [ ] **Step 3: Run the test to verify compilation and signal helper behavior**
+- [x] **Step 3: Run the test to verify compilation and signal helper behavior**
 Run: `swiftc tests/TunnelGuardAppHunterSuspendTests.swift NotchBuddy/Sources/App/TunnelGuardAppHunter.swift -o /tmp/suspend-test && /tmp/suspend-test`
 Expected: `✅ testAppHunterSuspendResume passed`.
 
-- [ ] **Step 4: Commit Task 1**
+- [x] **Step 4: Commit Task 1**
 Commit message: `feat(tunnelguard): add SIGSTOP and SIGCONT support to AppHunter`
 
 ---
@@ -113,10 +113,10 @@ Commit message: `feat(tunnelguard): add SIGSTOP and SIGCONT support to AppHunter
 - Consumes: `basePingTimeout: Double`, `useProgressiveBackoff: Bool`, `maxPingFails: Int`.
 - Produces: Dynamic ping timeouts based on consecutive fail count and failure threshold before `deadTunnelDetected` is set.
 
-- [ ] **Step 1: Write test for progressive backoff in `tests/TunnelGuardProgressivePingTests.swift`**
+- [x] **Step 1: Write test for progressive backoff in `tests/TunnelGuardProgressivePingTests.swift`**
 Verify that with `maxPingFails = 3`, 2 fails do not mark dead tunnel, but the 3rd fail does. Also verify that on success, fail counter resets.
 
-- [ ] **Step 2: Update `executePing` to accept dynamic timeout in `TunnelGuardNetworkWorker.swift`**
+- [x] **Step 2: Update `executePing` to accept dynamic timeout in `TunnelGuardNetworkWorker.swift`**
 ```swift
 private func executePing(timeoutSeconds: Double) -> (ok: Bool, latencyMs: Double) {
     let task = Process()
@@ -148,7 +148,7 @@ private func executePing(timeoutSeconds: Double) -> (ok: Bool, latencyMs: Double
 }
 ```
 
-- [ ] **Step 3: Update `checkStatus` with progressive timeout calculation**
+- [x] **Step 3: Update `checkStatus` with progressive timeout calculation**
 Calculate current attempt timeout:
 ```swift
 let currentTimeout: Double
@@ -160,11 +160,11 @@ if useProgressiveBackoff {
 ```
 Only set `deadTunnel = true` when `consecutivePingFails >= maxPingFails`.
 
-- [ ] **Step 4: Run tests and verify existing `TunnelGuardPhase1SafeTests` remain passing**
+- [x] **Step 4: Run tests and verify existing `TunnelGuardPhase1SafeTests` remain passing**
 Run: `make test-tunnelguard-safe`
 Expected: All tests pass.
 
-- [ ] **Step 5: Commit Task 2**
+- [x] **Step 5: Commit Task 2**
 Commit message: `feat(tunnelguard): add progressive timeout and configurable ping thresholds in NetworkWorker`
 
 ---
@@ -179,7 +179,7 @@ Commit message: `feat(tunnelguard): add progressive timeout and configurable pin
 - Consumes: `deadTunnelAction` setting (`"prompt"` vs `"kill"`), `isDeadTunnel` status.
 - Produces: `isDeadTunnelPromptActive` published state, `userConfirmedKill()`, `userRequestedWait()`, auto-recovery on network health return.
 
-- [ ] **Step 1: Add new settings properties and persistence in `TunnelGuardWatchdog.swift`**
+- [x] **Step 1: Add new settings properties and persistence in `TunnelGuardWatchdog.swift`**
 - `@Published var basePingTimeout: Double = 2.0`
 - `@Published var progressiveTimeoutEnabled: Bool = true`
 - `@Published var maxPingFails: Int = 3`
@@ -187,7 +187,7 @@ Commit message: `feat(tunnelguard): add progressive timeout and configurable pin
 - `@Published var isDeadTunnelPromptActive: Bool = false`
 Load defaults in `loadPersistedSettings()`.
 
-- [ ] **Step 2: Update `handleNetworkSnapshot` in `TunnelGuardWatchdog.swift`**
+- [x] **Step 2: Update `handleNetworkSnapshot` in `TunnelGuardWatchdog.swift`**
 - If `snapshot.deadTunnelDetected`:
   - If `deadTunnelAction == "kill"`: invoke `executeTunnelGuardHardKill`.
   - If `deadTunnelAction == "prompt"`:
@@ -203,7 +203,7 @@ Load defaults in `loadPersistedSettings()`.
     - Call `AppState.shared.dismissDeadTunnelPrompt()`.
     - Log: `"🟢 [WATCHDOG] Туннель восстановился. Агенты возобновлены (SIGCONT)."`.
 
-- [ ] **Step 3: Implement `userConfirmedKill()` and `userRequestedWait()`**
+- [x] **Step 3: Implement `userConfirmedKill()` and `userRequestedWait()`**
 ```swift
 func userConfirmedDeadTunnelKill() {
     isDeadTunnelPromptActive = false
@@ -225,10 +225,10 @@ func userRequestedDeadTunnelWait() {
 }
 ```
 
-- [ ] **Step 4: Update `AppState.swift` with prompt trigger methods**
+- [x] **Step 4: Update `AppState.swift` with prompt trigger methods**
 Add `deadTunnelPromptActive: Bool`, `triggerDeadTunnelPrompt()`, and `dismissDeadTunnelPrompt()`.
 
-- [ ] **Step 5: Commit Task 3**
+- [x] **Step 5: Commit Task 3**
 Commit message: `feat(tunnelguard): implement freeze-and-prompt state machine in Watchdog`
 
 ---
@@ -243,10 +243,10 @@ Commit message: `feat(tunnelguard): implement freeze-and-prompt state machine in
 - Consumes: `AppState.view == .deadTunnelPrompt` or `AppState.deadTunnelPromptActive`.
 - Produces: Responsive Island card with two clear action buttons: [Усыпить агентов] and [Отклонить и ждать].
 
-- [ ] **Step 1: Register `case deadTunnelPrompt` in `IslandTypes.swift`**
+- [x] **Step 1: Register `case deadTunnelPrompt` in `IslandTypes.swift`**
 Define view layout height (160 pt) and background wash (`rgba(251,146,60,0.3)` or amber).
 
-- [ ] **Step 2: Create `DeadTunnelPromptView` in `IslandViewContent.swift`**
+- [x] **Step 2: Create `DeadTunnelPromptView` in `IslandViewContent.swift`**
 ```swift
 struct DeadTunnelPromptView: View {
     @ObservedObject var state: AppState
@@ -287,9 +287,9 @@ struct DeadTunnelPromptView: View {
 }
 ```
 
-- [ ] **Step 3: Route `case .deadTunnelPrompt` in `IslandViewContent.swift` body**
+- [x] **Step 3: Route `case .deadTunnelPrompt` in `IslandViewContent.swift` body**
 
-- [ ] **Step 4: Commit Task 4**
+- [x] **Step 4: Commit Task 4**
 Commit message: `feat(island): add DeadTunnelPromptView with sleep and wait buttons`
 
 ---
@@ -303,7 +303,7 @@ Commit message: `feat(island): add DeadTunnelPromptView with sleep and wait butt
 - Consumes: `@AppStorage` bindings for ping timeout, progressive backoff, max fails, and dead tunnel action.
 - Produces: Clean UI controls embedded in the existing "Политика Kill-Switch" / "Мониторинг туннеля" section.
 
-- [ ] **Step 1: Add `@AppStorage` properties in `SettingsView.swift`**
+- [x] **Step 1: Add `@AppStorage` properties in `SettingsView.swift`**
 ```swift
 @AppStorage("tunnelGuard.basePingTimeout") private var tunnelGuardBasePingTimeout: Double = 2.0
 @AppStorage("tunnelGuard.progressiveTimeoutEnabled") private var tunnelGuardProgressiveTimeoutEnabled: Bool = true
@@ -311,7 +311,7 @@ Commit message: `feat(island): add DeadTunnelPromptView with sleep and wait butt
 @AppStorage("tunnelGuard.deadTunnelAction") private var tunnelGuardDeadTunnelAction: String = "prompt"
 ```
 
-- [ ] **Step 2: Add controls to `tunnelGuardSection` in `SettingsView.swift`**
+- [x] **Step 2: Add controls to `tunnelGuardSection` in `SettingsView.swift`**
 In the Kill-Switch / Monitoring GroupBox:
 - Add Picker for Base Ping Timeout: `1.5 с`, `2.0 с`, `3.0 с`, `5.0 с`.
 - Add Toggle for "Прогрессивное увеличение таймаута (Backoff)".
@@ -321,10 +321,10 @@ In the Kill-Switch / Monitoring GroupBox:
   - `kill`: "Мгновенно ликвидировать (SIGKILL)"
 - Add `.onChange` triggers calling `syncTunnelGuardSettings()`.
 
-- [ ] **Step 3: Update `syncTunnelGuardSettings()` in `SettingsView.swift`**
+- [x] **Step 3: Update `syncTunnelGuardSettings()` in `SettingsView.swift`**
 Pass new values to `tunnelGuard.basePingTimeout`, `tunnelGuard.progressiveTimeoutEnabled`, `tunnelGuard.maxPingFails`, and `tunnelGuard.deadTunnelAction`.
 
-- [ ] **Step 4: Commit Task 5**
+- [x] **Step 4: Commit Task 5**
 Commit message: `feat(settings): expose ping timeout, backoff, and prompt policy in tunnelGuardSection`
 
 ---
@@ -334,13 +334,13 @@ Commit message: `feat(settings): expose ping timeout, backoff, and prompt policy
 **Files:**
 - Whole project verification
 
-- [ ] **Step 1: Run full safe test suite**
+- [x] **Step 1: Run full safe test suite**
 Run: `make test-tunnelguard-safe`
 Expected: All tests pass.
 
-- [ ] **Step 2: Build project via `xcodebuild`**
+- [x] **Step 2: Build project via `xcodebuild`**
 Run: `make build`
 Expected: `** BUILD SUCCEEDED **`.
 
-- [ ] **Step 3: Verify simulated dead tunnel trigger**
+- [x] **Step 3: Verify simulated dead tunnel trigger**
 Run simulated test script or manual simulation to confirm agents are paused with SIGSTOP and Dynamic Island displays prompt with both buttons functional.

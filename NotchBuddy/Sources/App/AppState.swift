@@ -11,6 +11,7 @@ final class AppState: ObservableObject {
     @Published var mode: IslandMode = .hidden
     @Published var view: IslandView = .overview
     @Published var securityAlarmText: String = ""
+    @Published var deadTunnelPromptText: String = ""
 
     func triggerSecurityPanic(message: String) {
         self.securityAlarmText = message
@@ -23,6 +24,22 @@ final class AppState: ObservableObject {
         self.securityAlarmText = ""
         self.stateOverride = nil
         if self.view == .securityPanic {
+            self.view = .overview
+            self.mode = .compact
+        }
+    }
+
+    func triggerDeadTunnelPrompt(message: String = "VPN не отвечает (Dead Tunnel). Агенты временно заморожены (SIGSTOP).") {
+        self.deadTunnelPromptText = message
+        self.stateOverride = .question
+        self.view = .deadTunnelPrompt
+        self.mode = .expanded
+    }
+
+    func dismissDeadTunnelPrompt() {
+        self.deadTunnelPromptText = ""
+        self.stateOverride = nil
+        if self.view == .deadTunnelPrompt {
             self.view = .overview
             self.mode = .compact
         }

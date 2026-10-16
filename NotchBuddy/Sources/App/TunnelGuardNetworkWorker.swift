@@ -177,18 +177,19 @@ actor TunnelGuardNetworkWorker {
         getRouteInfo(dest: dest, timeoutSeconds: timeoutSeconds).gateway
     }
 
-    /// Отправка ICMP пакета с отдельным wall-clock таймаутом.
-    private func executePing() -> (ok: Bool, latencyMs: Double) {
+    /// Отправка ICMP пакета с настраиваемым wall-clock таймаутом.
+    private func executePing(timeoutSeconds: Double = 1.5) -> (ok: Bool, latencyMs: Double) {
         let task = Process()
         task.executableURL = pingExecutableURL
-        task.arguments = ["-c", "1", "-W", "1500", "1.1.1.1"]
+        let timeoutMs = max(500, Int(timeoutSeconds * 1000))
+        task.arguments = ["-c", "1", "-W", "\(timeoutMs)", "1.1.1.1"]
         task.standardOutput = FileHandle.nullDevice
         task.standardError = FileHandle.nullDevice
 
         let startTime = Date()
         do {
             try task.run()
-            let deadline = Date().addingTimeInterval(2.0)
+            let deadline = Date().addingTimeInterval(timeoutSeconds + 0.5)
             while task.isRunning && Date() < deadline {
                 usleep(50_000)
             }
@@ -216,11 +217,14 @@ actor TunnelGuardNetworkWorker {
     /// Комплексная проверка состояния сети:
     /// 1. Основной VPN-маршрут (1.1.1.1 / default)
     /// 2. Split Tunneling для целевых AI-доменов
-    /// 3. Фоновый пинг (Dead Tunnel Detection) с порогом в 2 сбоя
+    /// 3. Фоновый пинг (Dead Tunnel Detection) с настраиваемым порогом и прогрессивным backoff
     func checkStatus(
         targetDomains: [String] = [],
         enablePing: Bool = true,
-        isGracePeriod: Bool = false
+        isGracePeriod: Bool = false,
+        basePingTimeout: Double = 1.5,
+        useProgressiveBackoff: Bool = true,
+        maxPingFails: Int = 2
     ) -> NetworkSnapshot {
         // 1. Определение интерфейса глобального шлюза.
         // Для def1/раздельных конфигураций первый публичный адрес может
@@ -273,7 +277,13 @@ actor TunnelGuardNetworkWorker {
             let now = Date().timeIntervalSince1970
             // Пинг выполняется не чаще, чем раз в pingInterval (5 секунд)
             if now - lastPingTimestamp >= pingInterval || lastPingTimestamp == 0 {
-                let pingResult = executePing()
+                let currentTimeout: Double
+                if useProgressiveBackoff {
+                    currentTimeout = basePingTimeout * (1.0 + 0.5 * Double(consecutivePingFails))
+                } else {
+                    currentTimeout = basePingTimeout
+                }
+                let pingResult = executePing(timeoutSeconds: currentTimeout)
                 lastPingTimestamp = now
                 pingOk = pingResult.ok
                 pingLatencyMs = pingResult.latencyMs
@@ -284,12 +294,12 @@ actor TunnelGuardNetworkWorker {
                     consecutivePingFails = 0
                 } else {
                     consecutivePingFails += 1
-                    if consecutivePingFails >= 2 {
+                    if consecutivePingFails >= maxPingFails {
                         deadTunnel = true
                     }
                 }
             } else {
-                if consecutivePingFails >= 2 {
+                if consecutivePingFails >= maxPingFails {
                     deadTunnel = true
                 }
             }

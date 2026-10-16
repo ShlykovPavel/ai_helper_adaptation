@@ -162,6 +162,50 @@ final class TunnelGuardAppHunter: Sendable {
         return killedNames
     }
 
+    /// Приостановка всех активных CLI-целей из списка targets (SIGSTOP)
+    /// Возвращает список имён приостановленных целей
+    @discardableResult
+    nonisolated static func suspendAllActiveTargets(
+        targets: [TunnelGuardTargetApp],
+        pkillExecutableURL: URL = URL(fileURLWithPath: "/usr/bin/pkill")
+    ) -> [String] {
+        sendCliSignal(signal: "-STOP", targets: targets, pkillExecutableURL: pkillExecutableURL)
+    }
+
+    /// Возобновление всех активных CLI-целей из списка targets (SIGCONT)
+    /// Возвращает список имён возобновлённых целей
+    @discardableResult
+    nonisolated static func resumeAllActiveTargets(
+        targets: [TunnelGuardTargetApp],
+        pkillExecutableURL: URL = URL(fileURLWithPath: "/usr/bin/pkill")
+    ) -> [String] {
+        sendCliSignal(signal: "-CONT", targets: targets, pkillExecutableURL: pkillExecutableURL)
+    }
+
+    private nonisolated static func sendCliSignal(
+        signal: String,
+        targets: [TunnelGuardTargetApp],
+        pkillExecutableURL: URL
+    ) -> [String] {
+        var affected: [String] = []
+        let cliTargets = targets.filter { $0.type == .cli }
+        for target in cliTargets {
+            let binName = target.binaryOrBundleId
+            guard isSafeExecutableName(binName), !isProtectedProcess(binName) else { continue }
+            let task = Process()
+            task.executableURL = pkillExecutableURL
+            task.arguments = [signal, "-x", binName]
+            task.standardOutput = FileHandle.nullDevice
+            task.standardError = FileHandle.nullDevice
+            do {
+                try task.run()
+                task.waitUntilExit()
+                if task.terminationStatus == 0 { affected.append(target.name) }
+            } catch {}
+        }
+        return affected
+    }
+
     /// Отправка нативного системного баннера macOS через osascript
     nonisolated static func notificationScript(title: String, message: String) -> String {
         // AppleScript string literals escape backslash and quote. Control

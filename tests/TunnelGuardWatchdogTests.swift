@@ -8,6 +8,7 @@ enum IslandView: String, CaseIterable {
     case listening
     case voiceResult
     case securityPanic
+    case deadTunnelPrompt
 }
 
 @MainActor
@@ -15,6 +16,7 @@ final class AppState: ObservableObject {
     static let shared = AppState()
     var view: IslandView = .overview
     var securityAlarmText: String = ""
+    var deadTunnelPromptText: String = ""
     var triggerCount: Int = 0
     var resetCount: Int = 0
 
@@ -30,10 +32,23 @@ final class AppState: ObservableObject {
         view = .overview
     }
 
+    func triggerDeadTunnelPrompt(message: String = "VPN не отвечает (Dead Tunnel). Агенты временно заморожены (SIGSTOP).") {
+        deadTunnelPromptText = message
+        view = .deadTunnelPrompt
+    }
+
+    func dismissDeadTunnelPrompt() {
+        deadTunnelPromptText = ""
+        if view == .deadTunnelPrompt {
+            view = .overview
+        }
+    }
+
     func resetTestCounters() {
         triggerCount = 0
         resetCount = 0
         securityAlarmText = ""
+        deadTunnelPromptText = ""
         view = .overview
     }
 }
