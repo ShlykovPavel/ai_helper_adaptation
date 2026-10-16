@@ -24,6 +24,7 @@
 		B7F46FE93FB34F6586FD1750 /* TelegramBotAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE09E9895F7E43E6B6D6E00F /* TelegramBotAPI.swift */; };
 		460B45D451CC4A4DB43541B0 /* TelegramPolling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4332692EC56D40D6BB6CBDD6 /* TelegramPolling.swift */; };
 		E6153F92C19D43D1B5E87F75 /* TelegramBotController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06E6A5D1620D40B6BF313730 /* TelegramBotController.swift */; };
+		A381BC5E9D1240FE8763C421 /* TelegramSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F912E4A71B5D4E3CA1208D10 /* TelegramSettingsStore.swift */; };
 		07EC91820A69E8BF11EC778D /* PillColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37564F5F041B38C976DF3DEF /* PillColors.swift */; };
 		08A485F2AC63FF5298ED897B /* OpenLeadMochiIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D96E57E8DADE6B82628E3E /* OpenLeadMochiIntent.swift */; };
 		091EC3B2F1060D7EE1317E4E /* IslandWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D710BD7834228045869D0184 /* IslandWindowController.swift */; };
@@ -294,6 +295,7 @@
 		CE09E9895F7E43E6B6D6E00F /* TelegramBotAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramBotAPI.swift; sourceTree = "<group>"; };
 		4332692EC56D40D6BB6CBDD6 /* TelegramPolling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramPolling.swift; sourceTree = "<group>"; };
 		06E6A5D1620D40B6BF313730 /* TelegramBotController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramBotController.swift; sourceTree = "<group>"; };
+		F912E4A71B5D4E3CA1208D10 /* TelegramSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramSettingsStore.swift; sourceTree = "<group>"; };
 		0364C7995680F9FA9F85F905 /* PortfolioController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioController.swift; sourceTree = "<group>"; };
 		0365DDE3C554F5E8570055F4 /* IslandTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandTypes.swift; sourceTree = "<group>"; };
 		045E7300878138F0AC385920 /* MochiStill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MochiStill.swift; sourceTree = "<group>"; };
@@ -652,6 +654,7 @@
 				CE09E9895F7E43E6B6D6E00F /* TelegramBotAPI.swift */,
 				4332692EC56D40D6BB6CBDD6 /* TelegramPolling.swift */,
 				06E6A5D1620D40B6BF313730 /* TelegramBotController.swift */,
+				F912E4A71B5D4E3CA1208D10 /* TelegramSettingsStore.swift */,
 			);
 			path = Telegram;
 			sourceTree = "<group>";
@@ -977,6 +980,7 @@
 				B7F46FE93FB34F6586FD1750 /* TelegramBotAPI.swift in Sources */,
 				460B45D451CC4A4DB43541B0 /* TelegramPolling.swift in Sources */,
 				E6153F92C19D43D1B5E87F75 /* TelegramBotController.swift in Sources */,
+				A381BC5E9D1240FE8763C421 /* TelegramSettingsStore.swift in Sources */,
 				4B6AC00F22EC75E90E0157D5 /* AppLog.swift in Sources */,
 				1F11EC4E6F604C612A1ADAD1 /* AppState.swift in Sources */,
 				0325A44358904B44C2237CCE /* ApprovalQueue.swift in Sources */,
