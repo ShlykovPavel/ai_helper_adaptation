@@ -1,0 +1,141 @@
+{
+  "schema": 1,
+  "status": "static-key-pose-proposal",
+  "canvas": [
+    240,
+    240
+  ],
+  "fps": 24,
+  "pivot": [
+    0.5,
+    0.5
+  ],
+  "forms": {
+    "orb": {
+      "master": "masters/astral-orb-master.png",
+      "frame": "frames/astral-orb-240.png",
+      "exports": {
+        "64": "frames/astral-orb-64.png",
+        "240": "frames/astral-orb-240.png",
+        "480": "frames/astral-orb-480.png",
+        "720": "frames/astral-orb-720.png",
+        "960": "frames/astral-orb-960.png"
+      },
+      "logo": {
+        "x": 0.5,
+        "y": 0.655,
+        "width": 0.22,
+        "height": 0.22
+      }
+    },
+    "cube": {
+      "master": "masters/astral-cube-master.png",
+      "frame": "frames/astral-cube-240.png",
+      "exports": {
+        "64": "frames/astral-cube-64.png",
+        "240": "frames/astral-cube-240.png",
+        "480": "frames/astral-cube-480.png",
+        "720": "frames/astral-cube-720.png",
+        "960": "frames/astral-cube-960.png"
+      },
+      "logo": {
+        "x": 0.5,
+        "y": 0.66,
+        "width": 0.23,
+        "height": 0.23
+      }
+    },
+    "wisp": {
+      "master": "masters/astral-wisp-master.png",
+      "frame": "frames/astral-wisp-240.png",
+      "exports": {
+        "64": "frames/astral-wisp-64.png",
+        "240": "frames/astral-wisp-240.png",
+        "480": "frames/astral-wisp-480.png",
+        "720": "frames/astral-wisp-720.png",
+        "960": "frames/astral-wisp-960.png"
+      },
+      "logo": {
+        "x": 0.535,
+        "y": 0.665,
+        "width": 0.19,
+        "height": 0.19
+      }
+    }
+  },
+  "idle": {
+    "asset": "../astral-idle-master.png",
+    "logo_visible": false
+  },
+  "routes": {
+    "idle": "ghost",
+    "working": "wisp",
+    "finished": "orb",
+    "question": "cube",
+    "permission": "cube",
+    "approval": "cube"
+  },
+  "branding": {
+    "strategy": "Separate provider SVG layer; replace logo file and provider registry entry; no master re-generation.",
+    "visibility": "Hidden during idle and silhouette morph; visible after event form settles.",
+    "frame_metadata": "Each future frame records logo centre, rectangle, rotation, opacity and occlusion mask if needed. Current coordinates apply to these static masters only.",
+    "minimum_readable_size": 48,
+    "compact_policy": "Below 48 logical pixels prefer external provider badge + text rather than force the internal logo."
+  },
+  "planned_clips": [
+    {
+      "id": "idle-play",
+      "frames": 48,
+      "loop": true,
+      "description": "Float, blink, tilt; occasional tiny squash or peek. No permanent core."
+    },
+    {
+      "id": "ghost-to-orb",
+      "frames": 16,
+      "loop": false,
+      "description": "Tuck hands in, round scallops, soft squish, settle into orb. Logo opacity stays 0."
+    },
+    {
+      "id": "orb-result",
+      "frames": 24,
+      "loop": true,
+      "description": "Small pleased bounce and settle. Logo fades in below the face over first 8 frames."
+    },
+    {
+      "id": "ghost-to-cube",
+      "frames": 18,
+      "loop": false,
+      "description": "Tuck limbs, gently inflate corners, tiny overshoot, settle. Logo stays hidden."
+    },
+    {
+      "id": "cube-question",
+      "frames": 36,
+      "loop": true,
+      "description": "Curious alternating tilt and gaze at user. Separate external question indicator."
+    },
+    {
+      "id": "ghost-to-wisp",
+      "frames": 18,
+      "loop": false,
+      "description": "Stretch into rounded flame tip and curling tail; eyes preserve identity."
+    },
+    {
+      "id": "wisp-work",
+      "frames": 24,
+      "loop": true,
+      "description": "Soft flowing tip and tail, attentive eyes."
+    },
+    {
+      "id": "return-to-ghost",
+      "frames": 16,
+      "loop": false,
+      "description": "Fade logo out, undo shape, reveal little arms and scallops."
+    }
+  ],
+  "notes": [
+    "Planned frames have not been generated. SVG examples are layered static compositions.",
+    "For native integration preserve original finished/question events; current state mapper may collapse some into idle/approval.",
+    "For company branding use a clear square transparent SVG/PNG; apply contain, never stretch.",
+    "Actual melt/morph motion requires generated in-between frames, not CSS shape interpolation."
+  ]
+}

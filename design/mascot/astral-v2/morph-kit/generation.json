@@ -1,0 +1,52 @@
+{
+  "tool": "built-in image_gen",
+  "prompts": [
+    {
+      "key": "orb",
+      "prompt": "Use case: stylized-concept. Asset type: one production master pose for future 2D sprite animation in a macOS mascot app.\nInput Image 1: approved current icy glass ghost mascot, identity, face, material and lighting reference.\nInput Image 2: early three-shape concept, silhouette reference ONLY, ignore all text and background.\nCreate a NEW SINGLE TRANSFORMED FORM of exactly the SAME character from image 1, not a new character. Preserve its luminous silver icy blue opalescent translucent frosted-glass/jelly material, subtle lilac edge refraction, gentle volumetric studio lighting upper left, premium smooth high-end 3D quality and two clean solid luminous white vertical oval eyes. Eyes have NO pupils. NO mouth, NO nose, NO blush.\nThe face sits clearly in the UPPER THIRD of the body. The LOWER HALF of the body is a clean, empty, slightly darker translucent glass viewing chamber with low-frequency smooth shading and no opaque bright reflections through its centre. This empty lower chamber is specifically reserved for a replaceable company/AI-agent logo to be composited later BELOW the face. Do NOT draw a logo, emblem, nose, energy core, sphere inside sphere, star, badge or any internal object. No central bright spot. The character must be beautiful alone without any logo.\nCentered square composition, front view, barely any perspective, subject completely visible with generous uniform transparent safe margins. Largest body dimension exactly about 76% of canvas. Same face and material across all transformed forms. No hands or arms or feet in transformed form: ghost limbs and scallops have smoothly absorbed into the new silhouette. Polished continuous volume.\nTRUE transparent background RGBA cutout, no floor, ground shadow, checkerboard, opaque rectangle, vignette, atmospheric scene, text, labels, interface, frames, watermark or multiple subjects. Smooth clean alpha edge; all finite subtle glow fades to true alpha.\nFORM: a perfectly round, squishy spherical glass orb spirit. A clear circular silhouette and convincingly three-dimensional sphere, NOT a flat circle or disk. Calm friendly slightly curious expression through the luminous eyes. Empty lower glass chamber, intact smooth spherical bottom. Think ghost tucked into a soft glass ball."
+    },
+    {
+      "key": "cube",
+      "prompt": "Use case: stylized-concept. Asset type: one production master pose for future 2D sprite animation in a macOS mascot app.\nInput Image 1: approved current icy glass ghost mascot, identity, face, material and lighting reference.\nInput Image 2: early three-shape concept, silhouette reference ONLY, ignore all text and background.\nCreate a NEW SINGLE TRANSFORMED FORM of exactly the SAME character from image 1, not a new character. Preserve its luminous silver icy blue opalescent translucent frosted-glass/jelly material, subtle lilac edge refraction, gentle volumetric studio lighting upper left, premium smooth high-end 3D quality and two clean solid luminous white vertical oval eyes. Eyes have NO pupils. NO mouth, NO nose, NO blush.\nThe face sits clearly in the UPPER THIRD of the body. The LOWER HALF of the body is a clean, empty, slightly darker translucent glass viewing chamber with low-frequency smooth shading and no opaque bright reflections through its centre. This empty lower chamber is specifically reserved for a replaceable company/AI-agent logo to be composited later BELOW the face. Do NOT draw a logo, emblem, nose, energy core, sphere inside sphere, star, badge or any internal object. No central bright spot. The character must be beautiful alone without any logo.\nCentered square composition, front view, barely any perspective, subject completely visible with generous uniform transparent safe margins. Largest body dimension exactly about 76% of canvas. Same face and material across all transformed forms. No hands or arms or feet in transformed form: ghost limbs and scallops have smoothly absorbed into the new silhouette. Polished continuous volume.\nTRUE transparent background RGBA cutout, no floor, ground shadow, checkerboard, opaque rectangle, vignette, atmospheric scene, text, labels, interface, frames, watermark or multiple subjects. Smooth clean alpha edge; all finite subtle glow fades to true alpha.\nFORM: a softly inflated rounded CUBE spirit with a clear rounded-square main silhouette, gently rounded corners radius about 24% of width, subtle real 3D volume of top/right sides visible but predominantly perfectly front-facing. NOT a sphere, not a flat app-icon tile, not a monitor, no hard outline ring. Calm friendly focused expression, clean empty lower glass chamber. All limbs absorbed into the soft cube."
+    },
+    {
+      "key": "wisp",
+      "prompt": "Use case: stylized-concept. Asset type: one production master pose for future 2D sprite animation in a macOS mascot app.\nInput Image 1: approved current icy glass ghost mascot, identity, face, material and lighting reference.\nInput Image 2: early three-shape concept, silhouette reference ONLY, ignore all text and background.\nCreate a NEW SINGLE TRANSFORMED FORM of exactly the SAME character from image 1, not a new character. Preserve its luminous silver icy blue opalescent translucent frosted-glass/jelly material, subtle lilac edge refraction, gentle volumetric studio lighting upper left, premium smooth high-end 3D quality and two clean solid luminous white vertical oval eyes. Eyes have NO pupils. NO mouth, NO nose, NO blush.\nThe face sits clearly in the UPPER THIRD of the body. The LOWER HALF of the body is a clean, empty, slightly darker translucent glass viewing chamber with low-frequency smooth shading and no opaque bright reflections through its centre. This empty lower chamber is specifically reserved for a replaceable company/AI-agent logo to be composited later BELOW the face. Do NOT draw a logo, emblem, nose, energy core, sphere inside sphere, star, badge or any internal object. No central bright spot. The character must be beautiful alone without any logo.\nCentered square composition, front view, barely any perspective, subject completely visible with generous uniform transparent safe margins. Largest body dimension exactly about 76% of canvas. Same face and material across all transformed forms. No hands or arms or feet in transformed form: ghost limbs and scallops have smoothly absorbed into the new silhouette. Polished continuous volume.\nTRUE transparent background RGBA cutout, no floor, ground shadow, checkerboard, opaque rectangle, vignette, atmospheric scene, text, labels, interface, frames, watermark or multiple subjects. Smooth clean alpha edge; all finite subtle glow fades to true alpha.\nFORM: a cute soft FLAME WISP spirit, one smooth tapering flame tip leaning gently to the right at the top, a plump rounded droplet lower body, one gently curling tapered tail at bottom left. No sharp aggressive fire, no actual hot fire. Friendly playful silhouette recognizable as the approved ghost reshaping into a soft floating glass flame. Luminous white eyes in upper-middle rounded part below the taper, large empty lower chamber, all limbs absorbed. Smooth continuous silhouette, no accessories."
+    }
+  ],
+  "base_identity": "../astral-idle-master.png",
+  "shape_reference": "../../../prototype/astral_morph_concept.jpg",
+  "scope": "Three static transformed masters and layered branding samples for future frame animation. No generated in-between frames and no native app integration.",
+  "branding": {
+    "mode": "separate SVG layer, never baked into generated masters",
+    "providers": [
+      "openai",
+      "claude",
+      "gemini"
+    ],
+    "sources": {
+      "openai": "https://raw.githubusercontent.com/lobehub/lobe-icons/master/packages/static-svg/icons/openai.svg",
+      "claude": "https://raw.githubusercontent.com/lobehub/lobe-icons/master/packages/static-svg/icons/claude-color.svg",
+      "gemini": "https://www.gstatic.com/lamda/images/gemini_sparkle_aurora_33f86dc0c0257da337c63.svg"
+    },
+    "reference_pages": [
+      "https://openai.com/brand/",
+      "https://design.google/library/gemini-ai-visual-design",
+      "https://github.com/lobehub/lobe-icons"
+    ]
+  },
+  "artifacts": {
+    "orb": {
+      "file": "masters/astral-orb-master.png",
+      "sha256": "23b4f535fe667c2da6e909af4b7d0193c0ec3cae5187a68b11769d9b546906c6"
+    },
+    "cube": {
+      "file": "masters/astral-cube-master.png",
+      "sha256": "b26387395b8e63e4b5e2d5e2774ba7b77efab2fe4155568a26d5952e83ad2593"
+    },
+    "wisp": {
+      "file": "masters/astral-wisp-master.png",
+      "sha256": "68bcf873a4abe867da3e09d413dbcf889c17e77c04ab66e7575d69cf1900e99a"
+    }
+  }
+}
