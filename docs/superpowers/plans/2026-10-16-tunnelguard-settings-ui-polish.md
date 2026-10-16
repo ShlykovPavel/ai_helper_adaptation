@@ -61,7 +61,7 @@
 **Interfaces:**
 - `SettingsInfoTip(title: String?, text: String)` -> SwiftUI View with `info.circle` button, `.help(text)`, and `.popover(isPresented:)`.
 
-- [ ] **Step 1: Define `SettingsInfoTip` in `SettingsView.swift`**
+- [x] **Step 1: Define `SettingsInfoTip` in `SettingsView.swift`**
 ```swift
 /// Info icon with instant hover tooltip (`.help`) and click-toggleable popover card.
 struct SettingsInfoTip: View {
@@ -104,7 +104,7 @@ struct SettingsInfoTip: View {
 }
 ```
 
-- [ ] **Step 2: Verify `SettingsInfoTip` compiles cleanly**
+- [x] **Step 2: Verify `SettingsInfoTip` compiles cleanly**
 Run: `make build`
 Expected: Compilation succeeds.
 
@@ -119,7 +119,7 @@ Expected: Compilation succeeds.
 - Consumes: `@AppStorage("tunnelGuard.basePingTimeout")`, `@AppStorage("tunnelGuard.progressiveTimeoutEnabled")`, `@AppStorage("tunnelGuard.maxPingFails")`, `@AppStorage("tunnelGuard.deadTunnelAction")`.
 - Produces: Aligned `Grid` sub-settings block with dynamic `.fixedSize()` pickers and no runaway 800px gap.
 
-- [ ] **Step 1: Replace `VStack` + `Spacer()` with `Grid` and `.fixedSize()`**
+- [x] **Step 1: Replace `VStack` + `Spacer()` with `Grid` and `.fixedSize()`**
 Update the sub-settings block under `if tunnelGuardPingCheckEnabled`:
 ```swift
 if tunnelGuardPingCheckEnabled {
@@ -197,7 +197,7 @@ if tunnelGuardPingCheckEnabled {
 }
 ```
 
-- [ ] **Step 2: Build project and verify no compiler errors or layout regressions**
+- [x] **Step 2: Build project and verify no compiler errors or layout regressions**
 Run: `make build`
 Expected: `** BUILD SUCCEEDED **`.
 
@@ -212,29 +212,29 @@ Expected: `** BUILD SUCCEEDED **`.
 - Consumes: User terminology specifications.
 - Produces: Jargon-free Russian descriptions across all 5 GroupBoxes.
 
-- [ ] **Step 1: Update GroupBox 1: "Статус защиты и маршрут"**
+- [x] **Step 1: Update GroupBox 1: "Статус защиты и маршрут"**
   - Gateway row:
     - Replace raw `.help` with `SettingsInfoTip(title: "Сетевой шлюз", text: "Сетевой узел, через который система отправляет интернет-трафик. При активном VPN он указывает на защищённый адрес туннеля (utun), предотвращая утечки.")`.
   - External IP probe row:
     - Add `SettingsInfoTip(title: "Проверка внешнего IP", text: "Делает тестовый запрос через выбранный домен и определяет ваш публичный IP-адрес и интерфейс, чтобы убедиться, что трафик реально идёт через защищённый туннель.")`.
     - Apply `.fixedSize()` to `Picker("Цель", ...)`.
 
-- [ ] **Step 2: Update GroupBox 2: "Политика Kill-Switch"**
+- [x] **Step 2: Update GroupBox 2: "Политика Kill-Switch"**
   - Replace `"Включить сторож TunnelGuard (Kill-Switch активен)"` with `"Защита от утечек трафика (Kill-Switch)"`.
   - Replace `"Непрерывный отстрел (Continuous Kill)"` with `"Постоянный контроль при аварии"`.
   - Replace `"Мониторинг зависшего туннеля (ICMP Ping каждые 5 с)"` with `"Проверка зависания туннеля"`.
   - Replace `"Проверка Split-Tunneling доменов"` with `"Контроль раздельного туннелирования (Split Tunnel)"`.
   - Attach `SettingsInfoTip` to each toggle.
 
-- [ ] **Step 3: Update GroupBox 3: "Управление питанием и крышкой Mac (Power Guard)"**
+- [x] **Step 3: Update GroupBox 3: "Управление питанием и крышкой Mac (Power Guard)"**
   - Replace `"Защита от сна при блокировке экрана (IOPMAssertion)"` with `"Защита от засыпания при блокировке экрана"`.
   - Replace `"Sleep/Wake Guard (10-секундный Grace Period)"` with `"Безопасное пробуждение Mac (Grace Period)"`.
   - Attach `SettingsInfoTip` to each toggle.
 
-- [ ] **Step 4: Update GroupBox 4: "Защищаемые приложения и агенты"**
+- [x] **Step 4: Update GroupBox 4: "Защищаемые приложения и агенты"**
   - Add section `SettingsInfoTip` for "Консольные агенты" and "Оконные приложения".
 
-- [ ] **Step 5: Update GroupBox 5: "Оповещения и аудит"**
+- [x] **Step 5: Update GroupBox 5: "Оповещения и аудит"**
   - Add `SettingsInfoTip` to "Системный звук при аварии", "Баннеры Центра уведомлений macOS", and "Симуляция аварии VPN".
 
 ---
@@ -287,10 +287,10 @@ Expected: `✅ testSettingsInfoTipAndPickerTags passed`.
 **Files:**
 - Whole repository
 
-- [ ] **Step 1: Execute full project build**
+- [x] **Step 1: Execute full project build**
 Run: `make build`
 Expected: `** BUILD SUCCEEDED **`.
 
-- [ ] **Step 2: Run full safe test suite**
+- [x] **Step 2: Run full safe test suite**
 Run: `make test-tunnelguard-safe`
 Expected: All Phase 1, Phase 2, Phase 3, Watchdog, Prompt, and Python tests pass cleanly without errors.
