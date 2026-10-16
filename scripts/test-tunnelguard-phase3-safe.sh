@@ -28,8 +28,18 @@ swiftc -swift-version 6 -strict-concurrency=complete "${CACHE_ARGS[@]+"${CACHE_A
 "$TEST_DIR/tunnelguard-watchdog-prompt-tests"
 
 swiftc -swift-version 6 -strict-concurrency=complete "${CACHE_ARGS[@]+"${CACHE_ARGS[@]}"}" \
+    NotchBuddy/Sources/App/TunnelGuardPowerGuard.swift \
+    NotchBuddy/Sources/App/TunnelGuardNetworkWorker.swift \
+    NotchBuddy/Sources/App/TunnelGuardAppHunter.swift \
+    NotchBuddy/Sources/App/TunnelGuardWatchdog.swift \
+    tests/TunnelGuardSplitLeakSafetyTests.swift -o "$TEST_DIR/tunnelguard-split-leak-safety-tests"
+
+"$TEST_DIR/tunnelguard-split-leak-safety-tests"
+
+swiftc -swift-version 6 -strict-concurrency=complete "${CACHE_ARGS[@]+"${CACHE_ARGS[@]}"}" \
     NotchBuddy/Sources/App/SettingsInfoTip.swift \
     tests/TunnelGuardSettingsUITests.swift -o "$TEST_DIR/tunnelguard-settings-ui-tests"
 
 "$TEST_DIR/tunnelguard-settings-ui-tests"
+
 
