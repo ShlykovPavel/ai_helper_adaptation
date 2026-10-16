@@ -1503,6 +1503,7 @@ struct SettingsView: View {
                         .foregroundColor(Color(hex: "#8E939C"))
                 }
                 .onChange(of: cryptoExchange) { _, _ in CryptoController.shared.settingsChanged() }
+                .onChange(of: cryptoCurrency) { _, _ in CryptoController.shared.settingsChanged() }
                 // Telegram bot settings
                 TelegramSettingsSection()
                     .padding(.top, 4)
@@ -2671,24 +2672,35 @@ struct TelegramSettingsSection: View {
                         Text(String(localized: "telegram.status.label") + ":")
                             .font(.system(size: 11, weight: .medium))
 
-                        if proj.isPaired {
-                            Text(String(localized: "telegram.status.paired"))
+                        switch proj.connectionStatus {
+                        case .unauthorized:
+                            Text(String(localized: "telegram.status.unauthorized"))
                                 .font(.system(size: 11))
-                                .foregroundColor(.green)
-                            if let user = proj.pairedBotUsername {
-                                Text(String(format: String(localized: "telegram.status.bot"), user))
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.secondary)
-                            }
-                            if let masked = proj.maskedChatId {
-                                Text(String(format: String(localized: "telegram.status.chat"), masked))
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.secondary)
-                            }
-                        } else {
-                            Text(String(localized: "telegram.status.awaiting-pairing"))
+                                .foregroundColor(.red)
+                        case .conflict:
+                            Text(String(localized: "telegram.status.conflict"))
                                 .font(.system(size: 11))
-                                .foregroundColor(.orange)
+                                .foregroundColor(.red)
+                        default:
+                            if proj.isPaired {
+                                Text(String(localized: "telegram.status.paired"))
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.green)
+                                if let user = proj.pairedBotUsername {
+                                    Text(String(format: String(localized: "telegram.status.bot"), user))
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
+                                }
+                                if let masked = proj.maskedChatId {
+                                    Text(String(format: String(localized: "telegram.status.chat"), masked))
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
+                                }
+                            } else {
+                                Text(String(localized: "telegram.status.awaiting-pairing"))
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.orange)
+                            }
                         }
                     }
 
@@ -2755,6 +2767,15 @@ struct TelegramSettingsSection: View {
                     }
                 }
                 .padding(.top, 4)
+            } else {
+                HStack(spacing: 8) {
+                    Text(String(localized: "telegram.status.label") + ":")
+                        .font(.system(size: 11, weight: .medium))
+                    Text(String(localized: "telegram.status.not-configured"))
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+                .padding(.top, 2)
             }
         }
     }

@@ -83,6 +83,7 @@ final class TelegramSettingsStore: ObservableObject {
 
     private let defaults: UserDefaults
     private let tokenStore: any TelegramTokenStore
+    private var cancellables = Set<AnyCancellable>()
 
     @Published private(set) var settings: TelegramSettings
     @Published private(set) var hasToken: Bool = false
@@ -97,6 +98,13 @@ final class TelegramSettingsStore: ObservableObject {
         let initialSettings = Self.readSettings(from: defaults)
         self.settings = initialSettings
         self.hasToken = (self.tokenStore.getToken()?.isEmpty == false)
+
+        NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification, object: defaults)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                _ = self?.load()
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Load & Save
@@ -181,7 +189,6 @@ final class TelegramSettingsStore: ObservableObject {
     func clearPairing() {
         defaults.removeObject(forKey: Keys.pairedChatId)
         defaults.removeObject(forKey: Keys.pairedUserId)
-        defaults.removeObject(forKey: Keys.pairedBotUsername)
         defaults.removeObject(forKey: Keys.pairingNonce)
         defaults.removeObject(forKey: Keys.pairingExpiresAt)
         defaults.removeObject(forKey: Keys.expectedUserId)
@@ -189,7 +196,6 @@ final class TelegramSettingsStore: ObservableObject {
         var current = load()
         current.pairedChatId = nil
         current.pairedUserId = nil
-        current.pairedBotUsername = nil
         self.settings = current
     }
 

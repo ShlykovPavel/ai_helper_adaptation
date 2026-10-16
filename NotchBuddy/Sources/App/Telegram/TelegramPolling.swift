@@ -12,13 +12,21 @@ struct SystemTelegramSleeper: TelegramSleeper {
 
 actor TelegramPolling {
     typealias UpdateHandler = @Sendable (TelegramUpdate) async -> Void
+    typealias StatusHandler = @Sendable (TelegramConnectionStatus) -> Void
 
     private let api: TelegramBotAPI
     private let sleeper: any TelegramSleeper
     private let backoffSchedule: [TimeInterval]
+    private let onStatusChange: StatusHandler?
     private let onUpdate: UpdateHandler?
 
-    private(set) var status: TelegramConnectionStatus = .idle
+    private(set) var status: TelegramConnectionStatus = .idle {
+        didSet {
+            if oldValue != status {
+                onStatusChange?(status)
+            }
+        }
+    }
     private var pollingTask: Task<Void, Never>?
     private var currentOffset: Int64? = nil
     private var consecutiveFailures = 0
@@ -27,11 +35,13 @@ actor TelegramPolling {
         api: TelegramBotAPI,
         sleeper: any TelegramSleeper = SystemTelegramSleeper(),
         backoffSchedule: [TimeInterval] = [1, 2, 4, 8, 16, 30, 60],
+        onStatusChange: StatusHandler? = nil,
         onUpdate: UpdateHandler? = nil
     ) {
         self.api = api
         self.sleeper = sleeper
         self.backoffSchedule = backoffSchedule
+        self.onStatusChange = onStatusChange
         self.onUpdate = onUpdate
     }
 

@@ -144,7 +144,11 @@ final class TelegramBotController {
 
         if let api = api {
             if polling == nil {
-                polling = TelegramPolling(api: api) { [weak self] update in
+                polling = TelegramPolling(api: api, onStatusChange: { status in
+                    Task { @MainActor in
+                        TelegramSettingsStore.shared.connectionStatus = status
+                    }
+                }) { [weak self] update in
                     await self?.handle(update: update)
                 }
             }

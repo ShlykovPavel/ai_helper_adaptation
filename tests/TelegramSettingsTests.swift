@@ -67,6 +67,7 @@ struct TelegramSettingsTestRunner {
         await testStatusProjectionPropertiesAndMasking()
         await testPairingLinkFormatting()
         await testRepairClearsPairingKeepsToken()
+        await testUserDefaultsDidChangeNotificationReloadsStore()
 
         print("TelegramSettingsTests: ALL TESTS PASSED ✅")
     }
@@ -263,12 +264,32 @@ struct TelegramSettingsTestRunner {
         let reloaded = store.load()
         precondition(reloaded.pairedChatId == nil, "pairedChatId should be nil after clearPairing")
         precondition(reloaded.pairedUserId == nil, "pairedUserId should be nil after clearPairing")
-        precondition(reloaded.pairedBotUsername == nil, "pairedBotUsername should be nil after clearPairing")
+        precondition(reloaded.pairedBotUsername == "old_bot", "pairedBotUsername should be preserved after clearPairing so re-pairing can generate link")
+        precondition(store.pairingLink(nonce: "new-nonce", botUsername: reloaded.pairedBotUsername ?? "") != nil, "pairingLink should succeed after clearPairing")
         precondition(defaults.object(forKey: "telegram.pairingNonce") == nil, "nonce should be cleared")
         precondition(tokenStore.getToken() == token, "Token must be preserved during re-pair")
         precondition(store.statusProjection.isTokenConfigured == true, "Token status should remain configured")
         precondition(!store.statusProjection.isPaired, "Pairing status should be false")
 
         print("  - testRepairClearsPairingKeepsToken: PASS")
+    }
+
+    static func testUserDefaultsDidChangeNotificationReloadsStore() async {
+        let (store, defaults, _, suite) = makeIsolatedStore()
+        defer { cleanup(suiteName: suite, defaults: defaults) }
+
+        precondition(store.settings.pairedChatId == nil)
+
+        // Background update to UserDefaults
+        defaults.set(Int64(99999), forKey: TelegramSettingsStore.Keys.pairedChatId)
+        defaults.set(Int64(88888), forKey: TelegramSettingsStore.Keys.pairedUserId)
+        NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: defaults)
+
+        // Give RunLoop/MainActor brief moment to receive notification
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        precondition(store.settings.pairedChatId == 99999, "Store should automatically reload when UserDefaults changes")
+        precondition(store.settings.pairedUserId == 88888, "Store should automatically reload when UserDefaults changes")
+        print("  - testUserDefaultsDidChangeNotificationReloadsStore: PASS")
     }
 }
