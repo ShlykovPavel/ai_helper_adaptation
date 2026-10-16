@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Призрак-Метаморф (The Astral Morph) — Визуальный концепт</title>
+<style>
+  :root {
+    --bg: #090b10;
+    --card-bg: rgba(255, 255, 255, 0.04);
+    --border: rgba(255, 255, 255, 0.1);
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #38bdf8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+    background-image: 
+      radial-gradient(circle at 50% 15%, rgba(56, 189, 248, 0.1) 0%, transparent 60%),
+      radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+  }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+  p.subtitle { color: var(--text-muted); font-size: 15px; margin-bottom: 24px; text-align: center; max-width: 650px; }
+  
+  .showcase-card {
+    background: rgba(15, 20, 30, 0.8);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    max-width: 1000px;
+    width: 100%;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(20px);
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .main-concept-img {
+    width: 100%;
+    border-radius: 14px;
+    display: block;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .details-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-width: 1000px;
+    width: 100%;
+  }
+  @media (max-width: 768px) {
+    .details-grid { grid-template-columns: 1fr; }
+  }
+
+  .detail-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+  }
+  .detail-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #38bdf8;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .detail-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<h1>Призрак-Метаморф (The Astral Morph) 👻✨</h1>
+<p class="subtitle">Концепт-лист адаптации: компактный режим в закрытой чёлке (24–32px), 3D-форма с логотипом в раскрытом островке (96–120px) и метаморфозы формы (куб, сфера, огонёк)</p>
+
+<div class="showcase-card">
+  <img src="astral_morph_concept.jpg" alt="Astral Morph Mascot Concept Sheet" class="main-concept-img">
+</div>
+
+<div class="details-grid">
+  <div class="detail-panel">
+    <div class="detail-title">🔹 1. Compact Notch (24–32px)</div>
+    <div class="detail-desc">
+      В узком чёрном вырезе чёлки маскот представлен минималистичным светящимся неоновым силуэтом с яркими глазами-пилюлями и цветной микро-точкой активного ИИ (терракотовая для Claude, фиолетовая для Gemini).
+    </div>
+  </div>
+
+  <div class="detail-panel">
+    <div class="detail-title">🔮 2. Expanded Notch (96–120px)</div>
+    <div class="detail-desc">
+      При раскрытии чёлки маскот разворачивается в полноценное 3D-тело из светящегося жидкого стекла. Внутри животика парит объёмный светящийся логотип ИИ или компании, а в лапках — планшет или блокнот.
+    </div>
+  </div>
+
+  <div class="detail-panel">
+    <div class="detail-title">🧬 3. Shapeshifting Forms</div>
+    <div class="detail-desc">
+      Маскот легко меняет базовый контур: мягкий кубический сквиркл (для строгих логотипов и бренда), сфера-орб (покой и ожидание) или динамичный огонёк (когда идёт генерация кода).
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
