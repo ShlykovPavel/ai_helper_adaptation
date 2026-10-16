@@ -3652,7 +3652,7 @@ def main():
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         s.settimeout(0.3)
         s.connect(socket_path)
-        s.sendall((json.dumps(payload) + '\n').encode())
+        s.sendall((json.dumps(payload) + '\\n').encode())
         s.close()
     except Exception:
         pass  # Always exit cleanly — never block the agent

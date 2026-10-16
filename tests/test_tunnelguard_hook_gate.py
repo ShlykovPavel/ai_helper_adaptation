@@ -44,10 +44,18 @@ def extract_hook_scripts():
     if not m_wrapper or not m_python:
         raise ValueError("Не удалось извлечь nbHookShellWrapper или nbHookPythonGitHub из HookServer.swift")
 
-    # В Swift multiline строках \\n компилируется в \n (один слэш).
-    # Декодируем Swift string escape sequence, чтобы тестовые скрипты совпадали с результатом Swift write(to:).
-    wrapper_code = m_wrapper.group(1).replace("\\\\n", "\\n").strip() + "\n"
-    python_code = m_python.group(1).strip() + "\n"
+    def _swift_multiline_to_disk(s: str) -> str:
+        # В Swift multiline строках ("""):
+        # \\n в исходнике Swift декодируется компилятором в \n (два символа: \ и n) в памяти и на диске.
+        # Одиночный \n в исходнике Swift декодируется в символ перевода строки (код 10).
+        placeholder = "___SWIFT_ESCAPED_NEWLINE___"
+        res = s.replace("\\\\n", placeholder)
+        res = res.replace("\\n", "\n")
+        res = res.replace(placeholder, "\\n")
+        return res
+
+    wrapper_code = _swift_multiline_to_disk(m_wrapper.group(1)).strip() + "\n"
+    python_code = _swift_multiline_to_disk(m_python.group(1)).strip() + "\n"
     return wrapper_code, python_code
 
 
