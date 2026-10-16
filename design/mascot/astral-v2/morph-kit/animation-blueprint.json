@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "static-key-pose-proposal",
+  "status": "approved-static-key-poses",
   "canvas": [
     240,
     240
@@ -56,11 +56,12 @@
         "960": "frames/astral-wisp-960.png"
       },
       "logo": {
-        "x": 0.535,
-        "y": 0.665,
+        "x": 0.5,
+        "y": 0.735,
         "width": 0.19,
         "height": 0.19
-      }
+      },
+      "selected_variant": "A"
     }
   },
   "idle": {
@@ -117,13 +118,13 @@
       "id": "ghost-to-wisp",
       "frames": 18,
       "loop": false,
-      "description": "Stretch into rounded flame tip and curling tail; eyes preserve identity."
+      "description": "Tuck arms and scallops into a broad round base; raise three upward flame tongues. Preserve face identity and hide the logo during the morph."
     },
     {
       "id": "wisp-work",
       "frames": 24,
       "loop": true,
-      "description": "Soft flowing tip and tail, attentive eyes."
+      "description": "Gently sway the upward flame tongues and rounded body, attentive eyes; no lower curling tail."
     },
     {
       "id": "return-to-ghost",

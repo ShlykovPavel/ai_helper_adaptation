@@ -5,11 +5,11 @@
 </style></head><body><main>
 <header><div class="brand">Coucou <span style="font-size:11px;color:#8da3bd;font-weight:400;margin-left:10px">ASTRAL / MORPH KIT</span></div><a href="../../../prototype/mascot-generated-v2.html">Исходный маскот ↗</a></header>
 <section class="intro"><div><div class="eyebrow">Ключевые формы для будущих анимаций</div><h1>Один дух.<br>Три превращения.</h1></div><p>В idle — наш знакомый призрак.<br>Когда есть результат или нужен ответ, он меняет форму и показывает, какой агент обращается к тебе.</p></section>
-<p style="margin:0 0 18px;padding:12px 15px;border:1px solid #62513a;border-radius:10px;background:#2c241a;color:#ddc6a3;font-size:12px">Шар, куб и логотипы утверждены. Огонёк перерабатывается: <a href="wisp-candidates/index.html" style="color:#e6c795">выбрать новый вариант A / B / C →</a></p>
+<p style="margin:0 0 18px;padding:12px 15px;border:1px solid #345b48;border-radius:10px;background:#152a20;color:#a9d4b8;font-size:12px">Все формы утверждены. Огонёк — вариант A: <a href="wisp-candidates/index.html" style="color:#b9dac4">посмотреть сравнение вариантов →</a></p>
 <section class="events">
 <article class="event" style="--tone:#a7ddbd;--wash:#295a3e35"><div class="event-top"><span>GPT / OpenAI</span><span class="status">✓ Готово</span></div><div class="specimen"><img src="examples/astral-orb-openai.svg" alt="Стеклянный шар со знаком OpenAI ниже глаз"></div><b>Довольный шар</b><p>Мягко округляется, подпрыгивает и показывает результат.</p></article>
 <article class="event" style="--tone:#e4af8e;--wash:#71432b35"><div class="event-top"><span>Claude</span><span class="status">? Нужен ответ</span></div><div class="specimen"><img src="examples/astral-cube-claude.svg" alt="Мягкий куб с логотипом Claude внутри нижней части"></div><b>Любопытный куб</b><p>Наклоняется к тебе и ждёт ответа или подтверждения.</p></article>
-<article class="event" style="--tone:#a8c3f2;--wash:#304f8335"><div class="event-top"><span>Gemini</span><span class="status">◌ В работе</span></div><div class="specimen"><img src="examples/astral-wisp-gemini.svg" alt="Стеклянный огонёк с логотипом Gemini"></div><b>Деловой огонёк</b><p>Тянется, покачивается и шевелит кончиком хвостика.</p></article>
+<article class="event" style="--tone:#a8c3f2;--wash:#304f8335"><div class="event-top"><span>Gemini</span><span class="status">◌ В работе</span></div><div class="specimen"><img src="examples/astral-wisp-gemini.svg" alt="Стеклянный огонёк с логотипом Gemini"></div><b>Деловой огонёк</b><p>Покачивается и шевелит язычками пламени.</p></article>
 </section>
 <div class="section-title"><h2>Чистые формы без логотипов</h2><span>Прозрачные PNG · единый материал</span></div>
 <section class="plain-forms">
@@ -31,7 +31,7 @@
 <section class="roadmap"><div><b>Idle → форма → логотип</b><p>Сначала прячутся лапки, тело мягко перетекает в шар или куб, затем появляется знак агента. Во время превращения логотип скрыт, поэтому его не перекосит.</p></div><div><b>Знак меняется, персонаж остаётся</b><p>Логотип хранится отдельно от анимации. У каждого будущего кадра будут координаты и прозрачность знака. На 18–32 px агента лучше обозначать меткой рядом с маскотом.</p></div></section>
 <footer><span>Статичные ключевые формы и слоёная примерка. Работающее приложение не изменено.</span><span><a href="README.md">Файлы и инструкция ↗</a> &nbsp; <a href="animation-blueprint.json">План анимаций ↗</a></span></footer>
 </main><script>
-const placements={orb:{x:.5,y:.655,w:.22,h:.22},cube:{x:.5,y:.66,w:.23,h:.23},wisp:{x:.535,y:.665,w:.19,h:.19}};
+const placements={orb:{x:.5,y:.655,w:.22,h:.22},cube:{x:.5,y:.66,w:.23,h:.23},wisp:{x:.5,y:.735,w:.19,h:.19}};
 const providerFiles={openai:'logos/openai.svg',claude:'logos/claude.svg',gemini:'logos/gemini.svg'};
 let shape='cube',provider='claude',customURL=null;
 function update(){

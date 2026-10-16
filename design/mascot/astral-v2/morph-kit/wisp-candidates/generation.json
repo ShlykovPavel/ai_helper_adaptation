@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "tool": "built-in image_gen",
-  "status": "awaiting-user-selection",
+  "status": "selected",
   "approved_identity": "../../astral-idle-master.png",
-  "supersedes_candidate": "../masters/astral-wisp-master.png",
+  "supersedes_candidate": "previous-wisp.png",
   "brief": "Recognizable upward flame silhouette, broad rounded base, same icy glass and white eyes; no lower comma/crescent tail; no permanent core; blank area for future replaceable provider logo.",
   "variants": [
     {
@@ -31,7 +31,7 @@
       "sha256": "c291699ed72b9eb12f0a802060b1620e110452278e3076e999e14a3cf30c30a2"
     }
   ],
-  "selected": null,
+  "selected": "a-candle",
   "inspection_notes": {
     "a": "Generator produced a continuous three-tongued flame rather than the requested single candle tip. Presented according to actual silhouette.",
     "b": "Three-tongued flame with the original ghost's little hands; retained as a playful character option.",

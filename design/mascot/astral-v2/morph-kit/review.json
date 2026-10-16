@@ -19,10 +19,11 @@
     "directory": "logos/"
   },
   "wisp": {
-    "status": "revision-requested",
-    "previous": "masters/astral-wisp-master.png",
-    "reason": "The silhouette does not read as a flame.",
-    "candidates": "wisp-candidates/index.html",
-    "selected": null
+    "status": "approved",
+    "asset": "masters/astral-wisp-master.png",
+    "selected": "A",
+    "source": "wisp-candidates/a-candle.png",
+    "previous": "wisp-candidates/previous-wisp.png",
+    "candidates": "wisp-candidates/index.html"
   }
 }
