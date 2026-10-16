@@ -297,12 +297,16 @@ final class TunnelGuardWatchdog: ObservableObject {
         } else if !wasHealthy && !currentlyHealthy {
             // Level Trigger: Повторные тики пока сеть не восстановлена
             if isDeadTunnelPromptActive {
-                if !snapshot.isVpn || (splitTunnelCheck && !snapshot.targetDomainsOk) {
+                // Escalation to hard kill happens only if interface dropped from VPN completely,
+                // or if an active split leak to non-VPN interface is detected while tunnel is not dead.
+                let interfaceDropped = !snapshot.isVpn || (!snapshot.iface.isEmpty && !Self.isVpnInterface(snapshot.iface))
+                let splitLeakWithoutDeadTunnel = splitTunnelCheck && !snapshot.targetDomainsOk && !snapshot.deadTunnelDetected
+                if interfaceDropped || splitLeakWithoutDeadTunnel {
                     isDeadTunnelPromptActive = false
                     AppState.shared.dismissDeadTunnelPrompt()
                     executeTunnelGuardHardKill(reason: failureReason, detectedIface: snapshot.iface)
                 }
-                // Иначе: пока активен диалог dead-tunnel и туннель всё ещё в utun, НЕ убиваем процессы hard kill, они остаются замороженными (SIGSTOP)
+                // Иначе: пока активен диалог dead-tunnel и туннель всё ещё в utun, НЕ убиваем процессы hard kill, они остаются замороженными (SIGSTOP) в ожидании выбора пользователя
             } else if continuousKill {
                 let activeTargets = targets
                 queue.async {
