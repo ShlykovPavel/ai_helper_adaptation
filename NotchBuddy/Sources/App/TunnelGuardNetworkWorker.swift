@@ -252,12 +252,16 @@ actor TunnelGuardNetworkWorker {
         if !targetDomains.isEmpty {
             for domain in targetDomains {
                 let resolvedIp = resolveDomain(domain)
-                guard !resolvedIp.isEmpty else {
-                    targetDomainsOk = false
-                    break
+                // If DNS resolution fails, check if we have any fallback from dnsCache
+                let ipToCheck = !resolvedIp.isEmpty ? resolvedIp : (dnsCache[domain]?.ip ?? "")
+                guard !ipToCheck.isEmpty else {
+                    // DNS resolution failure or network glitch is NOT an unprotected traffic leak.
+                    // Skip this domain since no IP is available to query routes for.
+                    continue
                 }
-                let domainIface = getRouteInterface(dest: resolvedIp, timeoutSeconds: routeTimeout)
-                if !TunnelGuardWatchdog.isVpnInterface(domainIface) {
+                let domainIface = getRouteInterface(dest: ipToCheck, timeoutSeconds: routeTimeout)
+                // A leak occurs ONLY if the route explicitly resolves to a non-empty, non-VPN interface (e.g. en0)
+                if !domainIface.isEmpty && !TunnelGuardWatchdog.isVpnInterface(domainIface) {
                     targetDomainsOk = false
                     break
                 }

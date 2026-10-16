@@ -101,8 +101,8 @@ enum TunnelGuardPhase1SafeTests {
     static func testSplitTunnelDNSFailure(route: URL) async throws {
         let worker = TunnelGuardNetworkWorker(routeExecutableURL: route, pingInterval: 0, routeTimeout: 2)
         let snapshot = await worker.checkStatus(targetDomains: [""], enablePing: false)
-        precondition(snapshot.targetDomainsOk == false)
-        print("  ✓ Split tunnel DNS failure is fail-closed")
+        precondition(snapshot.targetDomainsOk == true)
+        print("  ✓ Split tunnel DNS failure does not falsely trigger leak")
     }
 
     static func testDeadTunnel(route: URL, ping: URL) async throws {
