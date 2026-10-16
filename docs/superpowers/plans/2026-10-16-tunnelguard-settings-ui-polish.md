@@ -248,7 +248,7 @@ Expected: `** BUILD SUCCEEDED **`.
 - Consumes: `SettingsInfoTip` component, default values, and picker tags.
 - Produces: Automated test verifying that all tags (`"prompt"`, `"kill"`, `2.0`, `3`) match existing watchdog expectations.
 
-- [ ] **Step 1: Write `tests/TunnelGuardSettingsUITests.swift`**
+- [x] **Step 1: Write `tests/TunnelGuardSettingsUITests.swift`**
 ```swift
 import Foundation
 import SwiftUI
@@ -276,7 +276,7 @@ func testSettingsInfoTipAndPickerTags() {
 testSettingsInfoTipAndPickerTags()
 ```
 
-- [ ] **Step 2: Run the new test**
+- [x] **Step 2: Run the new test**
 Run: `swift tests/TunnelGuardSettingsUITests.swift`
 Expected: `✅ testSettingsInfoTipAndPickerTags passed`.
 
