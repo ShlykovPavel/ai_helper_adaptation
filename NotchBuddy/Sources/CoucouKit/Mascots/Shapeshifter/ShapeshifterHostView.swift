@@ -14,6 +14,14 @@ public struct ShapeshifterStateMapper {
     }
 }
 
+#if STANDALONE_CLI
+public enum IslandMode: Sendable {
+    case hidden
+    case compact
+    case expanded
+}
+#endif
+
 #if !STANDALONE_CLI
 struct ShapeshifterHostView: View {
     @ObservedObject var state: AppState
@@ -31,32 +39,43 @@ struct ShapeshifterHostView: View {
     }
 
     public var body: some View {
-        let isCompact = isMini || state.mode == .compact
+        let isCompact = ShapeshifterGeometry.isCompactMode(mode: state.mode, isMini: isMini)
         let action = ShapeshifterStateMapper.mapAction(state: state.effectiveState.rawValue)
         let provider = ProviderCoreType.from(pillId: state.focusTask?.id ?? state.mainPillId)
         let isPaused = paused || state.mode == .hidden
+        let yOffset = ShapeshifterGeometry.verticalOffset(particleOverhang: particleOverhang)
 
-        Group {
-            if isCompact {
-                ShapeshifterCompactView(
-                    size: CGSize(width: isMini ? 18 : 24, height: isMini ? 18 : 24),
-                    lookX: 0,
-                    lookY: 0,
-                    shape: MascotSettings.shape,
-                    provider: provider,
-                    isPulsing: state.effectiveState == .thinking
-                )
-            } else {
-                ShapeshifterExpandedView(
-                    size: CGSize(width: 64, height: 64),
-                    action: action,
-                    shape: MascotSettings.shape,
-                    provider: provider,
-                    lookX: 0,
-                    lookY: 0,
-                    isPaused: isPaused
-                )
+        GeometryReader { geo in
+            let mascotSize = ShapeshifterGeometry.targetMascotSize(
+                isCompact: isCompact,
+                isMini: isMini,
+                canvasSize: geo.size,
+                overhang: particleOverhang
+            )
+            ZStack(alignment: .center) {
+                if isCompact {
+                    ShapeshifterCompactView(
+                        size: mascotSize,
+                        lookX: 0,
+                        lookY: 0,
+                        shape: MascotSettings.shape,
+                        provider: provider,
+                        isPulsing: state.effectiveState == .thinking
+                    )
+                } else {
+                    ShapeshifterExpandedView(
+                        size: mascotSize,
+                        action: action,
+                        shape: MascotSettings.shape,
+                        provider: provider,
+                        lookX: 0,
+                        lookY: 0,
+                        isPaused: isPaused
+                    )
+                }
             }
+            .frame(width: geo.size.width, height: geo.size.height)
+            .offset(y: yOffset)
         }
     }
 }
