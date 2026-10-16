@@ -84,3 +84,29 @@ graph LR
 * **Разрешение**: 
   * Expanded: $240 \times 240$ px на кадр (идеально для Retina `@2x`/`@3x`).
   * Compact: $64 \times 64$ px на кадр.
+
+---
+
+## 5. Статус реализации (Implementation Status)
+
+Все ключевые компоненты архитектуры Astral Morph полностью реализованы и верифицированы кросс-платформенно:
+
+- [x] **Изоляция настроек и типов**:
+  - macOS: `NotchBuddy/Sources/CoucouKit/Mascots/Shapeshifter/MascotTypes.swift`, `MascotSettings.swift`
+  - Windows: `windows/src/mascot/types.ts`, `settings.ts`
+  - Дефолтное переключение на `.shapeshifter` с безопасным fallback при повреждённых ключах.
+- [x] **24 FPS контроллер спрайтовой анимации**:
+  - `SpriteSheetAnimator.swift` и `sprite-animator.ts` с поддержкой horizontal strip и matrix раскладки.
+  - 0% CPU при паузе / скрытии острова (нулевые тики).
+- [x] **Двухуровневый рендеринг (LOD)**:
+  - **Compact LOD (20–32px)**: неоновый абрис, глаза-пилюли с трекингом взгляда, бейдж цвета провайдера с астральным fallback `#64D2FF`.
+  - **Expanded LOD (64–120px)**: 3D глассморфизм с мягким ореолом, парящее ядро с гармоническими колебаниями $y = \sin(2\pi \cdot \text{phase}) \cdot 2.5\text{pt}$ и адаптивным цветом под провайдера.
+- [x] **Фасад-адаптер нулевых конфликтов**:
+  - `ShapeshifterHostView.swift` интегрирован в `BotCanvasView.swift` и `MiniBotCanvasView.swift`.
+  - `renderMascotFacade` интегрирован в `windows/src/island/island.ts`.
+  - Полное сохранение апстримной логики Мочи при выборе `.mochi`.
+- [x] **Тестовое покрытие и билд**:
+  - Модульные тесты настроек, аниматора, Compact LOD, Expanded LOD и фасада.
+  - Сквозной E2E-тест `tests/AstralMorphE2ETests.swift`.
+  - Успешный билд `xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug build`.
+

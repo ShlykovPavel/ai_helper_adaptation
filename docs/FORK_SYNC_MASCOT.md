@@ -115,3 +115,21 @@ git merge upstream/main
 cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug build
 cd ../windows && npm run tauri dev
 ```
+
+---
+
+## 5. Чеклист верификации реализации (Implementation Verification Checklist)
+
+- [x] **Изоляция кода маскота**:
+  - macOS: `NotchBuddy/Sources/CoucouKit/Mascots/Shapeshifter/`
+  - Windows: `windows/src/mascot/`
+- [x] **Минимальное вмешательство в апстрим**:
+  - `BotCanvasView.swift`: фасадная развилка через `ShapeshifterHostView` без изменения существующих сигнатур.
+  - `MiniBotCanvasView.swift`: фасадная развилка через `ShapeshifterCompactView`.
+  - `windows/src/island/island.ts`: перехват отрисовки через `renderMascotFacade`.
+- [x] **Сохранение обратной совместимости**:
+  - При выборе `.mochi` (в `UserDefaults` / `localStorage`) полностью сохраняется оригинальная механика и отрисовка Мочи.
+- [x] **Верификация**:
+  - Все тестовые сценарии пройдены (`scripts/test-*.sh`, `windows/tests/*.test.mjs`, `tests/AstralMorphE2ETests.swift`).
+  - Xcode-проект собирается без предупреждений и ошибок (`** BUILD SUCCEEDED **`).
+

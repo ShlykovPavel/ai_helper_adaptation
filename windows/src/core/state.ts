@@ -11,6 +11,7 @@ import type { ProviderId } from "./providers";
 import type { FileDiff } from "./diff";
 import type { Bindings } from "./shortcuts";
 import { DEFAULT_OUTFIT, type Outfit } from "../mochi/wardrobe";
+import type { MascotId } from "../mascot/types";
 import { pillColor } from "./pill-colors";
 import { Spotify, musicPlaying } from "./spotify";
 
@@ -162,6 +163,8 @@ export interface Settings {
     onDesktop: boolean;
     spot: { x: number; y: number; space: string } | null;
   };
+  /** Selected mascot style: "mochi" or "shapeshifter". */
+  selectedMascot?: MascotId;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -190,6 +193,7 @@ export const DEFAULT_SETTINGS: Settings = {
   mochiOutfit: DEFAULT_OUTFIT,
   pillColors: {},
   language: "",
+  selectedMascot: "shapeshifter",
 };
 
 type Listener = () => void;

@@ -14,6 +14,7 @@ import { Sound } from "../core/sound";
 import { State } from "../core/state";
 import { SPOTIFY_ID, islandDances } from "../core/spotify";
 import { BotEngine, hexToRGB } from "../mochi/engine";
+import { renderMascotFacade } from "../mascot/shapeshifter-host";
 import { Greeting } from "../mochi/greeting";
 import { createMiniBot, pruneMiniBots, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
 import { SeasonCache, parseOutfit } from "../mochi/wardrobe";
@@ -1103,8 +1104,10 @@ export class Island {
     ctx.setTransform(dpr, 0, 0, dpr, BOT_SIDE * dpr, 0);
     ctx.clearRect(-BOT_SIDE, 0, wCss, hCss);
     ctx.save();
-    this.engine.applyDance(ctx, w, hCss);
-    this.engine.draw(ctx, w, hCss);
+    if (!renderMascotFacade(ctx, w, hCss, State, this.lastFrame / 1000)) {
+      this.engine.applyDance(ctx, w, hCss);
+      this.engine.draw(ctx, w, hCss);
+    }
     ctx.restore();
   }
 

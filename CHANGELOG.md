@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **Astral Morph Mascot (The Shapeshifter)** — A morphological digital spirit living in the MacBook notch and Windows/Linux floating island.
+  - **Two Levels of Detail (LOD)**:
+    - *Compact LOD (20–32px)*: High-contrast neon silhouette outline, pill eyes with cursor tracking, and colored AI provider micro-badges (Claude terracotta, Gemini blue-purple, OpenAI emerald, Antigravity violet, with astral cyan fallback for custom providers).
+    - *Expanded LOD (64–120px)*: 3D glassmorphic Pixar-style body with translucent subsurface glow, floating core with harmonic oscillation, and action-specific visual props.
+  - **Morphological Shapes**: Squircle, Orb, and Flame Wisp variants configurable via `MascotSettings`.
+  - **Sprite Sheet Animation Pipeline**: 24 FPS frame advancement with 0% CPU usage when paused or island hidden.
+  - **Facade/Adapter Architecture**: Zero-conflict integration wrapping existing `BotCanvasView` and `island.ts`, allowing seamless switching between Shapeshifter and original Mochi mascots.
+  - **Comprehensive Verification**: Cross-platform unit tests, end-to-end integration test suite, and clean Xcode build verification.
+
 ## Windows and Linux 0.5.0 — October 15, 2026
 
 Windows and Linux catch up with the Mac's 0.3.0 and 0.4.0: the Coucou window, Flow dictation, the Notetaker and « OK Coucou ». All of it free and open source.
