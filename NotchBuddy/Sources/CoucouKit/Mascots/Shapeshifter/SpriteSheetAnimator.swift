@@ -77,3 +77,36 @@ public final class SpriteSheetAnimator: @unchecked Sendable {
         accumulatedTime = 0
     }
 }
+
+public final class SpriteSheetLoader: @unchecked Sendable {
+    public static let shared = SpriteSheetLoader()
+    private var cache = [MascotActionState: CGImage]()
+    private let lock = NSLock()
+
+    public func image(for action: MascotActionState, bundle: Bundle = .main) -> CGImage? {
+        lock.lock()
+        defer { lock.unlock() }
+        if let cached = cache[action] { return cached }
+        let resourceName = "astral_\(action.rawValue)"
+        guard let url = bundle.url(forResource: resourceName, withExtension: "png", subdirectory: "Mascots/Shapeshifter")
+                ?? bundle.url(forResource: resourceName, withExtension: "png") else {
+            return nil
+        }
+        guard let dataProvider = CGDataProvider(url: url as CFURL),
+              let img = CGImage(pngDataProviderSource: dataProvider, decode: nil, shouldInterpolate: true, intent: .defaultIntent) else {
+            return nil
+        }
+        cache[action] = img
+        return img
+    }
+
+    public static func shouldUseVectorFallback(action: MascotActionState, bundle: Bundle = .main) -> Bool {
+        return shared.image(for: action, bundle: bundle) == nil
+    }
+
+    public func clearCache() {
+        lock.lock()
+        defer { lock.unlock() }
+        cache.removeAll()
+    }
+}

@@ -31,6 +31,19 @@ public struct ShapeshifterExpandedView: View {
         TimelineView(.animation(paused: isPaused)) { timeline in
             Canvas { context, canvasSize in
                 context.withCGContext { cgContext in
+                    if !isPaused, let spriteSheet = SpriteSheetLoader.shared.image(for: action) {
+                        let config = SpriteSheetConfig.default(for: action)
+                        let animator = SpriteSheetAnimator(config: config)
+                        let elapsed = timeline.date.timeIntervalSinceReferenceDate
+                        let frameIdx = Int(floor(elapsed * config.fps)) % config.frameCount
+                        let srcRect = animator.frameRect(for: frameIdx, imageSize: CGSize(width: spriteSheet.width, height: spriteSheet.height))
+                        if let frameImage = spriteSheet.cropping(to: srcRect) {
+                            let destRect = ShapeshifterExpandedRenderer.clampedDrawRect(in: canvasSize)
+                            cgContext.draw(frameImage, in: destRect)
+                            return
+                        }
+                    }
+                    // Seamless procedural vector fallback
                     let elapsed = isPaused ? 0 : timeline.date.timeIntervalSinceReferenceDate
                     let corePhase = (elapsed.truncatingRemainder(dividingBy: 2.0)) / 2.0
                     let params = ExpandedRenderParams(
