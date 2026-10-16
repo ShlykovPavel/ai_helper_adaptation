@@ -461,45 +461,77 @@ struct SettingsView: View {
                 Toggle("Непрерывный отстрел (Continuous Kill)", isOn: $tunnelGuardContinuousKill)
                 Toggle("Мониторинг зависшего туннеля (ICMP Ping каждые 5 с)", isOn: $tunnelGuardPingCheckEnabled)
                 if tunnelGuardPingCheckEnabled {
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            Text("Базовый таймаут пинга")
-                            Spacer()
-                            Picker("", selection: $tunnelGuardBasePingTimeout) {
-                                Text("1.5 с").tag(1.5)
-                                Text("2.0 с").tag(2.0)
-                                Text("3.0 с").tag(3.0)
-                                Text("5.0 с").tag(5.0)
+                    VStack(alignment: .leading, spacing: 10) {
+                        Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 10) {
+                            GridRow {
+                                HStack(spacing: 6) {
+                                    Text("Время ожидания ответа")
+                                        .font(.system(size: 13))
+                                    SettingsInfoTip(
+                                        title: "Время ожидания ответа",
+                                        text: "Сколько секунд ждать ответа от проверочного узла перед тем, как считать попытку неудачной. Если связь стабильная, достаточно 1.5–2.0 с. На медленных соединениях рекомендуется 3.0 с."
+                                    )
+                                }
+                                Picker("", selection: $tunnelGuardBasePingTimeout) {
+                                    Text("1.5 с").tag(1.5)
+                                    Text("2.0 с").tag(2.0)
+                                    Text("3.0 с").tag(3.0)
+                                    Text("5.0 с").tag(5.0)
+                                }
+                                .labelsHidden()
+                                .fixedSize()
                             }
-                            .labelsHidden()
-                            .frame(width: 90)
-                        }
-                        Toggle("Прогрессивное увеличение таймаута (Backoff)", isOn: $tunnelGuardProgressiveTimeoutEnabled)
-                            .font(.system(size: 12))
-                        HStack {
-                            Text("Попыток до подтверждения")
-                            Spacer()
-                            Picker("", selection: $tunnelGuardMaxPingFails) {
-                                Text("2").tag(2)
-                                Text("3 (Рекомендуется)").tag(3)
-                                Text("5").tag(5)
+
+                            GridRow {
+                                HStack(spacing: 6) {
+                                    Toggle("Умное ожидание при задержках сети", isOn: $tunnelGuardProgressiveTimeoutEnabled)
+                                        .font(.system(size: 13))
+                                    SettingsInfoTip(
+                                        title: "Умное ожидание при задержках сети",
+                                        text: "При кратковременных помехах в сети время ожидания для каждой следующей проверки автоматически увеличивается (2.0 с → 3.0 с → 4.5 с). Это предотвращает ложные тревоги и случайные остановки агентов."
+                                    )
+                                }
+                                .gridCellColumns(2)
                             }
-                            .labelsHidden()
-                            .frame(width: 140)
-                        }
-                        HStack {
-                            Text("Действие при зависании")
-                            Spacer()
-                            Picker("", selection: $tunnelGuardDeadTunnelAction) {
-                                Text("Спросить в чёлке (SIGSTOP)").tag("prompt")
-                                Text("Сразу ликвидировать (Kill)").tag("kill")
+
+                            GridRow {
+                                HStack(spacing: 6) {
+                                    Text("Количество проверок до тревоги")
+                                        .font(.system(size: 13))
+                                    SettingsInfoTip(
+                                        title: "Количество проверок до тревоги",
+                                        text: "Сколько неудачных проверок подряд должно произойти, чтобы признать туннель зависшим. Значение 3 надёжно отсекает случайные единичные потери пакетов."
+                                    )
+                                }
+                                Picker("", selection: $tunnelGuardMaxPingFails) {
+                                    Text("2 проверки").tag(2)
+                                    Text("3 проверки (рекомендуется)").tag(3)
+                                    Text("5 проверок").tag(5)
+                                }
+                                .labelsHidden()
+                                .fixedSize()
                             }
-                            .labelsHidden()
-                            .frame(width: 190)
+
+                            GridRow {
+                                HStack(spacing: 6) {
+                                    Text("Если туннель не отвечает")
+                                        .font(.system(size: 13))
+                                    SettingsInfoTip(
+                                        title: "Если туннель не отвечает",
+                                        text: "• Остановить процесс с вопросом в чёлке: временно замораживает выполнение агента без потери контекста и показывает карточку решения в чёлке. При восстановлении туннеля агент продолжит работу автоматически.\n• Сразу ликвидировать: немедленно завершает процессы для максимальной безопасности."
+                                    )
+                                }
+                                Picker("", selection: $tunnelGuardDeadTunnelAction) {
+                                    Text("Остановить процесс с вопросом в чёлке").tag("prompt")
+                                    Text("Сразу ликвидировать").tag("kill")
+                                }
+                                .labelsHidden()
+                                .fixedSize()
+                            }
                         }
                     }
-                    .padding(.leading, 16)
-                    .padding(.vertical, 2)
+                    .padding(.leading, 18)
+                    .padding(.vertical, 4)
                 }
                 Toggle("Проверка Split-Tunneling доменов", isOn: $tunnelGuardSplitTunnelCheck)
             }.padding(6)
