@@ -113,9 +113,9 @@ func runTelegramPollingTests() async {
         let sleeper = TestTelegramSleeper()
         let collector = UpdateCollector()
 
-        let polling = TelegramPolling(api: api, sleeper: sleeper) { update in
+        let polling = TelegramPolling(api: api, sleeper: sleeper, onUpdate: { update in
             await collector.add(update)
-        }
+        })
 
         await polling.start()
         try? await Task.sleep(nanoseconds: 80_000_000)

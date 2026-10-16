@@ -6,6 +6,7 @@ final class KeychainStore: @unchecked Sendable {
     private var store: [String: String] = [:]
     func get(_ key: String) -> String? { store[key] }
     func set(_ key: String, value: String) { store[key] = value }
+    func remove(_ key: String) { store.removeValue(forKey: key) }
 }
 
 enum Keychain {
