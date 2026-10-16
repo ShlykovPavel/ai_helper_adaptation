@@ -327,7 +327,13 @@ final class IslandWindowController: NSWindowController {
         }
 
         // An approval, or an email prepared by voice, stays open until I click.
-        fsm.isHeldOpen = { AppState.shared.pendingApproval != nil || AppState.shared.voiceMailDraft != nil }
+        // Dead Tunnel prompt and Security Panic also stay held open until resolved.
+        fsm.isHeldOpen = {
+            AppState.shared.pendingApproval != nil ||
+            AppState.shared.voiceMailDraft != nil ||
+            AppState.shared.view == .deadTunnelPrompt ||
+            AppState.shared.view == .securityPanic
+        }
 
         // Voice: wake phrase detected → open listening island
         #if !APPSTORE

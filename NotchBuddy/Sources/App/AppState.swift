@@ -18,6 +18,7 @@ final class AppState: ObservableObject {
         self.stateOverride = .error
         self.view = .securityPanic
         self.mode = .expanded
+        NotificationCenter.default.post(name: .hookExpand, object: IslandView.securityPanic)
     }
 
     func resetSecurityAlert() {
@@ -34,6 +35,7 @@ final class AppState: ObservableObject {
         self.stateOverride = .question
         self.view = .deadTunnelPrompt
         self.mode = .expanded
+        NotificationCenter.default.post(name: .hookExpand, object: IslandView.deadTunnelPrompt)
     }
 
     func dismissDeadTunnelPrompt() {
