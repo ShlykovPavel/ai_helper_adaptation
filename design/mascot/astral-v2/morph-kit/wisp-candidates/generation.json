@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "tool": "built-in image_gen",
+  "status": "awaiting-user-selection",
+  "approved_identity": "../../astral-idle-master.png",
+  "supersedes_candidate": "../masters/astral-wisp-master.png",
+  "brief": "Recognizable upward flame silhouette, broad rounded base, same icy glass and white eyes; no lower comma/crescent tail; no permanent core; blank area for future replaceable provider logo.",
+  "variants": [
+    {
+      "id": "a-candle",
+      "title": "A · Свечной",
+      "prompt": "Use case: stylized-concept. Asset type: alternate key pose of an existing mascot, for future sprite animation.\nReference image: approved icy blue glass ghost, use its material, lighting and exact face identity ONLY. Create one full-body cute FIRE FLAME mascot transformation of this same character. It must immediately read as the familiar FIRE emoji silhouette / dancing candle flame, not a generic blob, a drop of water, a crescent moon, comma, paisley or tadpole.\nKeep pearlescent translucent frosted-glass / opalescent jelly volume, icy blue and faint lilac refraction, white-blue rim light, soft studio lighting upper left. Exactly TWO luminous ivory-white vertical oval eyes, no dark pupils, no mouth, no nose, no blush. Face clearly readable in the central upper rounded area. Empty lower body, no energy core, no logo, no inner flame emblem or other object.\nImportant silhouette: a BROAD CHUBBY CONTINUOUS ROUNDED BOTTOM like a small rounded bowl, carrying UPWARD RISING tapered flame tongues with curved pointed tips at the TOP. The base is soft and round, no separate feet or hands. Absolutely NO long curling lower tail, no side hook at the bottom, no crescent-shaped cutout. The upper flame contour is what makes it FIRE.\nCentered orthographic front view on a square canvas, ONE subject with 10-12% transparent margin on all sides, premium sculptural 3D render, controlled highlights, gentle inner illumination, finite subtle glow. TRUE transparent alpha background. No text, labels, diagrams, backdrop, floor, shadow plane, checkerboard, watermark, firewood or candles. This is a production character cutout, not a concept sheet.\nVARIANT A — CLASSIC SINGLE CANDLE FLAME: a SIMPLE iconic fire silhouette, short and chubby, roughly height 1.35 times width. One large smoothly curved flame tip rising from a broad round teardrop body and leaning slightly right. A clear concave shoulder halfway up the right edge makes it read as fire, not a symmetrical water droplet. Rounded large lower bulb, no tail. Calm, adorable, cleanest and simplest flame silhouette.",
+      "display_title": "A · Цельное пламя",
+      "file": "a-candle.png",
+      "sha256": "a9586004020967ec51009453961e7005747c77e0f7e04b53299ac54bcf9f4cdb"
+    },
+    {
+      "id": "b-three-tongues",
+      "title": "B · Три язычка",
+      "prompt": "Use case: stylized-concept. Asset type: alternate key pose of an existing mascot, for future sprite animation.\nReference image: approved icy blue glass ghost, use its material, lighting and exact face identity ONLY. Create one full-body cute FIRE FLAME mascot transformation of this same character. It must immediately read as the familiar FIRE emoji silhouette / dancing candle flame, not a generic blob, a drop of water, a crescent moon, comma, paisley or tadpole.\nKeep pearlescent translucent frosted-glass / opalescent jelly volume, icy blue and faint lilac refraction, white-blue rim light, soft studio lighting upper left. Exactly TWO luminous ivory-white vertical oval eyes, no dark pupils, no mouth, no nose, no blush. Face clearly readable in the central upper rounded area. Empty lower body, no energy core, no logo, no inner flame emblem or other object.\nImportant silhouette: a BROAD CHUBBY CONTINUOUS ROUNDED BOTTOM like a small rounded bowl, carrying UPWARD RISING tapered flame tongues with curved pointed tips at the TOP. The base is soft and round, no separate feet or hands. Absolutely NO long curling lower tail, no side hook at the bottom, no crescent-shaped cutout. The upper flame contour is what makes it FIRE.\nCentered orthographic front view on a square canvas, ONE subject with 10-12% transparent margin on all sides, premium sculptural 3D render, controlled highlights, gentle inner illumination, finite subtle glow. TRUE transparent alpha background. No text, labels, diagrams, backdrop, floor, shadow plane, checkerboard, watermark, firewood or candles. This is a production character cutout, not a concept sheet.\nVARIANT B — THREE-TONGUED COZY FIRE: a clearly recognizable chunky campfire-style FIRE silhouette, broad rounded plump lower half supporting exactly THREE upward flame tongues in its upper half: one tall central tip leaning slightly right, and two smaller curved side tips, all part of the SAME continuous glass volume. Two concave notches separate these flame tongues. Height about 1.2 times width. This is a cute softly rounded fire character with lively flickering crown, NOT a star or a crown accessory on a sphere. Lower base stays wide, round and stable. Face in middle broad region below the flame tips. No detached sparks.",
+      "display_title": "B · С лапками",
+      "file": "b-three-tongues.png",
+      "sha256": "80a9b40dbd48d669a940ae78a99b1acd79241fcd0a92c578daa36af6d9dff8a5"
+    },
+    {
+      "id": "c-dancing",
+      "title": "C · Танцующий",
+      "prompt": "Use case: stylized-concept. Asset type: alternate key pose of an existing mascot, for future sprite animation.\nReference image: approved icy blue glass ghost, use its material, lighting and exact face identity ONLY. Create one full-body cute FIRE FLAME mascot transformation of this same character. It must immediately read as the familiar FIRE emoji silhouette / dancing candle flame, not a generic blob, a drop of water, a crescent moon, comma, paisley or tadpole.\nKeep pearlescent translucent frosted-glass / opalescent jelly volume, icy blue and faint lilac refraction, white-blue rim light, soft studio lighting upper left. Exactly TWO luminous ivory-white vertical oval eyes, no dark pupils, no mouth, no nose, no blush. Face clearly readable in the central upper rounded area. Empty lower body, no energy core, no logo, no inner flame emblem or other object.\nImportant silhouette: a BROAD CHUBBY CONTINUOUS ROUNDED BOTTOM like a small rounded bowl, carrying UPWARD RISING tapered flame tongues with curved pointed tips at the TOP. The base is soft and round, no separate feet or hands. Absolutely NO long curling lower tail, no side hook at the bottom, no crescent-shaped cutout. The upper flame contour is what makes it FIRE.\nCentered orthographic front view on a square canvas, ONE subject with 10-12% transparent margin on all sides, premium sculptural 3D render, controlled highlights, gentle inner illumination, finite subtle glow. TRUE transparent alpha background. No text, labels, diagrams, backdrop, floor, shadow plane, checkerboard, watermark, firewood or candles. This is a production character cutout, not a concept sheet.\nVARIANT C — DANCING TWO-TONGUED FIRE: a lively recognizable compact FIRE silhouette leaning gently left, a strong broad round lower bulb and exactly TWO upward curling flame tongues, one taller sweeping tip to left, a shorter rising tip to right, separated by a clear rounded V-notch. Both tips emerge upward out of the main plump volume, NEVER a lower curling tail. Height about 1.25 times width. Asymmetric flame, playful energy, soft liquid motion, still one continuous volume with a wide completely rounded bottom. Face sits in the bulb below the flame tips. No crescent cutout at the bottom.",
+      "display_title": "C · Танцующий",
+      "file": "c-dancing.png",
+      "sha256": "c291699ed72b9eb12f0a802060b1620e110452278e3076e999e14a3cf30c30a2"
+    }
+  ],
+  "selected": null,
+  "inspection_notes": {
+    "a": "Generator produced a continuous three-tongued flame rather than the requested single candle tip. Presented according to actual silhouette.",
+    "b": "Three-tongued flame with the original ghost's little hands; retained as a playful character option.",
+    "c": "Asymmetric two-tongued flame with no hands."
+  }
+}
