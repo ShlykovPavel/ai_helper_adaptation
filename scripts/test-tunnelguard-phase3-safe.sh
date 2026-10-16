@@ -26,3 +26,10 @@ swiftc -swift-version 6 -strict-concurrency=complete "${CACHE_ARGS[@]+"${CACHE_A
     tests/TunnelGuardWatchdogPromptTests.swift -o "$TEST_DIR/tunnelguard-watchdog-prompt-tests"
 
 "$TEST_DIR/tunnelguard-watchdog-prompt-tests"
+
+swiftc -swift-version 6 -strict-concurrency=complete "${CACHE_ARGS[@]+"${CACHE_ARGS[@]}"}" \
+    NotchBuddy/Sources/App/SettingsInfoTip.swift \
+    tests/TunnelGuardSettingsUITests.swift -o "$TEST_DIR/tunnelguard-settings-ui-tests"
+
+"$TEST_DIR/tunnelguard-settings-ui-tests"
+

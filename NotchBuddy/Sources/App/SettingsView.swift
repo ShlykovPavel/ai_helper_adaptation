@@ -389,16 +389,26 @@ struct SettingsView: View {
                     Spacer()
                     Text(tunnelGuard.lastVpnIface.isEmpty ? "интерфейс не определён" : tunnelGuard.lastVpnIface).foregroundColor(.secondary)
                 }
-                HStack {
+                HStack(spacing: 6) {
                     Label("Шлюз: \(tunnelGuard.lastGateway.isEmpty ? "не определён" : tunnelGuard.lastGateway)", systemImage: "arrow.triangle.branch")
-                        .help("Шлюз — следующий сетевой узел, через который система отправляет трафик. Он помогает проверить, что соединение идёт через VPN.")
+                    SettingsInfoTip(
+                        title: "Сетевой шлюз",
+                        text: "Сетевой узел, через который система отправляет интернет-трафик. При активном VPN он указывает на защищённый адрес туннеля (utun), предотвращая утечки."
+                    )
                     Spacer()
-                    Text(tunnelGuard.pingLatencyMs > 0 ? String(format: "Ping %.0f ms", tunnelGuard.pingLatencyMs) : "Ping —").foregroundColor(.secondary)
+                    Text(tunnelGuard.pingLatencyMs > 0 ? String(format: "Задержка %.0f ms", tunnelGuard.pingLatencyMs) : "Задержка —").foregroundColor(.secondary)
                 }
-                HStack(spacing: 8) {
-                    Picker("Цель", selection: $tunnelGuardProbeDomain) {
+                HStack(spacing: 6) {
+                    Text("Цель")
+                    SettingsInfoTip(
+                        title: "Проверка внешнего IP",
+                        text: "Делает тестовый запрос через выбранный домен и определяет ваш публичный IP-адрес и интерфейс, чтобы убедиться, что трафик реально идёт через защищённый туннель."
+                    )
+                    Picker("", selection: $tunnelGuardProbeDomain) {
                         ForEach(tunnelGuard.ipProbeDomains, id: \.self) { Text($0).tag($0) }
-                    }.frame(maxWidth: 260)
+                    }
+                    .labelsHidden()
+                    .fixedSize()
                     Button(tunnelGuard.isCheckingIp ? "Проверка…" : "Проверить IP") { tunnelGuard.probeExternalIpOnDemand(domain: tunnelGuardProbeDomain) }.disabled(tunnelGuard.isCheckingIp)
                 }
                 .onChange(of: tunnelGuardProbeDomain) { _, _ in
@@ -412,51 +422,107 @@ struct SettingsView: View {
         }
         GroupBox("Политика Kill-Switch") {
             VStack(alignment: .leading, spacing: 8) {
-                Toggle("Включить сторож TunnelGuard (Kill-Switch активен)", isOn: $tunnelGuardEnabled)
-                Toggle("Непрерывный отстрел (Continuous Kill)", isOn: $tunnelGuardContinuousKill)
-                Toggle("Мониторинг зависшего туннеля (ICMP Ping каждые 5 с)", isOn: $tunnelGuardPingCheckEnabled)
+                HStack(spacing: 6) {
+                    Toggle("Защита от утечек трафика (Kill-Switch)", isOn: $tunnelGuardEnabled)
+                    SettingsInfoTip(
+                        title: "Защита от утечек трафика",
+                        text: "Мгновенно прерывает опасные операции и блокирует работу агентов при отключении VPN, исключая передачу реального IP-адреса провайдеру."
+                    )
+                }
+                HStack(spacing: 6) {
+                    Toggle("Постоянный контроль при аварии", isOn: $tunnelGuardContinuousKill)
+                    SettingsInfoTip(
+                        title: "Постоянный контроль при аварии",
+                        text: "Не позволяет фоновым или повторно запущенным процессам передавать данные, пока VPN-соединение не восстановится полностью."
+                    )
+                }
+                HStack(spacing: 6) {
+                    Toggle("Проверка зависания туннеля", isOn: $tunnelGuardPingCheckEnabled)
+                    SettingsInfoTip(
+                        title: "Проверка зависания туннеля",
+                        text: "Периодически проверяет прохождение пакетов через туннель. Позволяет обнаружить зависание соединения, даже если интерфейс VPN формально активен."
+                    )
+                }
                 if tunnelGuardPingCheckEnabled {
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            Text("Базовый таймаут пинга")
-                            Spacer()
-                            Picker("", selection: $tunnelGuardBasePingTimeout) {
-                                Text("1.5 с").tag(1.5)
-                                Text("2.0 с").tag(2.0)
-                                Text("3.0 с").tag(3.0)
-                                Text("5.0 с").tag(5.0)
+                    VStack(alignment: .leading, spacing: 10) {
+                        Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 10) {
+                            GridRow {
+                                HStack(spacing: 6) {
+                                    Text("Время ожидания ответа")
+                                        .font(.system(size: 13))
+                                    SettingsInfoTip(
+                                        title: "Время ожидания ответа",
+                                        text: "Сколько секунд ждать ответа от проверочного узла перед тем, как считать попытку неудачной. Если связь стабильная, достаточно 1.5–2.0 с. На медленных соединениях рекомендуется 3.0 с."
+                                    )
+                                }
+                                Picker("", selection: $tunnelGuardBasePingTimeout) {
+                                    Text("1.5 с").tag(1.5)
+                                    Text("2.0 с").tag(2.0)
+                                    Text("3.0 с").tag(3.0)
+                                    Text("5.0 с").tag(5.0)
+                                }
+                                .labelsHidden()
+                                .fixedSize()
                             }
-                            .labelsHidden()
-                            .frame(width: 90)
-                        }
-                        Toggle("Прогрессивное увеличение таймаута (Backoff)", isOn: $tunnelGuardProgressiveTimeoutEnabled)
-                            .font(.system(size: 12))
-                        HStack {
-                            Text("Попыток до подтверждения")
-                            Spacer()
-                            Picker("", selection: $tunnelGuardMaxPingFails) {
-                                Text("2").tag(2)
-                                Text("3 (Рекомендуется)").tag(3)
-                                Text("5").tag(5)
+
+                            GridRow {
+                                HStack(spacing: 6) {
+                                    Toggle("Умное ожидание при задержках сети", isOn: $tunnelGuardProgressiveTimeoutEnabled)
+                                        .font(.system(size: 13))
+                                    SettingsInfoTip(
+                                        title: "Умное ожидание при задержках сети",
+                                        text: "При кратковременных помехах в сети время ожидания для каждой следующей проверки автоматически увеличивается (2.0 с → 3.0 с → 4.5 с). Это предотвращает ложные тревоги и случайные остановки агентов."
+                                    )
+                                }
+                                .gridCellColumns(2)
                             }
-                            .labelsHidden()
-                            .frame(width: 140)
-                        }
-                        HStack {
-                            Text("Действие при зависании")
-                            Spacer()
-                            Picker("", selection: $tunnelGuardDeadTunnelAction) {
-                                Text("Спросить в чёлке (SIGSTOP)").tag("prompt")
-                                Text("Сразу ликвидировать (Kill)").tag("kill")
+
+                            GridRow {
+                                HStack(spacing: 6) {
+                                    Text("Количество проверок до тревоги")
+                                        .font(.system(size: 13))
+                                    SettingsInfoTip(
+                                        title: "Количество проверок до тревоги",
+                                        text: "Сколько неудачных проверок подряд должно произойти, чтобы признать туннель зависшим. Значение 3 надёжно отсекает случайные единичные потери пакетов."
+                                    )
+                                }
+                                Picker("", selection: $tunnelGuardMaxPingFails) {
+                                    Text("2 проверки").tag(2)
+                                    Text("3 проверки (рекомендуется)").tag(3)
+                                    Text("5 проверок").tag(5)
+                                }
+                                .labelsHidden()
+                                .fixedSize()
                             }
-                            .labelsHidden()
-                            .frame(width: 190)
+
+                            GridRow {
+                                HStack(spacing: 6) {
+                                    Text("Если туннель не отвечает")
+                                        .font(.system(size: 13))
+                                    SettingsInfoTip(
+                                        title: "Если туннель не отвечает",
+                                        text: "• Остановить процесс с вопросом в чёлке: временно замораживает выполнение агента без потери контекста и показывает карточку решения в чёлке. При восстановлении туннеля агент продолжит работу автоматически.\n• Сразу ликвидировать: немедленно завершает процессы для максимальной безопасности."
+                                    )
+                                }
+                                Picker("", selection: $tunnelGuardDeadTunnelAction) {
+                                    Text("Остановить процесс с вопросом в чёлке").tag("prompt")
+                                    Text("Сразу ликвидировать").tag("kill")
+                                }
+                                .labelsHidden()
+                                .fixedSize()
+                            }
                         }
                     }
-                    .padding(.leading, 16)
-                    .padding(.vertical, 2)
+                    .padding(.leading, 18)
+                    .padding(.vertical, 4)
                 }
-                Toggle("Проверка Split-Tunneling доменов", isOn: $tunnelGuardSplitTunnelCheck)
+                HStack(spacing: 6) {
+                    Toggle("Контроль раздельного туннелирования (Split Tunnel)", isOn: $tunnelGuardSplitTunnelCheck)
+                    SettingsInfoTip(
+                        title: "Контроль раздельного туннелирования",
+                        text: "Проверяет, что запросы к доменам AI-сервисов (claude.ai, openai.com и др.) маршрутизируются строго через защищённый туннель, а не в открытую сеть."
+                    )
+                }
             }.padding(6)
             .onChange(of: tunnelGuardEnabled) { _, _ in syncTunnelGuardSettings() }
             .onChange(of: tunnelGuardContinuousKill) { _, _ in syncTunnelGuardSettings() }
@@ -469,22 +535,46 @@ struct SettingsView: View {
         }
         GroupBox("Управление питанием и крышкой Mac (Power Guard)") {
             VStack(alignment: .leading, spacing: 8) {
-                Toggle("Защита от сна при блокировке экрана (IOPMAssertion)", isOn: $tunnelGuardPreventSleep)
-                Toggle("Sleep/Wake Guard (10-секундный Grace Period)", isOn: $tunnelGuardSleepWakeGuardEnabled)
+                HStack(spacing: 6) {
+                    Toggle("Защита от засыпания при блокировке экрана", isOn: $tunnelGuardPreventSleep)
+                    SettingsInfoTip(
+                        title: "Защита от засыпания",
+                        text: "Предотвращает переход Mac в спящий режим при блокировке экрана, чтобы VPN-соединение не разрывалось в фоновом режиме во время работы агентов."
+                    )
+                }
+                HStack(spacing: 6) {
+                    Toggle("Безопасное пробуждение Mac (Grace Period)", isOn: $tunnelGuardSleepWakeGuardEnabled)
+                    SettingsInfoTip(
+                        title: "Безопасное пробуждение Mac",
+                        text: "Даёт 10 секунд на восстановление VPN-туннеля после открытия крышки Mac или выхода из сна, исключая ложные срабатывания тревоги."
+                    )
+                }
             }.padding(6)
             .onChange(of: tunnelGuardPreventSleep) { _, _ in syncTunnelGuardSettings() }
             .onChange(of: tunnelGuardSleepWakeGuardEnabled) { _, _ in syncTunnelGuardSettings() }
         }
         GroupBox("Защищаемые приложения и агенты") {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Консольные агенты").font(.subheadline).foregroundColor(.secondary)
+                HStack(spacing: 6) {
+                    Text("Консольные агенты").font(.subheadline).foregroundColor(.secondary)
+                    SettingsInfoTip(
+                        title: "Консольные агенты",
+                        text: "Процессы терминальных CLI-утилит (Claude Code, Antigravity, Codex, Gemini, Cursor). При аварии VPN они мгновенно останавливаются."
+                    )
+                }
                 Toggle("Claude", isOn: tunnelGuardTargetBinding("claude-cli"))
                 Toggle("Antigravity (agy)", isOn: tunnelGuardTargetBinding("agy-cli"))
                 Toggle("Codex", isOn: tunnelGuardTargetBinding("codex-cli"))
                 Toggle("Gemini", isOn: tunnelGuardTargetBinding("gemini-cli"))
                 Toggle("Cursor Agent", isOn: tunnelGuardTargetBinding("cursor-agent-cli"))
                 Divider()
-                Text("Оконные приложения").font(.subheadline).foregroundColor(.secondary)
+                HStack(spacing: 6) {
+                    Text("Оконные приложения").font(.subheadline).foregroundColor(.secondary)
+                    SettingsInfoTip(
+                        title: "Оконные приложения",
+                        text: "Настольные GUI-приложения. При падении VPN сторож мягко принудительно завершает их работу для защиты сетевого трафика."
+                    )
+                }
                 Toggle("Claude Desktop", isOn: tunnelGuardTargetBinding("claude-desktop"))
                 Toggle("ChatGPT Desktop", isOn: tunnelGuardTargetBinding("chatgpt-desktop"))
                 Toggle("Antigravity Desktop", isOn: tunnelGuardTargetBinding("antigravity-desktop"))
@@ -493,11 +583,29 @@ struct SettingsView: View {
         }
         GroupBox("Оповещения и аудит") {
             VStack(alignment: .leading, spacing: 8) {
-                Toggle("Системный звук при аварии", isOn: $tunnelGuardAlarmSoundEnabled)
-                Toggle("Баннеры Центра уведомлений macOS", isOn: $tunnelGuardMacNotificationsEnabled)
+                HStack(spacing: 6) {
+                    Toggle("Системный звук при аварии", isOn: $tunnelGuardAlarmSoundEnabled)
+                    SettingsInfoTip(
+                        title: "Звуковой сигнал",
+                        text: "Воспроизводит предупреждающий звуковой сигнал в момент срабатывания защиты или падения VPN-туннеля."
+                    )
+                }
+                HStack(spacing: 6) {
+                    Toggle("Баннеры Центра уведомлений macOS", isOn: $tunnelGuardMacNotificationsEnabled)
+                    SettingsInfoTip(
+                        title: "Системные уведомления",
+                        text: "Отправляет нативные баннеры macOS с описанием причины инцидента и информацией о защищённых приложениях."
+                    )
+                }
                 HStack(spacing: 8) {
                     Button("Открыть журнал аудита (watchdog.log)") { openTunnelGuardLog() }
-                    Button("Симуляция аварии VPN") { tunnelGuard.executeTunnelGuardHardKill(reason: "Тестовая симуляция аварии VPN") }.foregroundColor(.red)
+                    HStack(spacing: 6) {
+                        Button("Симуляция аварии VPN") { tunnelGuard.executeTunnelGuardHardKill(reason: "Тестовая симуляция аварии VPN") }.foregroundColor(.red)
+                        SettingsInfoTip(
+                            title: "Тестовая симуляция",
+                            text: "Безопасно имитирует инцидент падения VPN для проверки работы чёлки, звука, уведомлений и завершения процессов."
+                        )
+                    }
                 }
             }.padding(6)
             .onChange(of: tunnelGuardAlarmSoundEnabled) { _, _ in syncTunnelGuardSettings() }
