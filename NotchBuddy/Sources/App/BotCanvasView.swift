@@ -16,16 +16,20 @@ struct BotCanvasView: View {
     @StateObject private var engine = BotEngine()
 
     var body: some View {
-        // Display refresh rate — every frame on a 60 Hz screen, every frame on ProMotion.
-        // MochiFrameClock.advance accumulates the step debt so Mochi's speed never changes.
-        TimelineView(.animation(paused: state.mode == .hidden || paused)) { timeline in
-            let _ = timeline.date
-            Canvas { context, size in
-                renderFrame(context: &context, size: size)
+        if MascotSettings.selectedMascot == .shapeshifter {
+            ShapeshifterHostView(state: state, particleOverhang: particleOverhang, lookOriginOverride: lookOriginOverride, paused: paused)
+        } else {
+            // Display refresh rate — every frame on a 60 Hz screen, every frame on ProMotion.
+            // MochiFrameClock.advance accumulates the step debt so Mochi's speed never changes.
+            TimelineView(.animation(paused: state.mode == .hidden || paused)) { timeline in
+                let _ = timeline.date
+                Canvas { context, size in
+                    renderFrame(context: &context, size: size)
+                }
             }
+            .modifier(BotStateObserverModifier(state: state, engine: engine))
+            .modifier(BotNotificationObserverModifier(state: state, engine: engine))
         }
-        .modifier(BotStateObserverModifier(state: state, engine: engine))
-        .modifier(BotNotificationObserverModifier(state: state, engine: engine))
     }
 
     private func renderFrame(context: inout GraphicsContext, size: CGSize) {
@@ -266,36 +270,46 @@ struct MiniBotCanvasView: View {
 
 
     var body: some View {
-        // Display refresh rate. Paused in island views that are not shown.
-        TimelineView(.animation(paused: !viewActive)) { timeline in
-            let frame = timeline.date   // see BotCanvasView: redraw on every tick
-            Canvas { context, size in
-                _ = frame
-                engine.setDancing(isDancing)
-                MochiFrameClock.advance(engine)
-                var ctx = context
-                engine.applyDance(&ctx, size: size)
-                engine.draw(context: ctx, size: size)
+        if MascotSettings.selectedMascot == .shapeshifter {
+            ShapeshifterCompactView(
+                size: CGSize(width: 18, height: 18),
+                lookX: 0,
+                lookY: 0,
+                shape: MascotSettings.shape,
+                provider: ProviderCoreType.from(pillId: task.id)
+            )
+        } else {
+            // Display refresh rate. Paused in island views that are not shown.
+            TimelineView(.animation(paused: !viewActive)) { timeline in
+                let frame = timeline.date   // see BotCanvasView: redraw on every tick
+                Canvas { context, size in
+                    _ = frame
+                    engine.setDancing(isDancing)
+                    MochiFrameClock.advance(engine)
+                    var ctx = context
+                    engine.applyDance(&ctx, size: size)
+                    engine.draw(context: ctx, size: size)
+                }
             }
-        }
-        .onChange(of: task.state) { _, newState in
-            engine.setState(newState)
-        }
-        // The colour is set once, when the engine is made: a colour picked in
-        // Settings has to reach a mini Mochi that is already on screen.
-        .onChange(of: task.color) { _, newColor in
-            engine.bodyColor = cgColorFromHex(newColor)
-        }
-        .onAppear {
-            engine.setState(task.state, force: true)
-            if let emote = task.emote {
-                engine.setPermanentEmote(emote)
+            .onChange(of: task.state) { _, newState in
+                engine.setState(newState)
             }
-            // Direct eye override takes priority (e.g. .wide eyes for Research)
-            if let eye = task.miniEye {
-                engine.permanentEye = eye
-                engine.eyeOverride = eye
-                engine.eyeOverrideUntil = .greatestFiniteMagnitude
+            // The colour is set once, when the engine is made: a colour picked in
+            // Settings has to reach a mini Mochi that is already on screen.
+            .onChange(of: task.color) { _, newColor in
+                engine.bodyColor = cgColorFromHex(newColor)
+            }
+            .onAppear {
+                engine.setState(task.state, force: true)
+                if let emote = task.emote {
+                    engine.setPermanentEmote(emote)
+                }
+                // Direct eye override takes priority (e.g. .wide eyes for Research)
+                if let eye = task.miniEye {
+                    engine.permanentEye = eye
+                    engine.eyeOverride = eye
+                    engine.eyeOverrideUntil = .greatestFiniteMagnitude
+                }
             }
         }
     }
