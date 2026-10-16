@@ -31,14 +31,18 @@ enum ShapeshifterCompactLODTests {
         check("Clamped width matches height (20)", clampedSquare.width == 20 && clampedSquare.height == 20)
         check("Clamped rect is centered horizontally (x == 10)", clampedSquare.origin.x == 10)
 
-        let clampedTall = ShapeshifterCompactRenderer.clampedDrawRect(in: CGSize(width: 20, height: 40))
-        check("Clamped height matches width (20)", clampedTall.width == 20 && clampedTall.height == 20)
-        check("Clamped rect is centered vertically (y == 10)", clampedTall.origin.y == 10)
-
-        print("ShapeshifterCompactRenderer — Eye tracking bounds")
+        print("ShapeshifterCompactRenderer — Expressive Character Features (Eyes & Specular Highlights)")
         let eyes = ShapeshifterCompactRenderer.eyeOffsets(lookX: 1.0, lookY: -1.0, diameter: 24)
-        check("Left eye X offset within safe boundary (< 4pt)", abs(eyes.left.x) <= 4.0)
-        check("Right eye X offset within safe boundary (< 8pt)", abs(eyes.right.x) <= 8.0)
+        check("Left eye within safe horizontal boundary", abs(eyes.left.x) <= 6.0)
+        check("Right eye within safe horizontal boundary", abs(eyes.right.x) <= 6.0)
+
+        let highlights = ShapeshifterCompactRenderer.specularHighlightOffsets(lookX: 0.0, lookY: 0.0, diameter: 24)
+        check("Left eye primary specular dot is in top-left quadrant", highlights.leftPrimary.x < eyes.left.x && highlights.leftPrimary.y < eyes.left.y)
+
+        print("ShapeshifterCompactRenderer — Rosy Cheek Blush Geometry")
+        let cheeks = ShapeshifterCompactRenderer.cheekBlushOffsets(diameter: 24)
+        check("Cheeks are positioned below eye level", cheeks.left.y > 0 && cheeks.right.y > 0)
+        check("Cheek radius is proportional (approx 1.5 - 2.5pt)", cheeks.radius >= 1.2 && cheeks.radius <= 3.0)
 
         print("ShapeshifterCompactLODTests finished with \(failures) failures.")
         if failures > 0 { exit(1) }

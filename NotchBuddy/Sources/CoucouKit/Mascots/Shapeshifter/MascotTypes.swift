@@ -1,4 +1,8 @@
 import Foundation
+import CoreGraphics
+#if !STANDALONE_CLI
+import SwiftUI
+#endif
 
 public enum MascotType: String, CaseIterable, Sendable, Codable {
     case mochi = "mochi"
@@ -42,4 +46,36 @@ public enum MascotActionState: String, CaseIterable, Sendable {
     case approval
     case error
     case sleeping
+}
+
+public enum ShapeshifterGeometry: Sendable {
+    public static func verticalOffset(particleOverhang: CGFloat) -> CGFloat {
+        return particleOverhang / 2.0
+    }
+
+    #if STANDALONE_CLI
+    public static func isCompactMode(mode: IslandMode, isMini: Bool) -> Bool {
+        return isMini || mode == .compact || mode == .hidden
+    }
+    #else
+    static func isCompactMode(mode: IslandMode, isMini: Bool) -> Bool {
+        return isMini || mode == .compact || mode == .hidden
+    }
+    #endif
+
+    public static func targetMascotSize(isCompact: Bool, isMini: Bool, canvasSize: CGSize, overhang: CGFloat) -> CGSize {
+        if isMini {
+            return CGSize(width: 18, height: 18)
+        } else if isCompact {
+            let availableHeight = max(0, canvasSize.height - overhang)
+            let side = min(canvasSize.width, availableHeight > 0 ? availableHeight : canvasSize.height)
+            let clamped = min(26.0, max(18.0, side))
+            return CGSize(width: clamped, height: clamped)
+        } else {
+            let availableHeight = max(0, canvasSize.height - overhang)
+            let side = min(canvasSize.width, availableHeight > 0 ? availableHeight : canvasSize.height)
+            let clamped = max(44.0, side)
+            return CGSize(width: clamped, height: clamped)
+        }
+    }
 }

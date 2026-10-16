@@ -5,5 +5,6 @@ TEST_DIR="$(mktemp -d "${TMPDIR:-/tmp}/compact-lod.XXXXXX")"
 trap 'rm -rf "$TEST_DIR"' EXIT
 swiftc NotchBuddy/Sources/CoucouKit/Mascots/Shapeshifter/MascotTypes.swift \
        NotchBuddy/Sources/CoucouKit/Mascots/Shapeshifter/ShapeshifterCompactRenderer.swift \
+       tests/IslandTypeStubs.swift \
        tests/ShapeshifterCompactLODTests.swift -o "$TEST_DIR/compact-tests"
 "$TEST_DIR/compact-tests"

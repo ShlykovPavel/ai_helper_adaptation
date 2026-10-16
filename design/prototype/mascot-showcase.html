@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Призрак-Метаморф (The Astral Morph) — Визуальный концепт</title>
+<title>Призрак-Метаморф (The Astral Morph) — Интерактивная витрина</title>
 <style>
   :root {
     --bg: #090b10;
@@ -12,6 +12,10 @@
     --text: #e6edf3;
     --text-muted: #8b949e;
     --accent: #38bdf8;
+    --claude: #D97757;
+    --gemini: #4E80EE;
+    --openai: #10A37F;
+    --antigravity: #8B5CF6;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -22,26 +26,225 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 30px 20px;
+    padding: 30px 20px 60px;
     background-image: 
-      radial-gradient(circle at 50% 15%, rgba(56, 189, 248, 0.1) 0%, transparent 60%),
+      radial-gradient(circle at 50% 10%, rgba(56, 189, 248, 0.1) 0%, transparent 60%),
       radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
   }
   h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
-  p.subtitle { color: var(--text-muted); font-size: 15px; margin-bottom: 24px; text-align: center; max-width: 650px; }
-  
+  p.subtitle { color: var(--text-muted); font-size: 15px; margin-bottom: 28px; text-align: center; max-width: 720px; line-height: 1.5; }
+
   .showcase-card {
-    background: rgba(15, 20, 30, 0.8);
+    background: rgba(15, 20, 30, 0.85);
     border: 1px solid var(--border);
     border-radius: 20px;
-    padding: 20px;
+    padding: 24px;
     max-width: 1000px;
     width: 100%;
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(20px);
     margin-bottom: 24px;
-    text-align: center;
   }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+  }
+  .card-badge.green {
+    background: rgba(48, 209, 88, 0.15);
+    color: #30D158;
+    border-color: rgba(48, 209, 88, 0.3);
+  }
+
+  /* Control buttons */
+  .control-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .control-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-right: 4px;
+  }
+  .btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+  .btn.active {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: #38bdf8;
+    color: #38bdf8;
+  }
+  .slider-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .slider-box input[type="range"] {
+    accent-color: #38bdf8;
+    cursor: pointer;
+  }
+
+  /* Notch Simulation */
+  .screen-bezel {
+    background: #161b22;
+    border: 2px solid #30363d;
+    border-radius: 12px;
+    height: 160px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
+  }
+  .menu-bar {
+    height: 34px;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    font-size: 12px;
+    color: #8b949e;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .physical-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 170px;
+    height: 34px;
+    background: #000000;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.9);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: visible;
+  }
+  .notch-floor-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(56, 189, 248, 0.3);
+  }
+  .notch-canvas-container {
+    position: relative;
+    width: 40px;
+    height: 72px;
+    margin-bottom: 2px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+  }
+
+  /* Mini Pills Section */
+  .pills-container {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+  }
+  .agent-pill {
+    background: rgba(22, 27, 34, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 30px;
+    padding: 6px 16px 6px 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+  }
+  .agent-pill:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+  .pill-info {
+    display: flex;
+    flex-direction: column;
+  }
+  .pill-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .pill-state {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* Expanded Card Canvas */
+  .expanded-view-layout {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .expanded-canvas-wrapper {
+    background: radial-gradient(circle at center, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.9) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .expanded-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 420px;
+  }
+
+  /* Concept Image & Details */
   .main-concept-img {
     width: 100%;
     border-radius: 14px;
@@ -49,7 +252,6 @@
     box-shadow: 0 10px 40px rgba(0,0,0,0.6);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
-
   .details-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -60,7 +262,6 @@
   @media (max-width: 768px) {
     .details-grid { grid-template-columns: 1fr; }
   }
-
   .detail-panel {
     background: var(--card-bg);
     border: 1px solid var(--border);
@@ -86,9 +287,163 @@
 <body>
 
 <h1>Призрак-Метаморф (The Astral Morph) 👻✨</h1>
-<p class="subtitle">Концепт-лист адаптации: компактный режим в закрытой чёлке (24–32px), 3D-форма с логотипом в раскрытом островке (96–120px) и метаморфозы формы (куб, сфера, огонёк)</p>
+<p class="subtitle">Интерактивная верификация визуального редизайна: физический оверлей чёлки без клиппинга, мини-пилюли мультиагентного статуса (24–32px) и экспрессивный расширенный маскот (96–120px) с живыми пропсами действий.</p>
 
+<!-- 1. Resting Notch Live Preview -->
 <div class="showcase-card">
+  <div class="card-header">
+    <div class="card-title">
+      <span>🖥️ Физическая чёлка: компенсация particleOverhang</span>
+    </div>
+    <div class="card-badge green" id="notchStatusBadge">✅ No Clipping / Clamped 24pt</div>
+  </div>
+
+  <div class="screen-bezel">
+    <div class="menu-bar">
+      <span> Coucou &nbsp; File &nbsp; Edit &nbsp; View</span>
+      <span>100% 🔋 Fri Oct 16 &nbsp; 14:30</span>
+    </div>
+    <div class="physical-notch">
+      <div class="notch-floor-line"></div>
+      <div class="notch-canvas-container">
+        <canvas id="notchCanvas" width="80" height="144" style="width: 40px; height: 72px;"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; flex-wrap: wrap; gap: 10px;">
+    <div class="slider-box">
+      <span>Particle Overhang:</span>
+      <input type="range" id="overhangSlider" min="0" max="60" value="40" step="1">
+      <span id="overhangVal" style="font-weight: 600; color: #38bdf8;">40 px</span>
+      <span style="color: var(--text-muted); margin-left: 8px;">(Вычисленный Y-сдвиг: <b id="offsetVal" style="color: #30D158;">+20 px</b>)</span>
+    </div>
+    <div class="control-group">
+      <span class="control-label">Форма:</span>
+      <button class="btn active" onclick="setNotchShape('squircle')">Сквиркл</button>
+      <button class="btn" onclick="setNotchShape('orb')">Сфера</button>
+      <button class="btn" onclick="setNotchShape('flame')">Огонёк</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Mini Agent Pills Preview -->
+<div class="showcase-card">
+  <div class="card-header">
+    <div class="card-title">
+      <span>💊 Компактный режим (Compact LOD 20–32px)</span>
+    </div>
+    <div class="card-badge">Глазки с бликами + Румянец + Цвет провайдера</div>
+  </div>
+
+  <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+    Интерактивные микро-пилюли мультиагентного статуса. Водите курсором над карточкой — глазки следят за курсором в реальном времени!
+  </p>
+
+  <div class="pills-container" id="pillsTrackArea">
+    <!-- Claude -->
+    <div class="agent-pill">
+      <canvas id="pillClaude" width="64" height="64" style="width: 32px; height: 32px;"></canvas>
+      <div class="pill-info">
+        <span class="pill-name">Claude 3.5 Sonnet</span>
+        <span class="pill-state">Думает над планом...</span>
+      </div>
+    </div>
+
+    <!-- Gemini -->
+    <div class="agent-pill">
+      <canvas id="pillGemini" width="64" height="64" style="width: 32px; height: 32px;"></canvas>
+      <div class="pill-info">
+        <span class="pill-name">Gemini 1.5 Pro</span>
+        <span class="pill-state">Поиск в кодовой базе</span>
+      </div>
+    </div>
+
+    <!-- Antigravity -->
+    <div class="agent-pill">
+      <canvas id="pillAntigravity" width="64" height="64" style="width: 32px; height: 32px;"></canvas>
+      <div class="pill-info">
+        <span class="pill-name">Antigravity AI</span>
+        <span class="pill-state">Генерация кода (24 FPS)</span>
+      </div>
+    </div>
+
+    <!-- OpenAI -->
+    <div class="agent-pill">
+      <canvas id="pillOpenAI" width="64" height="64" style="width: 32px; height: 32px;"></canvas>
+      <div class="pill-info">
+        <span class="pill-name">GPT-4o</span>
+        <span class="pill-state">Готов к работе</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
+    <span class="control-label">Форма пилюль:</span>
+    <button class="btn active" id="pillShapeSquircle" onclick="setPillShape('squircle')">Сквиркл</button>
+    <button class="btn" id="pillShapeOrb" onclick="setPillShape('orb')">Сфера</button>
+    <button class="btn" id="pillShapeFlame" onclick="setPillShape('flame')">Огонёк</button>
+  </div>
+</div>
+
+<!-- 3. Expanded Card & Hero Preview -->
+<div class="showcase-card">
+  <div class="card-header">
+    <div class="card-title">
+      <span>🔮 Экспрессивный расширенный режим (Expanded LOD 64–120px)</span>
+    </div>
+    <div class="card-badge">24 FPS Анимация / Векторный фаллбек</div>
+  </div>
+
+  <div class="expanded-view-layout">
+    <div class="expanded-canvas-wrapper" id="expandedTrackArea">
+      <canvas id="expandedCanvas" width="240" height="240" style="width: 120px; height: 120px;"></canvas>
+      <span id="actionLabel" style="font-size: 12px; font-weight: 600; color: #38bdf8;">✍️ Writing (Tablet + Stylus)</span>
+    </div>
+
+    <div class="expanded-controls">
+      <div>
+        <span class="control-label" style="display:block; margin-bottom: 6px;">Действие (Action State & Props):</span>
+        <div class="control-group">
+          <button class="btn active" onclick="setExpandedAction('writing')">✍️ Writing</button>
+          <button class="btn" onclick="setExpandedAction('reading')">📖 Reading</button>
+          <button class="btn" onclick="setExpandedAction('thinking')">💡 Thinking</button>
+          <button class="btn" onclick="setExpandedAction('approval')">🛡️ Approval</button>
+          <button class="btn" onclick="setExpandedAction('idle')">💤 Idle</button>
+          <button class="btn" onclick="setExpandedAction('error')">⚠️ Error</button>
+        </div>
+      </div>
+
+      <div>
+        <span class="control-label" style="display:block; margin-bottom: 6px;">Провайдер ИИ (Цвет ядра):</span>
+        <div class="control-group">
+          <button class="btn active" onclick="setExpandedProvider('antigravity')">Antigravity</button>
+          <button class="btn" onclick="setExpandedProvider('claude')">Claude</button>
+          <button class="btn" onclick="setExpandedProvider('gemini')">Gemini</button>
+          <button class="btn" onclick="setExpandedProvider('openai')">OpenAI</button>
+        </div>
+      </div>
+
+      <div>
+        <span class="control-label" style="display:block; margin-bottom: 6px;">Форма тела:</span>
+        <div class="control-group">
+          <button class="btn active" onclick="setExpandedShape('squircle')">Сквиркл</button>
+          <button class="btn" onclick="setExpandedShape('orb')">Сфера</button>
+          <button class="btn" onclick="setExpandedShape('flame')">Огонёк</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Original Concept Sheet Reference -->
+<div class="showcase-card">
+  <div class="card-header">
+    <div class="card-title">
+      <span>🎨 Исходный дизайн-паспорт и концепт-арт</span>
+    </div>
+    <div class="card-badge">Design Sheet Reference</div>
+  </div>
   <img src="astral_morph_concept.jpg" alt="Astral Morph Mascot Concept Sheet" class="main-concept-img">
 </div>
 
@@ -96,14 +451,14 @@
   <div class="detail-panel">
     <div class="detail-title">🔹 1. Compact Notch (24–32px)</div>
     <div class="detail-desc">
-      В узком чёрном вырезе чёлки маскот представлен минималистичным светящимся неоновым силуэтом с яркими глазами-пилюлями и цветной микро-точкой активного ИИ (терракотовая для Claude, фиолетовая для Gemini).
+      В узком чёрном вырезе чёлки маскот представлен минималистичным светящимся неоновым силуэтом с яркими глазами-пилюлями и цветной микро-точкой активного ИИ (терракотовая для Claude, синяя для Gemini, фиолетовая для Antigravity).
     </div>
   </div>
 
   <div class="detail-panel">
     <div class="detail-title">🔮 2. Expanded Notch (96–120px)</div>
     <div class="detail-desc">
-      При раскрытии чёлки маскот разворачивается в полноценное 3D-тело из светящегося жидкого стекла. Внутри животика парит объёмный светящийся логотип ИИ или компании, а в лапках — планшет или блокнот.
+      При раскрытии чёлки маскот разворачивается в полноценное 3D-тело из светящегося жидкого стекла. Внутри животика парит объёмный светящийся логотип ИИ или компании, а в лапках — планшет, кодекс или защитный щит.
     </div>
   </div>
 
@@ -114,6 +469,616 @@
     </div>
   </div>
 </div>
+
+<!-- Interactive Engine Logic (Vanilla JS) -->
+<script>
+// --- Provider Badge Color Registry ---
+function getProviderBadgeColor(provider) {
+  switch (provider) {
+    case "claude":      return "#D97757";
+    case "gemini":      return "#4E80EE";
+    case "openai":      return "#10A37F";
+    case "antigravity": return "#8B5CF6";
+    default:            return "#64D2FF";
+  }
+}
+
+// --- Compact LOD Geometry Calculations ---
+function getCompactEyeOffsets(lookX, lookY, diameter) {
+  const clampedLookX = Math.max(-1.0, Math.min(1.0, lookX));
+  const clampedLookY = Math.max(-1.0, Math.min(1.0, lookY));
+  const maxOffset = diameter * 0.055;
+  const shiftX = clampedLookX * maxOffset;
+  const shiftY = -clampedLookY * maxOffset * 0.75;
+  const eyeDistance = diameter * 0.18;
+  return {
+    left: { x: -eyeDistance + shiftX, y: shiftY },
+    right: { x: eyeDistance + shiftX, y: shiftY },
+  };
+}
+
+function getCompactSpecularOffsets(lookX, lookY, diameter) {
+  const eyes = getCompactEyeOffsets(lookX, lookY, diameter);
+  const eyeW = Math.max(3.0, diameter * 0.14);
+  const eyeH = Math.max(4.5, diameter * 0.24);
+  return {
+    leftPrimary: { x: eyes.left.x - eyeW * 0.24, y: eyes.left.y - eyeH * 0.24 },
+    rightPrimary: { x: eyes.right.x - eyeW * 0.24, y: eyes.right.y - eyeH * 0.24 },
+    leftSecondary: { x: eyes.left.x + eyeW * 0.20, y: eyes.left.y + eyeH * 0.20 },
+    rightSecondary: { x: eyes.right.x + eyeW * 0.20, y: eyes.right.y + eyeH * 0.20 },
+  };
+}
+
+function getCompactCheekOffsets(diameter) {
+  return {
+    left: { x: -diameter * 0.26, y: diameter * 0.14 },
+    right: { x: diameter * 0.26, y: diameter * 0.14 },
+    radius: Math.max(1.5, diameter * 0.08),
+  };
+}
+
+function drawCompactMascot(ctx, width, height, lookX, lookY, shape, provider, isPulsing) {
+  const side = Math.min(width, height);
+  if (side < 8) return;
+  const ox = (width - side) / 2;
+  const oy = (height - side) / 2;
+  const badgeColor = getProviderBadgeColor(provider);
+
+  ctx.save();
+  ctx.translate(ox, oy);
+
+  const center = { x: side / 2, y: side / 2 };
+  const radius = side / 2;
+
+  // 1. Subsurface Glow
+  ctx.shadowColor = badgeColor;
+  ctx.shadowBlur = isPulsing ? 6 : 4;
+
+  const bodyPath = () => {
+    ctx.beginPath();
+    if (shape === "squircle") {
+      const corner = radius * 0.45;
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(2, 2, side - 4, side - 4, corner);
+      } else {
+        ctx.rect(2, 2, side - 4, side - 4);
+      }
+    } else if (shape === "orb") {
+      ctx.arc(center.x, center.y, radius - 2, 0, Math.PI * 2);
+    } else {
+      // flame wisp
+      ctx.moveTo(center.x, 2);
+      ctx.quadraticCurveTo(side - 2, center.y, center.x, side - 2);
+      ctx.quadraticCurveTo(2, center.y, center.x, 2);
+    }
+  };
+
+  // 2. Translucent Filled Body
+  bodyPath();
+  const grad = ctx.createRadialGradient(center.x - radius * 0.2, center.y - radius * 0.2, 0, center.x, center.y, radius);
+  grad.addColorStop(0, "rgba(240, 248, 255, 0.75)");
+  grad.addColorStop(0.55, "rgba(191, 219, 255, 0.45)");
+  grad.addColorStop(1, "rgba(140, 190, 255, 0.25)");
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // 3. Flame Crown Tuft
+  ctx.save();
+  ctx.shadowColor = badgeColor;
+  ctx.shadowBlur = 3;
+  ctx.fillStyle = "rgba(240, 248, 255, 0.85)";
+  ctx.beginPath();
+  const tuftBaseY = side * 0.24;
+  const tuftHalfW = side * 0.10;
+  ctx.moveTo(center.x - tuftHalfW, tuftBaseY);
+  ctx.quadraticCurveTo(center.x - tuftHalfW * 0.8, 1.2, center.x, 0.8);
+  ctx.quadraticCurveTo(center.x + tuftHalfW * 0.8, 1.2, center.x + tuftHalfW, tuftBaseY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // 4. Subtle Outer Rim Stroke
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.65)";
+  ctx.lineWidth = 1.0;
+  bodyPath();
+  ctx.stroke();
+
+  // 5. Rosy Blush Cheeks (#FF85A1)
+  const blush = getCompactCheekOffsets(side);
+  ctx.fillStyle = "rgba(255, 133, 161, 0.40)";
+  ctx.beginPath();
+  ctx.ellipse(center.x + blush.left.x, center.y + blush.left.y, blush.radius, blush.radius * 0.65, 0, 0, Math.PI * 2);
+  ctx.ellipse(center.x + blush.right.x, center.y + blush.right.y, blush.radius, blush.radius * 0.65, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 6. Glossy Dark Oval Eyes
+  const eyeOffsets = getCompactEyeOffsets(lookX, lookY, side);
+  const eyeW = Math.max(3.0, side * 0.14);
+  const eyeH = Math.max(4.5, side * 0.24);
+  ctx.fillStyle = "rgba(20, 26, 41, 0.95)";
+  ctx.beginPath();
+  ctx.ellipse(center.x + eyeOffsets.left.x, center.y + eyeOffsets.left.y, eyeW / 2, eyeH / 2, 0, 0, Math.PI * 2);
+  ctx.ellipse(center.x + eyeOffsets.right.x, center.y + eyeOffsets.right.y, eyeW / 2, eyeH / 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 7. Specular Highlight Dots
+  const highlights = getCompactSpecularOffsets(lookX, lookY, side);
+  const primR = Math.max(0.7, eyeW * 0.25);
+  const secR = Math.max(0.4, eyeW * 0.14);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+  ctx.beginPath();
+  ctx.arc(center.x + highlights.leftPrimary.x, center.y + highlights.leftPrimary.y, primR, 0, Math.PI * 2);
+  ctx.arc(center.x + highlights.rightPrimary.x, center.y + highlights.rightPrimary.y, primR, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.70)";
+  ctx.beginPath();
+  ctx.arc(center.x + highlights.leftSecondary.x, center.y + highlights.leftSecondary.y, secR, 0, Math.PI * 2);
+  ctx.arc(center.x + highlights.rightSecondary.x, center.y + highlights.rightSecondary.y, secR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 8. Micro Provider Jewel Badge
+  ctx.shadowColor = badgeColor;
+  ctx.shadowBlur = 2.5;
+  ctx.fillStyle = badgeColor;
+  const badgeSize = Math.max(3.5, side * 0.16);
+  ctx.beginPath();
+  ctx.arc(side - badgeSize / 2 - 1, badgeSize / 2 + 1, badgeSize / 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// --- Expanded LOD Geometry Calculations ---
+function expandedFaceGeometry(rect, lookX, lookY) {
+  const centerX = rect.x + rect.width / 2;
+  const centerY = rect.y + rect.height / 2;
+  const diameter = Math.min(rect.width, rect.height);
+
+  const clampedLookX = Math.max(-1.0, Math.min(1.0, lookX));
+  const clampedLookY = Math.max(-1.0, Math.min(1.0, lookY));
+  const maxShift = diameter * 0.055;
+  const shiftX = clampedLookX * maxShift;
+  const shiftY = -clampedLookY * maxShift * 0.75;
+
+  const eyeDistance = diameter * 0.18;
+  const faceCenterY = centerY - diameter * 0.03;
+  const leftEye = { x: centerX - eyeDistance + shiftX, y: faceCenterY + shiftY };
+  const rightEye = { x: centerX + eyeDistance + shiftX, y: faceCenterY + shiftY };
+
+  const eyeW = Math.max(5.0, diameter * 0.13);
+  const eyeH = Math.max(7.0, diameter * 0.20);
+  const cheekDist = diameter * 0.26;
+  const cheekYOffset = diameter * 0.14;
+
+  return {
+    leftEye, rightEye,
+    eyeSize: { width: eyeW, height: eyeH },
+    leftSpecularPrimary: { x: leftEye.x - eyeW * 0.24, y: leftEye.y - eyeH * 0.24 },
+    rightSpecularPrimary: { x: rightEye.x - eyeW * 0.24, y: rightEye.y - eyeH * 0.24 },
+    leftSpecularSecondary: { x: leftEye.x + eyeW * 0.20, y: leftEye.y + eyeH * 0.20 },
+    rightSpecularSecondary: { x: rightEye.x + eyeW * 0.20, y: rightEye.y + eyeH * 0.20 },
+    leftCheekCenter: { x: centerX - cheekDist + shiftX * 0.4, y: leftEye.y + cheekYOffset },
+    rightCheekCenter: { x: centerX + cheekDist + shiftX * 0.4, y: rightEye.y + cheekYOffset },
+    cheekRadius: Math.max(3.0, diameter * 0.07),
+    mouthCenter: { x: centerX + shiftX * 0.5, y: leftEye.y + cheekYOffset + 1.0 },
+    mouthWidth: Math.max(4.0, diameter * 0.10)
+  };
+}
+
+function expandedActionPropsGeometry(rect, action) {
+  const centerX = rect.x + rect.width / 2;
+  const centerY = rect.y + rect.height / 2;
+  const diameter = Math.min(rect.width, rect.height);
+  const maxY = rect.y + rect.height;
+
+  switch (action) {
+    case "writing": {
+      const tabletW = Math.max(20.0, diameter * 0.32);
+      const tabletH = Math.max(12.0, diameter * 0.18);
+      const tabletRect = { x: centerX - tabletW / 2, y: maxY - tabletH - diameter * 0.04, width: tabletW, height: tabletH };
+      return {
+        propBounds: tabletRect,
+        primaryAnchor: { x: tabletRect.x + tabletRect.width - 4, y: tabletRect.y - 5 },
+        secondaryAnchor: { x: tabletRect.x + tabletRect.width - 9, y: tabletRect.y + tabletRect.height / 2 },
+        strokeColorHex: "#64D2FF",
+        handLeft: { x: tabletRect.x + 3, y: tabletRect.y + tabletRect.height / 2 },
+        handRight: { x: tabletRect.x + tabletRect.width - 5, y: tabletRect.y }
+      };
+    }
+    case "reading": {
+      const bookW = Math.max(24.0, diameter * 0.36);
+      const bookH = Math.max(12.0, diameter * 0.18);
+      const bookY = maxY - bookH - diameter * 0.04;
+      const bookRect = { x: centerX - bookW / 2, y: bookY, width: bookW, height: bookH };
+      return {
+        propBounds: bookRect,
+        primaryAnchor: { x: centerX, y: bookY },
+        secondaryAnchor: { x: centerX, y: bookY + bookH },
+        strokeColorHex: "#FDE047",
+        handLeft: { x: bookRect.x + 2, y: bookY + bookH * 0.5 },
+        handRight: { x: bookRect.x + bookRect.width - 2, y: bookY + bookH * 0.5 }
+      };
+    }
+    case "thinking": {
+      const swirlSize = Math.max(10.0, diameter * 0.18);
+      const swirlRect = { x: centerX + diameter * 0.12, y: rect.y + diameter * 0.08, width: swirlSize, height: swirlSize };
+      return {
+        propBounds: swirlRect,
+        primaryAnchor: { x: swirlRect.x + swirlSize / 2, y: swirlRect.y + swirlSize / 2 },
+        secondaryAnchor: { x: centerX + diameter * 0.06, y: centerY + diameter * 0.16 },
+        strokeColorHex: "#C084FC",
+        handLeft: { x: centerX - diameter * 0.18, y: centerY + diameter * 0.16 },
+        handRight: { x: centerX + diameter * 0.06, y: centerY + diameter * 0.16 }
+      };
+    }
+    case "approval": {
+      const shieldW = Math.max(14.0, diameter * 0.22);
+      const shieldH = Math.max(16.0, diameter * 0.24);
+      const shieldRect = { x: centerX + diameter * 0.10, y: maxY - shieldH - diameter * 0.06, width: shieldW, height: shieldH };
+      return {
+        propBounds: shieldRect,
+        primaryAnchor: { x: shieldRect.x + shieldW / 2, y: shieldRect.y },
+        secondaryAnchor: { x: shieldRect.x + shieldW / 2, y: shieldRect.y + shieldH },
+        strokeColorHex: "#30D158",
+        handLeft: { x: centerX - diameter * 0.18, y: centerY + diameter * 0.18 },
+        handRight: { x: centerX + diameter * 0.12, y: maxY - shieldH * 0.6 }
+      };
+    }
+    case "error": {
+      const sparkSize = Math.max(12.0, diameter * 0.18);
+      const sparkRect = { x: centerX - sparkSize / 2, y: rect.y + diameter * 0.06, width: sparkSize, height: sparkSize };
+      return {
+        propBounds: sparkRect,
+        primaryAnchor: { x: sparkRect.x, y: sparkRect.y },
+        secondaryAnchor: { x: sparkRect.x + sparkSize, y: sparkRect.y + sparkSize },
+        strokeColorHex: "#EF4444",
+        handLeft: { x: centerX - diameter * 0.22, y: centerY + diameter * 0.12 },
+        handRight: { x: centerX + diameter * 0.22, y: centerY + diameter * 0.12 }
+      };
+    }
+    case "idle":
+    default: {
+      return {
+        propBounds: { x: 0, y: 0, width: 0, height: 0 },
+        primaryAnchor: { x: centerX, y: centerY },
+        secondaryAnchor: { x: centerX, y: centerY },
+        strokeColorHex: "#64D2FF",
+        handLeft: { x: centerX - diameter * 0.20, y: centerY + diameter * 0.18 },
+        handRight: { x: centerX + diameter * 0.20, y: centerY + diameter * 0.18 }
+      };
+    }
+  }
+}
+
+function drawExpandedMascot(ctx, width, height, action, shape, provider, lookX, lookY, phase) {
+  const side = Math.min(width, height);
+  if (side < 16) return;
+  const ox = (width - side) / 2;
+  const oy = (height - side) / 2;
+  const tint = getProviderBadgeColor(provider);
+
+  ctx.save();
+  ctx.translate(ox, oy);
+
+  const r = side / 2;
+
+  // 1. Top Flame Crown Tuft
+  ctx.save();
+  ctx.shadowColor = tint;
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = "rgba(240, 248, 255, 0.85)";
+  const tuftBaseY = side * 0.24;
+  const tuftHalfW = side * 0.11;
+  ctx.beginPath();
+  ctx.moveTo(r - tuftHalfW, tuftBaseY);
+  ctx.quadraticCurveTo(r - tuftHalfW * 0.85, side * 0.14, r - tuftHalfW * 0.3, side * 0.09);
+  ctx.quadraticCurveTo(r - tuftHalfW * 0.15, 3.0, r, 2.0);
+  ctx.quadraticCurveTo(r + tuftHalfW * 0.15, 3.0, r + tuftHalfW * 0.3, side * 0.09);
+  ctx.quadraticCurveTo(r + tuftHalfW * 0.85, side * 0.14, r + tuftHalfW, tuftBaseY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // 2. Glassmorphic Body Fill & Rim Stroke
+  ctx.shadowColor = tint;
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = "rgba(220, 235, 255, 0.25)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+  ctx.lineWidth = 1.8;
+
+  ctx.beginPath();
+  if (shape === "squircle") {
+    if (typeof ctx.roundRect === "function") {
+      ctx.roundRect(4, 4, side - 8, side - 8, r * 0.48);
+    } else {
+      ctx.rect(4, 4, side - 8, side - 8);
+    }
+  } else if (shape === "orb") {
+    ctx.arc(r, r, r - 4, 0, Math.PI * 2);
+  } else {
+    // flame wisp
+    ctx.moveTo(r, 4);
+    ctx.quadraticCurveTo(side - 4, r, r, side - 4);
+    ctx.quadraticCurveTo(4, r, r, 4);
+  }
+  ctx.fill();
+  ctx.stroke();
+
+  // 3. Floating Harmonic AI Core (oscillation amplitude = 2.5)
+  const yFloat = Math.sin(phase * Math.PI * 2) * 2.5;
+  ctx.shadowColor = tint;
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = tint;
+  ctx.beginPath();
+  ctx.arc(r, r + 4 + yFloat, 7, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 4. Expressive Character Face
+  ctx.shadowBlur = 0;
+  const face = expandedFaceGeometry({ x: 0, y: 0, width: side, height: side }, lookX, lookY);
+
+  // Soft Rosy Blush Cheeks (#FF85A1)
+  ctx.fillStyle = "rgba(255, 133, 161, 0.45)";
+  ctx.beginPath();
+  ctx.arc(face.leftCheekCenter.x, face.leftCheekCenter.y, face.cheekRadius, 0, Math.PI * 2);
+  ctx.arc(face.rightCheekCenter.x, face.rightCheekCenter.y, face.cheekRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Eyes
+  const eyeColor = "rgba(20, 26, 46, 0.95)";
+  ctx.fillStyle = eyeColor;
+  ctx.beginPath();
+  ctx.arc(face.leftEye.x, face.leftEye.y, face.eyeSize.width / 2, 0, Math.PI * 2);
+  ctx.arc(face.rightEye.x, face.rightEye.y, face.eyeSize.width / 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Specular Highlights
+  const primR = Math.max(1.2, face.eyeSize.width * 0.25);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+  ctx.beginPath();
+  ctx.arc(face.leftSpecularPrimary.x, face.leftSpecularPrimary.y, primR, 0, Math.PI * 2);
+  ctx.arc(face.rightSpecularPrimary.x, face.rightSpecularPrimary.y, primR, 0, Math.PI * 2);
+  ctx.fill();
+
+  const secR = Math.max(0.6, face.eyeSize.width * 0.13);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.70)";
+  ctx.beginPath();
+  ctx.arc(face.leftSpecularSecondary.x, face.leftSpecularSecondary.y, secR, 0, Math.PI * 2);
+  ctx.arc(face.rightSpecularSecondary.x, face.rightSpecularSecondary.y, secR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Cute Mouth Arc
+  ctx.strokeStyle = "rgba(30, 36, 56, 0.85)";
+  ctx.lineWidth = Math.max(1.4, face.mouthWidth * 0.20);
+  ctx.beginPath();
+  const mw = face.mouthWidth;
+  const mc = face.mouthCenter;
+  if (action === "reading" || action === "thinking") {
+    ctx.arc(mc.x, mc.y, mw * 0.25, 0, Math.PI * 2);
+  } else if (action === "error") {
+    ctx.moveTo(mc.x - mw * 0.5, mc.y);
+    ctx.quadraticCurveTo(mc.x, mc.y - mw * 0.45, mc.x + mw * 0.5, mc.y);
+  } else {
+    // smile
+    ctx.moveTo(mc.x - mw * 0.5, mc.y - 0.5);
+    ctx.quadraticCurveTo(mc.x, mc.y + mw * 0.45, mc.x + mw * 0.5, mc.y - 0.5);
+  }
+  ctx.stroke();
+
+  // 5. Action Props & Spirit Hands
+  const props = expandedActionPropsGeometry({ x: 0, y: 0, width: side, height: side }, action);
+  ctx.lineWidth = 1.5;
+
+  if (action === "writing") {
+    ctx.strokeStyle = props.strokeColorHex;
+    ctx.strokeRect(props.propBounds.x, props.propBounds.y, props.propBounds.width, props.propBounds.height);
+    ctx.beginPath();
+    ctx.moveTo(props.primaryAnchor.x, props.primaryAnchor.y);
+    ctx.lineTo(props.secondaryAnchor.x, props.secondaryAnchor.y);
+    ctx.stroke();
+  } else if (action === "reading") {
+    ctx.strokeStyle = props.strokeColorHex;
+    ctx.beginPath();
+    ctx.moveTo(props.propBounds.x, props.propBounds.y);
+    ctx.lineTo(r, props.propBounds.y + 2);
+    ctx.lineTo(props.propBounds.x + props.propBounds.width, props.propBounds.y);
+    ctx.moveTo(r, props.propBounds.y + 2);
+    ctx.lineTo(r, props.propBounds.y + props.propBounds.height);
+    ctx.stroke();
+  } else if (action === "thinking") {
+    ctx.strokeStyle = props.strokeColorHex;
+    ctx.beginPath();
+    ctx.arc(props.primaryAnchor.x, props.primaryAnchor.y, props.propBounds.width * 0.4, 0, Math.PI * 1.5);
+    ctx.stroke();
+  } else if (action === "approval") {
+    ctx.strokeStyle = props.strokeColorHex;
+    ctx.strokeRect(props.propBounds.x, props.propBounds.y, props.propBounds.width, props.propBounds.height);
+  } else if (action === "error") {
+    ctx.strokeStyle = props.strokeColorHex;
+    ctx.beginPath();
+    ctx.moveTo(props.primaryAnchor.x, props.primaryAnchor.y);
+    ctx.lineTo(props.secondaryAnchor.x, props.secondaryAnchor.y);
+    ctx.moveTo(props.secondaryAnchor.x, props.primaryAnchor.y);
+    ctx.lineTo(props.primaryAnchor.x, props.secondaryAnchor.y);
+    ctx.stroke();
+  }
+
+  // Spirit hands / paws
+  const handR = Math.max(3.0, side * 0.055);
+  ctx.fillStyle = "rgba(240, 248, 255, 0.85)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.60)";
+  ctx.lineWidth = 1.0;
+  ctx.beginPath();
+  ctx.arc(props.handLeft.x, props.handLeft.y, handR, 0, Math.PI * 2);
+  ctx.arc(props.handRight.x, props.handRight.y, handR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// --- State and Interaction Setup ---
+let notchShape = "squircle";
+let pillShape = "squircle";
+let expandedShape = "squircle";
+let expandedAction = "writing";
+let expandedProvider = "antigravity";
+let globalLookX = 0;
+let globalLookY = 0;
+
+function setNotchShape(s) {
+  notchShape = s;
+  document.querySelectorAll('.control-group button').forEach(b => {
+    if (['Сквиркл','Сфера','Огонёк'].includes(b.textContent.trim())) {
+      b.classList.toggle('active', b.textContent.trim() === (s === 'squircle' ? 'Сквиркл' : s === 'orb' ? 'Сфера' : 'Огонёк'));
+    }
+  });
+}
+
+function setPillShape(s) {
+  pillShape = s;
+  document.getElementById('pillShapeSquircle').classList.toggle('active', s === 'squircle');
+  document.getElementById('pillShapeOrb').classList.toggle('active', s === 'orb');
+  document.getElementById('pillShapeFlame').classList.toggle('active', s === 'flame');
+}
+
+function setExpandedShape(s) {
+  expandedShape = s;
+  updateExpandedButtons();
+}
+
+function setExpandedAction(a) {
+  expandedAction = a;
+  const labels = {
+    writing: "✍️ Writing (Tablet + Stylus)",
+    reading: "📖 Reading (Codex Book)",
+    thinking: "💡 Thinking (Celestial Orbit)",
+    approval: "🛡️ Approval (Security Shield)",
+    idle: "💤 Idle (Breathing State)",
+    error: "⚠️ Error (Warning Spark)"
+  };
+  document.getElementById('actionLabel').textContent = labels[a] || a;
+  updateExpandedButtons();
+}
+
+function setExpandedProvider(p) {
+  expandedProvider = p;
+  updateExpandedButtons();
+}
+
+function updateExpandedButtons() {
+  document.querySelectorAll('.expanded-controls .btn').forEach(btn => {
+    const txt = btn.textContent.toLowerCase();
+    if (txt.includes('writing') && expandedAction === 'writing') btn.classList.add('active');
+    else if (txt.includes('reading') && expandedAction === 'reading') btn.classList.add('active');
+    else if (txt.includes('thinking') && expandedAction === 'thinking') btn.classList.add('active');
+    else if (txt.includes('approval') && expandedAction === 'approval') btn.classList.add('active');
+    else if (txt.includes('idle') && expandedAction === 'idle') btn.classList.add('active');
+    else if (txt.includes('error') && expandedAction === 'error') btn.classList.add('active');
+    else if (txt.includes('antigravity') && expandedProvider === 'antigravity') btn.classList.add('active');
+    else if (txt.includes('claude') && expandedProvider === 'claude') btn.classList.add('active');
+    else if (txt.includes('gemini') && expandedProvider === 'gemini') btn.classList.add('active');
+    else if (txt.includes('openai') && expandedProvider === 'openai') btn.classList.add('active');
+    else if (txt.includes('сквиркл') && expandedShape === 'squircle') btn.classList.add('active');
+    else if (txt.includes('сфера') && expandedShape === 'orb') btn.classList.add('active');
+    else if (txt.includes('огонёк') && expandedShape === 'flame') btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+}
+
+// Mouse tracking for eyes
+document.getElementById('pillsTrackArea').addEventListener('mousemove', (e) => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  globalLookX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  globalLookY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+});
+document.getElementById('pillsTrackArea').addEventListener('mouseleave', () => {
+  globalLookX = 0;
+  globalLookY = 0;
+});
+
+let expandedLookX = 0;
+let expandedLookY = 0;
+document.getElementById('expandedTrackArea').addEventListener('mousemove', (e) => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  expandedLookX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  expandedLookY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+});
+document.getElementById('expandedTrackArea').addEventListener('mouseleave', () => {
+  expandedLookX = 0;
+  expandedLookY = 0;
+});
+
+// Overhang Slider
+const overhangSlider = document.getElementById('overhangSlider');
+const overhangVal = document.getElementById('overhangVal');
+const offsetVal = document.getElementById('offsetVal');
+overhangSlider.addEventListener('input', (e) => {
+  const ov = parseInt(e.target.value, 10);
+  overhangVal.textContent = ov + " px";
+  offsetVal.textContent = "+" + (ov / 2) + " px";
+});
+
+// --- Main Render Loop (60 FPS) ---
+const notchCanvas = document.getElementById('notchCanvas');
+const notchCtx = notchCanvas.getContext('2d');
+
+const pillClaude = document.getElementById('pillClaude').getContext('2d');
+const pillGemini = document.getElementById('pillGemini').getContext('2d');
+const pillAntigravity = document.getElementById('pillAntigravity').getContext('2d');
+const pillOpenAI = document.getElementById('pillOpenAI').getContext('2d');
+
+const expandedCtx = document.getElementById('expandedCanvas').getContext('2d');
+
+function render(time) {
+  const seconds = time / 1000.0;
+  const phase = (seconds % 2.0) / 2.0;
+
+  // 1. Render Notch Canvas (80x144 retina for 40x72 display)
+  notchCtx.clearRect(0, 0, 80, 144);
+  const currentOverhang = parseInt(overhangSlider.value, 10);
+  // ShapeshifterGeometry: verticalOffset = particleOverhang / 2
+  // Clamped resting notch size: width <= 26, height <= 26
+  const notchTargetSize = Math.min(26, 40);
+  const yOffset = currentOverhang / 2;
+  const drawY = 144 - (notchTargetSize * 2) - 4 + (yOffset * 0.5);
+
+  notchCtx.save();
+  // Draw subtle boundary guide
+  notchCtx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+  notchCtx.setLineDash([2, 2]);
+  notchCtx.strokeRect(14, 144 - (notchTargetSize * 2) - 4, notchTargetSize * 2, notchTargetSize * 2);
+  notchCtx.restore();
+
+  notchCtx.save();
+  notchCtx.translate(14, drawY);
+  drawCompactMascot(notchCtx, notchTargetSize * 2, notchTargetSize * 2, 0, 0, notchShape, "antigravity", false);
+  notchCtx.restore();
+
+  // 2. Render Mini Pills (64x64 buffer for 32x32 retina display)
+  const drawPill = (ctx, provider, lookOffset) => {
+    ctx.clearRect(0, 0, 64, 64);
+    drawCompactMascot(ctx, 64, 64, globalLookX + lookOffset, globalLookY, pillShape, provider, true);
+  };
+  drawPill(pillClaude, "claude", -0.1);
+  drawPill(pillGemini, "gemini", 0.0);
+  drawPill(pillAntigravity, "antigravity", 0.1);
+  drawPill(pillOpenAI, "openai", 0.0);
+
+  // 3. Render Expanded Mascot (240x240 buffer for 120x120 retina display)
+  expandedCtx.clearRect(0, 0, 240, 240);
+  drawExpandedMascot(
+    expandedCtx, 240, 240,
+    expandedAction, expandedShape, expandedProvider,
+    expandedLookX, expandedLookY, phase
+  );
+
+  requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
+</script>
 
 </body>
 </html>

@@ -260,7 +260,7 @@ private struct HubSidebar: View {
             HStack(spacing: 10) {
                 // The scene draws Mochi a little below its middle (room for his
                 // hops and hats): lifted so his body lines up with the name.
-                HubLiveMochi(size: 28)
+                HubLiveMascot(size: 28)
                     .offset(y: -4)
                 Text(verbatim: "Coucou")
                     .font(.system(size: 18, weight: .bold))
