@@ -1,5 +1,11 @@
 # Astral Morph Mascot Visual Redesign Implementation Plan
 
+> **Historical implementation plan.** Do not restore its dark eyes, blush, core
+> or procedural appearance as the approved Astral design.
+> Read [the current design](../../MASCOT_DESIGN_SPEC.md) and
+> [the handoff](../../MASCOT_HANDOFF.md). Remaining instructions describe the earlier
+> implementation approach, not a new authorization to execute that plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Overhaul the visual appearance, character expressiveness, geometry alignment, and secondary surface presence of the Astral Morph mascot across macOS (`NotchBuddy`) and Windows (`windows/`), transforming wireframes and generic circles into an adorable, luminous spirit character with big glossy eyes, flame crown, blush cheeks, floating AI core, action props, and 24 FPS sprite animation support with procedural vector fallback.

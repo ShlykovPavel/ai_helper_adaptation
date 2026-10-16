@@ -1,5 +1,11 @@
 # Astral Morph Mascot Implementation Plan
 
+> **Historical implementation plan.** Do not execute this plan as the current task.
+> Its floating core, visual requirements, frame counts and completion assumptions
+> are superseded by [the current design](../../MASCOT_DESIGN_SPEC.md).
+> Start with [the handoff](../../MASCOT_HANDOFF.md). Follow the current user task;
+> approved PNG assets do not imply completed frame animation or native integration.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Implement the "Astral Morph" (Shapeshifter) mascot for macOS (`NotchBuddy`) and Windows (`windows/`), featuring 2-tier Level-of-Detail (Compact 20–32px and Expanded 64–120px), floating AI core rendering, 24 FPS sprite animation with 0% CPU idle state, and zero-breakage Facade integration with upstream Coucou code.

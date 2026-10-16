@@ -9,7 +9,7 @@ Coucou is a native macOS app (`NotchBuddy/`); `windows/` is the Tauri version fo
 - `docs/tunnelguard/TUNNELGUARD.md` — TunnelGuard VPN watchdog & kill-switch architecture, L1 hook gate and L2 daemon.
 - `docs/tunnelguard/FORK_SYNC.md` — Fork update and upstream sync guide.
 - `docs/tunnelguard/BUILD_MACOS.md` — macOS build and execution instructions.
-- `design/prototype/notch-buddy.html` — original prototype, the visual source of truth. `design/captures/` — target screenshots.
+- `design/prototype/notch-buddy.html` and `design/captures/` — original Mochi/interface references. For the approved Astral redesign, start with `docs/MASCOT_HANDOFF.md` and `docs/MASCOT_DESIGN_SPEC.md`; saved PNG masters override early concept art for character appearance.
 - `windows/` — the Tauri app for Windows and Linux: Rust in `src-tauri/`, TypeScript in `src/`, the `coucou-hook` relay in `hook/`. `windows/README.md` lists what differs from the Mac.
 - `docs/*.html` — the GitHub Pages site (privacy, terms, support, legal notice).
 - `relay/` — the Coucou relay, a stateless Cloudflare Worker that forwards the iPhone Live Activity pushes (it holds the APNs key, which must never ship in an app). See `relay/README.md`.
@@ -21,7 +21,7 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 Windows and Linux: `cd windows && npm install && npm run tauri dev`
 
 ## Rules
-- Swift 6, SwiftUI + AppKit. No third-party dependencies unless truly unavoidable. The character is drawn in code (`Canvas` + `TimelineView`), no Rive/Lottie/images.
+- Swift 6, SwiftUI + AppKit. No third-party dependencies unless truly unavoidable. Original Mochi uses `Canvas` + `TimelineView`. The user explicitly selected PNG artwork, replaceable SVG logos and a future sprite workflow for Astral; follow `docs/MASCOT_DESIGN_SPEC.md` for that scope. Approved files exist, but their native integration and actual animation frames are not implemented yet. Do not add Rive/Lottie as an incidental dependency.
 - Secrets live in the Keychain, never on disk or in git.
 - No telemetry. Network calls only to services the user configured.
 - Never block Claude Code: if the app doesn't answer, the hook exits immediately.

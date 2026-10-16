@@ -28,6 +28,13 @@ Approve permissions, watch your agents work, drop a file, chat with Claude — a
 
 ---
 
+## Mascot design in this fork
+
+Start with [the Astral handoff](docs/MASCOT_HANDOFF.md) and
+[the current design specification](docs/MASCOT_DESIGN_SPEC.md).
+Approved artwork and logos are saved in `design/mascot/astral-v2/`;
+frame animation and native integration of those images remain future work.
+
 ## Why
 
 Some studios showed off gorgeous notch companions… and never let anyone use them.
