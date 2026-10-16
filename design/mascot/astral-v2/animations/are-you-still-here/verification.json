@@ -1,0 +1,27 @@
+{
+  "uniqueDrawings": 32,
+  "displayTicks": 96,
+  "durationMs": 4000,
+  "displayFps": 24,
+  "nominalNewDrawingsPerSecond": 8,
+  "transparentFrames": 32,
+  "timelineDistinctDrawings": 32,
+  "maxBorderAlpha": 1,
+  "exactRepeatedEndpoint": true,
+  "generatedEndDiffBounds": [
+    20,
+    0,
+    372,
+    381
+  ],
+  "previews": {
+    "preview.webp": {
+      "encodedFrames": 33,
+      "durationMs": 4000
+    },
+    "preview-light.gif": {
+      "encodedFrames": 33,
+      "durationMs": 4000
+    }
+  }
+}

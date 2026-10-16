@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Astral — Ты ещё тут? · черновая анимация</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101620;color:#e8edf8;font:15px/1.5 system-ui,sans-serif;padding:28px}main{max-width:1060px;margin:auto}h1{font-size:26px;margin:0 0 8px}.note{color:#b7c3d9;max-width:850px}a{color:#a9d1ff}.stages{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}.stage{min-height:340px;border-radius:20px;display:flex;align-items:center;justify-content:center;position:relative;border:1px solid #364154}.stage.dark{background:#111720}.stage.light{background:#edf0f5;color:#263143}.stage>span{position:absolute;left:16px;top:12px;font-size:13px}canvas{display:block;width:280px;height:280px}.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}button,select{font:inherit;color:inherit;border:1px solid #4e5e77;border-radius:9px;background:#212d3d;padding:8px 12px;cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #a4ceff}input[type=range]{width:100%;margin:20px 0}output{font-variant-numeric:tabular-nums}.small{display:flex;gap:32px;align-items:end;padding:22px;background:#202938;border-radius:12px;margin-top:20px}.mini canvas{width:var(--s);height:var(--s);margin:10px auto}.mini{text-align:center}.error{color:#ff9e9e}details{margin-top:24px}img.sheet{width:100%;height:auto;background:#18202e;border-radius:12px}@media(max-width:650px){body{padding:16px}.stages{grid-template-columns:1fr}.stage{min-height:310px}canvas{width:260px;height:260px}}
+</style>
+<main>
+<h1>«Ты ещё тут?»</h1>
+<p class="note">Черновой покадровый цикл Astral: <strong>32 уникальных рисунка imagegen, 4 секунды, 8 новых поз/с</strong>. Таймлайн — 96 тактов при 24 fps с удержанием рисунков. Это проба для ревью; плавность 24 уникальных рисунка/с ещё не достигнута.</p>
+<div class="stages"><div class="stage dark"><span>Тёмный фон · 280 px</span><canvas width="384" height="384" aria-label="Анимация на тёмном фоне"></canvas></div><div class="stage light"><span>Светлый фон · 280 px</span><canvas width="384" height="384" aria-label="Анимация на светлом фоне"></canvas></div></div>
+<div class="controls"><button id="play" type="button">Пауза</button><button id="prev" type="button" aria-label="Предыдущий такт">← Такт</button><button id="next" type="button" aria-label="Следующий такт">Такт →</button><label>Скорость <select id="speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option></select></label><output id="status" aria-live="off"></output></div>
+<input id="seek" aria-label="Покадровый просмотр, такт 0–95" type="range" min="0" max="95" step="1" value="0">
+<div class="small"><div class="mini" style="--s:26px"><canvas width="384" height="384" aria-label="Превью 26 пикселей"></canvas>26 px</div><div class="mini" style="--s:64px"><canvas width="384" height="384" aria-label="Превью 64 пикселя"></canvas>64 px</div><span class="note">Реальные рисунки меняются: лапки, волны, поворот, наклон и одно короткое моргание. CSS не деформирует персонажа.</span></div>
+<p class="note">Последний такт повторяет точный рисунок начала. Это замыкает позу, но не гарантирует незаметный стык: различия соседних сгенерированных кадров и света требуют доработки. В приложение цикл не подключён.</p>
+<p><a href="preview.webp">WebP с прозрачностью</a> · <a href="preview-light.gif">GIF на светлом фоне</a> · <a href="atlas.png">Атлас PNG</a> · <a href="atlas.json">Метаданные</a> · <a href="report.md">Отчёт</a></p>
+<details><summary>Первый лист ключевых поз</summary><img class="sheet" src="key-poses-dark.jpg" alt="Восемь ключевых поз на тёмном фоне"></details>
+<p id="error" class="error" role="alert"></p>
+</main>
+<script>
+'use strict';
+const meta=__METADATA__;
+const canvases=[...document.querySelectorAll('canvas')],contexts=canvases.map(c=>c.getContext('2d'));
+const play=document.getElementById('play'),seek=document.getElementById('seek'),status=document.getElementById('status'),speed=document.getElementById('speed');
+let tick=0,running=!matchMedia('(prefers-reduced-motion: reduce)').matches,lastTime=0,carry=0,raf=0,loaded=false;
+const atlas=new Image();
+function paint(){
+ const f=meta.frames[meta.ticks[tick]],r=f.atlasRect;
+ for(const ctx of contexts){ctx.clearRect(0,0,384,384);ctx.drawImage(atlas,r[0],r[1],r[2],r[3],0,0,384,384)}
+ seek.value=tick;status.textContent=`${(tick/24).toFixed(3)} с · такт ${tick+1}/96 · рисунок ${f.id+1}/32`;
+}
+function label(){play.textContent=running?'Пауза':'Воспроизвести';play.setAttribute('aria-pressed',String(running))}
+function step(now){
+ if(!running||document.hidden){raf=0;return}
+ if(lastTime)carry+=(now-lastTime)*Number(speed.value);lastTime=now;
+ const count=Math.floor(carry/(1000/24));
+ if(count){carry-=count*(1000/24);tick=(tick+count)%96;paint()}
+ raf=requestAnimationFrame(step);
+}
+function start(){lastTime=0;if(running&&loaded&&!document.hidden&&!raf)raf=requestAnimationFrame(step)}
+function pause(){running=false;cancelAnimationFrame(raf);raf=0;lastTime=0;carry=0;label()}
+play.onclick=()=>{running=!running;label();if(running)start();else{cancelAnimationFrame(raf);raf=0;lastTime=0}};
+document.getElementById('prev').onclick=()=>{pause();tick=(tick+95)%96;paint()};
+document.getElementById('next').onclick=()=>{pause();tick=(tick+1)%96;paint()};
+seek.oninput=()=>{pause();tick=Number(seek.value);paint()};
+document.addEventListener('visibilitychange',()=>{cancelAnimationFrame(raf);raf=0;lastTime=0;start()});
+atlas.onload=()=>{loaded=true;paint();label();start()};
+atlas.onerror=()=>{document.getElementById('error').textContent='Не удалось загрузить atlas.png. Откройте index.html рядом с файлами атласа.'};
+atlas.src=meta.atlas;label();
+</script></html>

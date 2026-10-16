@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-16",
+  "tool": "built-in image_gen.imagegen",
+  "fallbackCLIUsed": false,
+  "transparent_background": true,
+  "masterReference": "design/mascot/astral-v2/astral-idle-master.png",
+  "masterSha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b",
+  "prompts": {
+    "key-poses": "Use case: identity-preserve.\nAsset type: transparent key-pose sheet for an actual frame-by-frame 4-second idle animation of Astral Morph, called \"Are you still here?\".\nInput image 1 is the identity reference, NOT a background. Preserve this exact icy pearl frosted glass ghost character: rounded dome, two small paw flippers, exactly three soft lower scallops, exactly two glowing white vertical oval eyes. Soft upper-left studio illumination, pale silver-blue glass with subtle lilac/cyan edges. No pupils, no mouth, no nose, no blush, no inner core, no logos, no props, no shadow or floor.\nCreate ONE image with exactly 8 separate complete poses in a strict 4-column by 2-row regular grid. All 8 cells have the same dimensions and same fixed camera, body scale, eye size and lighting. Keep at least 12% fully transparent padding inside every cell. True alpha background, no checkerboard drawn, no cell borders, no text, no labels.\nRead order left-to-right then next row, these are successive key poses: 1 neutral front looking at viewer, 2 gently risen 3% with paws hanging slightly lower and lower scallops swaying, 3 risen and starting a subtle 12-degree turn toward image-right with one paw slightly behind, 4 small three-quarter turn right only 18 degrees (both eyes visible), 5 returning front with a curious 6-degree lean (genuine changed body silhouette and asymmetric paws), 6 same curious lean with both eyes closed into soft short white eyelid arcs (one blink), 7 front eyes open, gently squashed body with three lower scallops flexed, 8 restored toward neutral front to close a loop. These must be genuinely redrawn coherent poses, not repeated copies moved around. Tiny gentle motion, maintain original identity and face spacing. Rendered game character sprites, clean isolated alpha. No decorative elements.",
+    "part-1": "Use case: identity-preserve.\nAsset type: true transparent sprite sheet; part 1 of a gentle 4-second idle loop, 16 real consecutive animation drawings covering time 0.000 to 1.875 s, each held for 125 ms.\nImage 1 is the approved identity master. Image 2 is the eight-pose storyboard; use its poses 1–4 as guidance, but keep the solid frosted silver-blue pearl-glass material and silhouette of image 1. No hollow glass shell.\nCreate exactly 16 complete isolated sprites in a STRICT 4 columns x 4 rows uniform grid, read left-to-right, row by row. A square sheet with square cells. Same camera, same nominal body scale, exactly two small paws, three lower scallops, and two glowing white vertical oval eyes in EVERY cell. Eyes open throughout this part. No pupils, mouth, nose, blush, core, logo, text, grid lines, ground, shadow, props. Actual transparent alpha background. Leave at least 10% empty transparent margin around every pose inside its cell, all parts safely contained. Lighting absolutely stable, upper-left soft highlight, same icy pale blue/lilac color. No labels.\nMake a coherent sequence with SMALL gradual differences in silhouette and pose, not 16 unrelated poses:\nrow 1: neutral front -> tiny lift begins -> body rises while paws lag -> lift continues, lower three waves softly sway.\nrow 2: rising gradually reaches 3% lift -> paws catch up -> lower waves sway back -> settles at top, still near-front.\nrow 3: starts small turn toward image-right at 0, 4, 8, 12 degrees -> both eyes remain visible, farther paw gradually recedes but remains visible.\nrow 4: 15-degree turn -> 18-degree turn -> holds with gently changing paws and waves -> starts returning toward front at about 14 degrees.\nPreserve face eye size and spacing by perspective, no jumps or random blinking. Real organic soft-body changes drawn in the sprites; no decorative effects or movement lines. Body center must follow one slow smooth path with only a small vertical lift, never random cell-to-cell repositioning. High-fidelity production game sprite artwork.",
+    "part-2": "Use case: identity-preserve.\nAsset type: true transparent sprite sheet, part 2 of a four-second idle loop, exactly 16 successive drawings for time 2.000 through 3.875 s, each held for 125 ms.\nImage 1 is the canonical character identity. Image 2 is part 1 of THIS animation; MATCH EXACTLY its character scale relative to each cell, camera, face size, material density, lighting, color and transparent padding. Continue from its last sprite (bottom-right), which has already returned near front. The future loop ends at the EXACT starting pose of image 2 (top-left); draw the final phases approaching that starting pose very closely.\nOutput exactly 16 sprites in a strict uniform 4 columns x 4 rows SQUARE grid. Read left to right, row by row, square cells. Full-body character entirely within each cell, same nominal size and anchor as image 2; leave 10% transparent safety margins. Actual alpha transparency, no painted checkerboard, no ground or shadow, no borders, text, marks or labels.\nPreserve the frosted dense icy silver-blue pearl-glass ghost, dome head, three lower scallops, two small paw flippers held close to the body (NEVER detached or long dangling arms), and two glowing white oval eyes. No pupils, nose, mouth, cheeks, blush, inner core, logo, props. Upper-left soft highlight stays fixed and gentle, no random light/color shifts. Keep similar solid pearlescent appearance, not hollow transparent shell.\nRow 1: continue near-front return; 4 subtle progressive drawings from a nearly front body into a curious 6-degree lean toward image-left. Both little paws stay nestled close, with subtle independent lag and gentle swaying of all three lower scallops. Keep both eyes open.\nRow 2: curious lean gently stabilizes. Cell 1 eyes open; cell 2 eyes open; cell 3 BOTH eyes closed as two short white soft arcs for a SINGLE short blink; cell 4 both eyes fully open again and body begins returning upright. Only ONE closed-eye sprite in the entire sheet.\nRow 3: upright front; body gradually compresses softly by about 5% in height, 3% wider, paws follow and three lower waves curl slightly upward; gradual squash then begins to release, open eyes.\nRow 4: gradual soft spring release and settling, approaching the precise starting sprite in image 2 top-left: centered front, same height, width, eye positions, paws, lower waves and lighting. Final cell visually as close as possible to that starting sprite, NOT an exaggerated extra pose. Tiny genuine drawn organic shape changes, no fixed sprite transformed across cells. High-fidelity game sprite artwork."
+  },
+  "artifacts": [
+    {
+      "file": "key-poses-generated.png",
+      "sha256": "a829d68862a9df7607bfffc552752c7ff57f8f0eb39f85142b1d1b494a824be5",
+      "origin": "/Users/pavel/.codex/generated_images/01a14509-baf7-7ed0-81ea-89f3c3084c65/exec-1ffd19a7-df3d-4329-8ab5-b9dd4807b696.png"
+    },
+    {
+      "file": "part-1-generated.png",
+      "sha256": "84adec5b2bd22cc34aed359d900373d217555464738b8fc61c163c2eb4fce1d0",
+      "origin": "/Users/pavel/.codex/generated_images/01a14509-baf7-7ed0-81ea-89f3c3084c65/exec-67d66aee-d3a9-4ec0-b06b-cf3e2e2e571b.png"
+    },
+    {
+      "file": "part-2-generated.png",
+      "sha256": "111ce432fab29bb61975e6cdcb65b5cedae897c3848114459ddcc7ae5c44921e",
+      "origin": "/Users/pavel/.codex/generated_images/01a14509-baf7-7ed0-81ea-89f3c3084c65/exec-6b46a298-cf6f-4830-914e-d2a53d934536.png"
+    }
+  ],
+  "referenceOrder": {
+    "key-poses": [
+      "design/mascot/astral-v2/astral-idle-master.png"
+    ],
+    "part-1": [
+      "design/mascot/astral-v2/astral-idle-master.png",
+      "design/mascot/astral-v2/animations/are-you-still-here/key-poses-generated.png"
+    ],
+    "part-2": [
+      "design/mascot/astral-v2/astral-idle-master.png",
+      "design/mascot/astral-v2/animations/are-you-still-here/part-1-generated.png"
+    ]
+  }
+}

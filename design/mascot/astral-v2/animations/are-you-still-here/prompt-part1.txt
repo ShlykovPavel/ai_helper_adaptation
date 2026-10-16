@@ -1,0 +1,10 @@
+Use case: identity-preserve.
+Asset type: true transparent sprite sheet; part 1 of a gentle 4-second idle loop, 16 real consecutive animation drawings covering time 0.000 to 1.875 s, each held for 125 ms.
+Image 1 is the approved identity master. Image 2 is the eight-pose storyboard; use its poses 1–4 as guidance, but keep the solid frosted silver-blue pearl-glass material and silhouette of image 1. No hollow glass shell.
+Create exactly 16 complete isolated sprites in a STRICT 4 columns x 4 rows uniform grid, read left-to-right, row by row. A square sheet with square cells. Same camera, same nominal body scale, exactly two small paws, three lower scallops, and two glowing white vertical oval eyes in EVERY cell. Eyes open throughout this part. No pupils, mouth, nose, blush, core, logo, text, grid lines, ground, shadow, props. Actual transparent alpha background. Leave at least 10% empty transparent margin around every pose inside its cell, all parts safely contained. Lighting absolutely stable, upper-left soft highlight, same icy pale blue/lilac color. No labels.
+Make a coherent sequence with SMALL gradual differences in silhouette and pose, not 16 unrelated poses:
+row 1: neutral front -> tiny lift begins -> body rises while paws lag -> lift continues, lower three waves softly sway.
+row 2: rising gradually reaches 3% lift -> paws catch up -> lower waves sway back -> settles at top, still near-front.
+row 3: starts small turn toward image-right at 0, 4, 8, 12 degrees -> both eyes remain visible, farther paw gradually recedes but remains visible.
+row 4: 15-degree turn -> 18-degree turn -> holds with gently changing paws and waves -> starts returning toward front at about 14 degrees.
+Preserve face eye size and spacing by perspective, no jumps or random blinking. Real organic soft-body changes drawn in the sprites; no decorative effects or movement lines. Body center must follow one slow smooth path with only a small vertical lift, never random cell-to-cell repositioning. High-fidelity production game sprite artwork.
