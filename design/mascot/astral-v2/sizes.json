@@ -1,0 +1,2743 @@
+{
+  "schema": 1,
+  "state": "idle",
+  "core": false,
+  "master": "astral-idle-master.png",
+  "master_sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b",
+  "normalized": "astral-idle-normalized.png",
+  "normalized_sha256": "c3607a44cef86575ff3ae1f64ecf88dfe26d5d33d41410fb14f1f729986da8a5",
+  "normalization_crop": {
+    "x": 119,
+    "y": 133,
+    "width": 1016,
+    "height": 1016
+  },
+  "logical_sizes": [
+    12,
+    13,
+    16,
+    18,
+    20,
+    22,
+    24,
+    26,
+    28,
+    30,
+    32,
+    34,
+    36,
+    40,
+    42,
+    44,
+    46,
+    48,
+    50,
+    52,
+    54,
+    56,
+    58,
+    60,
+    62,
+    64,
+    66,
+    70,
+    72,
+    74,
+    76,
+    77,
+    84,
+    87,
+    88,
+    94,
+    96,
+    97,
+    104,
+    108,
+    110,
+    112,
+    120,
+    132,
+    140,
+    150,
+    160,
+    170,
+    240
+  ],
+  "scales": [
+    1,
+    1.5,
+    2,
+    3,
+    4
+  ],
+  "groups": [
+    {
+      "surface": "macOS: mini agents, notch, pills, Hub header",
+      "sizes": [
+        12,
+        16,
+        18,
+        20,
+        22,
+        24,
+        26,
+        28
+      ],
+      "sources": [
+        "NotchBuddy/Sources/App/IslandRootView.swift",
+        "NotchBuddy/Sources/App/IslandViewContent.swift",
+        "NotchBuddy/Sources/App/SpotifyViews.swift",
+        "NotchBuddy/Sources/App/BotCanvasView.swift",
+        "NotchBuddy/Sources/App/FlowHub.swift",
+        "NotchBuddy/Sources/CoucouKit/Mascots/Shapeshifter/MascotTypes.swift"
+      ]
+    },
+    {
+      "surface": "macOS / Windows: island layout body diameters",
+      "sizes": [
+        20,
+        44,
+        46,
+        50,
+        52,
+        56,
+        58,
+        62,
+        66
+      ],
+      "sources": [
+        "NotchBuddy/Sources/CoucouKit/IslandTypes.swift",
+        "windows/src/core/layout.ts"
+      ]
+    },
+    {
+      "surface": "macOS / Windows: raster ceilings of expanded canvas sizes (diameter / 0.6)",
+      "sizes": [
+        44,
+        74,
+        77,
+        84,
+        87,
+        94,
+        97,
+        104,
+        110
+      ],
+      "sources": [
+        "NotchBuddy/Sources/App/IslandRootView.swift",
+        "NotchBuddy/Sources/CoucouKit/Mascots/Shapeshifter/MascotTypes.swift",
+        "windows/src/island/island.ts"
+      ]
+    },
+    {
+      "surface": "macOS: Hub cast, empty states, hero, desktop panel",
+      "sizes": [
+        28,
+        40,
+        42,
+        44,
+        46,
+        48,
+        50,
+        52,
+        54,
+        56,
+        58,
+        60,
+        62,
+        66,
+        70,
+        96,
+        120
+      ],
+      "sources": [
+        "NotchBuddy/Sources/App/FlowHubMochis.swift",
+        "NotchBuddy/Sources/App/FlowHubNotes.swift",
+        "NotchBuddy/Sources/App/DesktopMochiLogic.swift"
+      ]
+    },
+    {
+      "surface": "Windows: mini grid and service pills",
+      "sizes": [
+        13,
+        24
+      ],
+      "sources": [
+        "windows/src/island/island.ts",
+        "windows/src/views/views.ts",
+        "windows/src/views/spotify.ts"
+      ]
+    },
+    {
+      "surface": "iOS: fixed mascot slots and padded content sizes",
+      "sizes": [
+        18,
+        24,
+        26,
+        28,
+        30,
+        32,
+        34,
+        36,
+        40,
+        44,
+        48,
+        52,
+        56,
+        64,
+        76,
+        84,
+        88
+      ],
+      "sources": [
+        "NotchBuddy/Sources/Phone/HomeView.swift",
+        "NotchBuddy/Sources/Phone/ApprovalCard.swift",
+        "NotchBuddy/Sources/Phone/AboutView.swift",
+        "NotchBuddy/Sources/Phone/KitPreviewView.swift",
+        "NotchBuddy/Sources/Phone/LinkTestView.swift",
+        "NotchBuddy/Sources/Phone/SearchAndSpotlight.swift",
+        "NotchBuddy/Sources/Phone/SessionDetailView.swift",
+        "NotchBuddy/Sources/Phone/ServiceViews.swift",
+        "NotchBuddy/Sources/Phone/TurnShare.swift"
+      ]
+    },
+    {
+      "surface": "iOS: fixed Widget / Live Activity slots and padded content",
+      "sizes": [
+        20,
+        22,
+        24,
+        32,
+        34,
+        40,
+        44,
+        52,
+        56
+      ],
+      "sources": [
+        "NotchBuddy/Sources/Widgets/CoucouWidgets.swift",
+        "NotchBuddy/Sources/Widgets/MochiLiveActivity.swift"
+      ]
+    },
+    {
+      "surface": "Android: Compose screens, overlay and sheets",
+      "sizes": [
+        34,
+        40,
+        52,
+        84,
+        96,
+        108,
+        112,
+        120,
+        132
+      ],
+      "sources": [
+        "android/app/src/main/kotlin/com/coucou/android/ui/IslandOverlay.kt",
+        "android/app/src/main/kotlin/com/coucou/android/ui/HomePanel.kt",
+        "android/app/src/main/kotlin/com/coucou/android/ui/PairingScreen.kt",
+        "android/app/src/main/kotlin/com/coucou/android/ui/SessionScreen.kt",
+        "android/app/src/main/kotlin/com/coucou/android/ui/Sheets.kt",
+        "android/app/src/main/kotlin/com/coucou/android/ui/WardrobeScreen.kt",
+        "android/app/src/main/kotlin/com/coucou/android/ui/ChatScreen.kt"
+      ]
+    },
+    {
+      "surface": "Android: list, glance, mood, alert, solo and large widgets",
+      "sizes": [
+        36,
+        64,
+        72,
+        84,
+        96,
+        104,
+        120,
+        140,
+        150,
+        170
+      ],
+      "sources": [
+        "android/app/src/main/kotlin/com/coucou/android/app/ListWidget.kt",
+        "android/app/src/main/kotlin/com/coucou/android/app/GlanceWidget.kt",
+        "android/app/src/main/kotlin/com/coucou/android/app/MoodWidget.kt",
+        "android/app/src/main/kotlin/com/coucou/android/app/WaitingAlertWidget.kt",
+        "android/app/src/main/kotlin/com/coucou/android/app/TodayWidget.kt",
+        "android/app/src/main/kotlin/com/coucou/android/app/SoloWidget.kt",
+        "android/app/src/main/kotlin/com/coucou/android/app/MochiBigWidget.kt"
+      ]
+    },
+    {
+      "surface": "Declared hero limit and future animation frame canvas (single still only)",
+      "sizes": [
+        160,
+        240
+      ],
+      "sources": [
+        "NotchBuddy/Sources/CoucouKit/Mascots/Shapeshifter/MascotTypes.swift",
+        "NotchBuddy/Sources/CoucouKit/Mascots/Shapeshifter/SpriteSheetAnimator.swift",
+        "windows/src/mascot/sprite-animator.ts"
+      ]
+    }
+  ],
+  "notes": [
+    "Static assets only. Native app renderers are unchanged.",
+    "1x/2x/3x: Apple or web; Android mdpi/hdpi/xhdpi/xxhdpi/xxxhdpi: 1x/1.5x/2x/3x/4x.",
+    "Pixel sides are rounded up for fractional density scales.",
+    "Transparent square exports share one crop and baseline; use aspect fit, no stretching.",
+    "Continuously resized and spring-animated surfaces use the next larger raster or 240@4x.",
+    "A 240px still is not a multi-frame sprite sheet and must not use the astral_idle strip filename.",
+    "Zero-opacity hidden placeholders need no image. Tinted/monochrome widget art is not included."
+  ],
+  "variants": [
+    {
+      "logical_size": 12,
+      "scale": 1,
+      "pixels": [
+        12,
+        12
+      ],
+      "file": "png/astral-idle-12.png",
+      "sha256": "da6dd0da61609564f7741ae6e7414f226f8bdf457659bb03ccb7812c588b175e"
+    },
+    {
+      "logical_size": 12,
+      "scale": 1.5,
+      "pixels": [
+        18,
+        18
+      ],
+      "file": "png/astral-idle-12@1.5x.png",
+      "sha256": "34f8ebc383c3950752692b1019dcc1c9e52c1397c37f738a4e9fd04c45416d83"
+    },
+    {
+      "logical_size": 12,
+      "scale": 2,
+      "pixels": [
+        24,
+        24
+      ],
+      "file": "png/astral-idle-12@2x.png",
+      "sha256": "e7fa3ff2a3ea969d8477eeeb29222a01e2c3412144ec9bb7fdf612dc22f45ee8"
+    },
+    {
+      "logical_size": 12,
+      "scale": 3,
+      "pixels": [
+        36,
+        36
+      ],
+      "file": "png/astral-idle-12@3x.png",
+      "sha256": "14087beea37ada4035e2271bd58340ad239a8ada7bf66681091cc192cb2c351b"
+    },
+    {
+      "logical_size": 12,
+      "scale": 4,
+      "pixels": [
+        48,
+        48
+      ],
+      "file": "png/astral-idle-12@4x.png",
+      "sha256": "17db01f896a6b26cce696e28bfdea63a5b72d2c1f9092316612ce8431d6d65a8"
+    },
+    {
+      "logical_size": 13,
+      "scale": 1,
+      "pixels": [
+        13,
+        13
+      ],
+      "file": "png/astral-idle-13.png",
+      "sha256": "3f1b98f8303847790a894b193807a8cc32cc34bdaaa4f86e7c458c0b432f8832"
+    },
+    {
+      "logical_size": 13,
+      "scale": 1.5,
+      "pixels": [
+        20,
+        20
+      ],
+      "file": "png/astral-idle-13@1.5x.png",
+      "sha256": "51cc3bc1430c39575bd26d7f76824fc4bc76d42b10ea05af7a2d399359a6309e"
+    },
+    {
+      "logical_size": 13,
+      "scale": 2,
+      "pixels": [
+        26,
+        26
+      ],
+      "file": "png/astral-idle-13@2x.png",
+      "sha256": "99ec5f669f6823807345d9b8d443eb11a382f6391877278fc5356443a5330873"
+    },
+    {
+      "logical_size": 13,
+      "scale": 3,
+      "pixels": [
+        39,
+        39
+      ],
+      "file": "png/astral-idle-13@3x.png",
+      "sha256": "588d8c5a2cb1b50618a91642912929d6a151b93fc432aeb21cf8ce820a11f28b"
+    },
+    {
+      "logical_size": 13,
+      "scale": 4,
+      "pixels": [
+        52,
+        52
+      ],
+      "file": "png/astral-idle-13@4x.png",
+      "sha256": "39e046a32a3042b281cc979fe434734da3d77b2a1778911ac720e1e84cc4761a"
+    },
+    {
+      "logical_size": 16,
+      "scale": 1,
+      "pixels": [
+        16,
+        16
+      ],
+      "file": "png/astral-idle-16.png",
+      "sha256": "380b0e4386f31583fef155af9f0ef1c67ccf670a98644c6597fb848435b047bd"
+    },
+    {
+      "logical_size": 16,
+      "scale": 1.5,
+      "pixels": [
+        24,
+        24
+      ],
+      "file": "png/astral-idle-16@1.5x.png",
+      "sha256": "e7fa3ff2a3ea969d8477eeeb29222a01e2c3412144ec9bb7fdf612dc22f45ee8"
+    },
+    {
+      "logical_size": 16,
+      "scale": 2,
+      "pixels": [
+        32,
+        32
+      ],
+      "file": "png/astral-idle-16@2x.png",
+      "sha256": "3aedb80ffa37d15bc57f82edfd218694cd2bf77ffd7078d494fe1c67a7b251e6"
+    },
+    {
+      "logical_size": 16,
+      "scale": 3,
+      "pixels": [
+        48,
+        48
+      ],
+      "file": "png/astral-idle-16@3x.png",
+      "sha256": "17db01f896a6b26cce696e28bfdea63a5b72d2c1f9092316612ce8431d6d65a8"
+    },
+    {
+      "logical_size": 16,
+      "scale": 4,
+      "pixels": [
+        64,
+        64
+      ],
+      "file": "png/astral-idle-16@4x.png",
+      "sha256": "a07ff15da7502991fc3c117200f546222f229e0b231d804d9aae605ee7919052"
+    },
+    {
+      "logical_size": 18,
+      "scale": 1,
+      "pixels": [
+        18,
+        18
+      ],
+      "file": "png/astral-idle-18.png",
+      "sha256": "34f8ebc383c3950752692b1019dcc1c9e52c1397c37f738a4e9fd04c45416d83"
+    },
+    {
+      "logical_size": 18,
+      "scale": 1.5,
+      "pixels": [
+        27,
+        27
+      ],
+      "file": "png/astral-idle-18@1.5x.png",
+      "sha256": "10f91a1a542dd93aa18606ccde78e8a22ca44404d47ea740127ca01eb50b856c"
+    },
+    {
+      "logical_size": 18,
+      "scale": 2,
+      "pixels": [
+        36,
+        36
+      ],
+      "file": "png/astral-idle-18@2x.png",
+      "sha256": "14087beea37ada4035e2271bd58340ad239a8ada7bf66681091cc192cb2c351b"
+    },
+    {
+      "logical_size": 18,
+      "scale": 3,
+      "pixels": [
+        54,
+        54
+      ],
+      "file": "png/astral-idle-18@3x.png",
+      "sha256": "3dd86a4bbbef59750fb4771d4a4a8c6c3dba87aaa87e4eab24cb167569aa80d6"
+    },
+    {
+      "logical_size": 18,
+      "scale": 4,
+      "pixels": [
+        72,
+        72
+      ],
+      "file": "png/astral-idle-18@4x.png",
+      "sha256": "3d252da738e5a35684c918694aa0c18882fccae83c720e65f932d2adf2e30347"
+    },
+    {
+      "logical_size": 20,
+      "scale": 1,
+      "pixels": [
+        20,
+        20
+      ],
+      "file": "png/astral-idle-20.png",
+      "sha256": "51cc3bc1430c39575bd26d7f76824fc4bc76d42b10ea05af7a2d399359a6309e"
+    },
+    {
+      "logical_size": 20,
+      "scale": 1.5,
+      "pixels": [
+        30,
+        30
+      ],
+      "file": "png/astral-idle-20@1.5x.png",
+      "sha256": "6a6f7f61b8759dd88a2180641e65ba20c0b8fe43657987dbf6ce9a34932045ff"
+    },
+    {
+      "logical_size": 20,
+      "scale": 2,
+      "pixels": [
+        40,
+        40
+      ],
+      "file": "png/astral-idle-20@2x.png",
+      "sha256": "2c0a0d1d986d0ba73f5007ff9a75604cc8a8c45fb9d0b3df2658e49a2b32499e"
+    },
+    {
+      "logical_size": 20,
+      "scale": 3,
+      "pixels": [
+        60,
+        60
+      ],
+      "file": "png/astral-idle-20@3x.png",
+      "sha256": "fee6212e7785e19643fb517bfb2e2e390391ffdca119ce3fe5ceb5a86f877639"
+    },
+    {
+      "logical_size": 20,
+      "scale": 4,
+      "pixels": [
+        80,
+        80
+      ],
+      "file": "png/astral-idle-20@4x.png",
+      "sha256": "863ed10290638700b1caedc40676003dfa7969053a2d9011a4c83ddc8c3dcc55"
+    },
+    {
+      "logical_size": 22,
+      "scale": 1,
+      "pixels": [
+        22,
+        22
+      ],
+      "file": "png/astral-idle-22.png",
+      "sha256": "e8cb39d4827e65bb0a73075846995c7b56bd88ea09664f1b17be1c603cbf378e"
+    },
+    {
+      "logical_size": 22,
+      "scale": 1.5,
+      "pixels": [
+        33,
+        33
+      ],
+      "file": "png/astral-idle-22@1.5x.png",
+      "sha256": "0ebddcb2f7a46993179a411ec20621e627eacc6dbc2edf0a24a345c40b10124f"
+    },
+    {
+      "logical_size": 22,
+      "scale": 2,
+      "pixels": [
+        44,
+        44
+      ],
+      "file": "png/astral-idle-22@2x.png",
+      "sha256": "757e231ee9dbcabfab005fbd5da16c19a5154e479c440f7b3cef8f66334bce64"
+    },
+    {
+      "logical_size": 22,
+      "scale": 3,
+      "pixels": [
+        66,
+        66
+      ],
+      "file": "png/astral-idle-22@3x.png",
+      "sha256": "e7f88c77e017fd473ddfbc44e4eef11a8c385f9bdd6c29e665fbdd5b162cf41e"
+    },
+    {
+      "logical_size": 22,
+      "scale": 4,
+      "pixels": [
+        88,
+        88
+      ],
+      "file": "png/astral-idle-22@4x.png",
+      "sha256": "4770e885a459fb8414713124743f6f8b4ddca1c0e3544837cadf544f3bf194c2"
+    },
+    {
+      "logical_size": 24,
+      "scale": 1,
+      "pixels": [
+        24,
+        24
+      ],
+      "file": "png/astral-idle-24.png",
+      "sha256": "e7fa3ff2a3ea969d8477eeeb29222a01e2c3412144ec9bb7fdf612dc22f45ee8"
+    },
+    {
+      "logical_size": 24,
+      "scale": 1.5,
+      "pixels": [
+        36,
+        36
+      ],
+      "file": "png/astral-idle-24@1.5x.png",
+      "sha256": "14087beea37ada4035e2271bd58340ad239a8ada7bf66681091cc192cb2c351b"
+    },
+    {
+      "logical_size": 24,
+      "scale": 2,
+      "pixels": [
+        48,
+        48
+      ],
+      "file": "png/astral-idle-24@2x.png",
+      "sha256": "17db01f896a6b26cce696e28bfdea63a5b72d2c1f9092316612ce8431d6d65a8"
+    },
+    {
+      "logical_size": 24,
+      "scale": 3,
+      "pixels": [
+        72,
+        72
+      ],
+      "file": "png/astral-idle-24@3x.png",
+      "sha256": "3d252da738e5a35684c918694aa0c18882fccae83c720e65f932d2adf2e30347"
+    },
+    {
+      "logical_size": 24,
+      "scale": 4,
+      "pixels": [
+        96,
+        96
+      ],
+      "file": "png/astral-idle-24@4x.png",
+      "sha256": "91716ac058ced1d05066fc75edcdf36b3ec8c2785e8afd4c9e22f125188e692c"
+    },
+    {
+      "logical_size": 26,
+      "scale": 1,
+      "pixels": [
+        26,
+        26
+      ],
+      "file": "png/astral-idle-26.png",
+      "sha256": "99ec5f669f6823807345d9b8d443eb11a382f6391877278fc5356443a5330873"
+    },
+    {
+      "logical_size": 26,
+      "scale": 1.5,
+      "pixels": [
+        39,
+        39
+      ],
+      "file": "png/astral-idle-26@1.5x.png",
+      "sha256": "588d8c5a2cb1b50618a91642912929d6a151b93fc432aeb21cf8ce820a11f28b"
+    },
+    {
+      "logical_size": 26,
+      "scale": 2,
+      "pixels": [
+        52,
+        52
+      ],
+      "file": "png/astral-idle-26@2x.png",
+      "sha256": "39e046a32a3042b281cc979fe434734da3d77b2a1778911ac720e1e84cc4761a"
+    },
+    {
+      "logical_size": 26,
+      "scale": 3,
+      "pixels": [
+        78,
+        78
+      ],
+      "file": "png/astral-idle-26@3x.png",
+      "sha256": "768386582f704af4f8ee40b44a731ab4fea93e4a77ea3d0655199f5e5e168d08"
+    },
+    {
+      "logical_size": 26,
+      "scale": 4,
+      "pixels": [
+        104,
+        104
+      ],
+      "file": "png/astral-idle-26@4x.png",
+      "sha256": "26db8a07e0778ad232ac31efb8fa67b29d1ed7dd0fd86fab3b4fd2609e996b92"
+    },
+    {
+      "logical_size": 28,
+      "scale": 1,
+      "pixels": [
+        28,
+        28
+      ],
+      "file": "png/astral-idle-28.png",
+      "sha256": "a78556cfe95462494b715f9157d192f54ce3916038778d9cb7da3d9ff11a107e"
+    },
+    {
+      "logical_size": 28,
+      "scale": 1.5,
+      "pixels": [
+        42,
+        42
+      ],
+      "file": "png/astral-idle-28@1.5x.png",
+      "sha256": "01d65a0b26590509f2354f51da975f6941fe73c30c61389fb7ec0fabaf11bcd9"
+    },
+    {
+      "logical_size": 28,
+      "scale": 2,
+      "pixels": [
+        56,
+        56
+      ],
+      "file": "png/astral-idle-28@2x.png",
+      "sha256": "d1beb80a1bbc3595c2ff298b0cea3cf74572bd61ab3063c334f64ea43659f89e"
+    },
+    {
+      "logical_size": 28,
+      "scale": 3,
+      "pixels": [
+        84,
+        84
+      ],
+      "file": "png/astral-idle-28@3x.png",
+      "sha256": "f1e80ee2e34f133b0ad36e2ec84b740030c91a2dc7faf73e4bcc4fa64f3bda36"
+    },
+    {
+      "logical_size": 28,
+      "scale": 4,
+      "pixels": [
+        112,
+        112
+      ],
+      "file": "png/astral-idle-28@4x.png",
+      "sha256": "3223d087234dfb3746be689ad06231ea953284c5f11a2db9124cd8abea857508"
+    },
+    {
+      "logical_size": 30,
+      "scale": 1,
+      "pixels": [
+        30,
+        30
+      ],
+      "file": "png/astral-idle-30.png",
+      "sha256": "6a6f7f61b8759dd88a2180641e65ba20c0b8fe43657987dbf6ce9a34932045ff"
+    },
+    {
+      "logical_size": 30,
+      "scale": 1.5,
+      "pixels": [
+        45,
+        45
+      ],
+      "file": "png/astral-idle-30@1.5x.png",
+      "sha256": "87f1cd22cd7eddff082d59fd5b48da4fbe7fb57035d91c19d00480f050b3ce04"
+    },
+    {
+      "logical_size": 30,
+      "scale": 2,
+      "pixels": [
+        60,
+        60
+      ],
+      "file": "png/astral-idle-30@2x.png",
+      "sha256": "fee6212e7785e19643fb517bfb2e2e390391ffdca119ce3fe5ceb5a86f877639"
+    },
+    {
+      "logical_size": 30,
+      "scale": 3,
+      "pixels": [
+        90,
+        90
+      ],
+      "file": "png/astral-idle-30@3x.png",
+      "sha256": "8365299c62c50374781423ca01c903417c4fc81cb4b5096f2b4c9b2a5fdfcacd"
+    },
+    {
+      "logical_size": 30,
+      "scale": 4,
+      "pixels": [
+        120,
+        120
+      ],
+      "file": "png/astral-idle-30@4x.png",
+      "sha256": "ecca03c9d8783be93607aa1d25637db1592b18e95663a9464589f376ae9bc5ff"
+    },
+    {
+      "logical_size": 32,
+      "scale": 1,
+      "pixels": [
+        32,
+        32
+      ],
+      "file": "png/astral-idle-32.png",
+      "sha256": "3aedb80ffa37d15bc57f82edfd218694cd2bf77ffd7078d494fe1c67a7b251e6"
+    },
+    {
+      "logical_size": 32,
+      "scale": 1.5,
+      "pixels": [
+        48,
+        48
+      ],
+      "file": "png/astral-idle-32@1.5x.png",
+      "sha256": "17db01f896a6b26cce696e28bfdea63a5b72d2c1f9092316612ce8431d6d65a8"
+    },
+    {
+      "logical_size": 32,
+      "scale": 2,
+      "pixels": [
+        64,
+        64
+      ],
+      "file": "png/astral-idle-32@2x.png",
+      "sha256": "a07ff15da7502991fc3c117200f546222f229e0b231d804d9aae605ee7919052"
+    },
+    {
+      "logical_size": 32,
+      "scale": 3,
+      "pixels": [
+        96,
+        96
+      ],
+      "file": "png/astral-idle-32@3x.png",
+      "sha256": "91716ac058ced1d05066fc75edcdf36b3ec8c2785e8afd4c9e22f125188e692c"
+    },
+    {
+      "logical_size": 32,
+      "scale": 4,
+      "pixels": [
+        128,
+        128
+      ],
+      "file": "png/astral-idle-32@4x.png",
+      "sha256": "2b4085eb60fb7d3cf25a943edb46f0cd09e14a5e7da6b1236acb31b988ebdd15"
+    },
+    {
+      "logical_size": 34,
+      "scale": 1,
+      "pixels": [
+        34,
+        34
+      ],
+      "file": "png/astral-idle-34.png",
+      "sha256": "79ef1f4b39cf22ae5b28c1dbedcf787c5730cece3f72d7489d4faf7655c3f9d7"
+    },
+    {
+      "logical_size": 34,
+      "scale": 1.5,
+      "pixels": [
+        51,
+        51
+      ],
+      "file": "png/astral-idle-34@1.5x.png",
+      "sha256": "2e66a1e9533e18fa9bd272cd81a5fc636dd636f9791d1bf0591c419a8767f0d8"
+    },
+    {
+      "logical_size": 34,
+      "scale": 2,
+      "pixels": [
+        68,
+        68
+      ],
+      "file": "png/astral-idle-34@2x.png",
+      "sha256": "c55ba9cf8372ca02807ce4445015df6ec9501c1277e753b07b69627ab5062728"
+    },
+    {
+      "logical_size": 34,
+      "scale": 3,
+      "pixels": [
+        102,
+        102
+      ],
+      "file": "png/astral-idle-34@3x.png",
+      "sha256": "81df4cbc91349753614ce09748bd574dc37d5c35564adee4421082facc83e716"
+    },
+    {
+      "logical_size": 34,
+      "scale": 4,
+      "pixels": [
+        136,
+        136
+      ],
+      "file": "png/astral-idle-34@4x.png",
+      "sha256": "fa54b9c405fe30c08e1364fc495bbf3896c861c6647d7889d769836ef8004113"
+    },
+    {
+      "logical_size": 36,
+      "scale": 1,
+      "pixels": [
+        36,
+        36
+      ],
+      "file": "png/astral-idle-36.png",
+      "sha256": "14087beea37ada4035e2271bd58340ad239a8ada7bf66681091cc192cb2c351b"
+    },
+    {
+      "logical_size": 36,
+      "scale": 1.5,
+      "pixels": [
+        54,
+        54
+      ],
+      "file": "png/astral-idle-36@1.5x.png",
+      "sha256": "3dd86a4bbbef59750fb4771d4a4a8c6c3dba87aaa87e4eab24cb167569aa80d6"
+    },
+    {
+      "logical_size": 36,
+      "scale": 2,
+      "pixels": [
+        72,
+        72
+      ],
+      "file": "png/astral-idle-36@2x.png",
+      "sha256": "3d252da738e5a35684c918694aa0c18882fccae83c720e65f932d2adf2e30347"
+    },
+    {
+      "logical_size": 36,
+      "scale": 3,
+      "pixels": [
+        108,
+        108
+      ],
+      "file": "png/astral-idle-36@3x.png",
+      "sha256": "b59e7027465f79f15af1725e684bd2f1fa711b0cf69df9f6a7bfb014514073c4"
+    },
+    {
+      "logical_size": 36,
+      "scale": 4,
+      "pixels": [
+        144,
+        144
+      ],
+      "file": "png/astral-idle-36@4x.png",
+      "sha256": "0d09d7e60da40e6c14f1703f4bb848a92d582ac36334597167703f4e506cdc05"
+    },
+    {
+      "logical_size": 40,
+      "scale": 1,
+      "pixels": [
+        40,
+        40
+      ],
+      "file": "png/astral-idle-40.png",
+      "sha256": "2c0a0d1d986d0ba73f5007ff9a75604cc8a8c45fb9d0b3df2658e49a2b32499e"
+    },
+    {
+      "logical_size": 40,
+      "scale": 1.5,
+      "pixels": [
+        60,
+        60
+      ],
+      "file": "png/astral-idle-40@1.5x.png",
+      "sha256": "fee6212e7785e19643fb517bfb2e2e390391ffdca119ce3fe5ceb5a86f877639"
+    },
+    {
+      "logical_size": 40,
+      "scale": 2,
+      "pixels": [
+        80,
+        80
+      ],
+      "file": "png/astral-idle-40@2x.png",
+      "sha256": "863ed10290638700b1caedc40676003dfa7969053a2d9011a4c83ddc8c3dcc55"
+    },
+    {
+      "logical_size": 40,
+      "scale": 3,
+      "pixels": [
+        120,
+        120
+      ],
+      "file": "png/astral-idle-40@3x.png",
+      "sha256": "ecca03c9d8783be93607aa1d25637db1592b18e95663a9464589f376ae9bc5ff"
+    },
+    {
+      "logical_size": 40,
+      "scale": 4,
+      "pixels": [
+        160,
+        160
+      ],
+      "file": "png/astral-idle-40@4x.png",
+      "sha256": "34d8b0e183a4f950eb8867c583cca9d8d47aeefef943029c9760683a75f4d9a9"
+    },
+    {
+      "logical_size": 42,
+      "scale": 1,
+      "pixels": [
+        42,
+        42
+      ],
+      "file": "png/astral-idle-42.png",
+      "sha256": "01d65a0b26590509f2354f51da975f6941fe73c30c61389fb7ec0fabaf11bcd9"
+    },
+    {
+      "logical_size": 42,
+      "scale": 1.5,
+      "pixels": [
+        63,
+        63
+      ],
+      "file": "png/astral-idle-42@1.5x.png",
+      "sha256": "91a46a9bef15584cb8d7fe31b3de58df0c8e9dd6b7091ca365d5e201fd1bea01"
+    },
+    {
+      "logical_size": 42,
+      "scale": 2,
+      "pixels": [
+        84,
+        84
+      ],
+      "file": "png/astral-idle-42@2x.png",
+      "sha256": "f1e80ee2e34f133b0ad36e2ec84b740030c91a2dc7faf73e4bcc4fa64f3bda36"
+    },
+    {
+      "logical_size": 42,
+      "scale": 3,
+      "pixels": [
+        126,
+        126
+      ],
+      "file": "png/astral-idle-42@3x.png",
+      "sha256": "fc257aa8f01f91cd0685db0c74b7321ebf50c89323456173e09b6f41e60e4a1e"
+    },
+    {
+      "logical_size": 42,
+      "scale": 4,
+      "pixels": [
+        168,
+        168
+      ],
+      "file": "png/astral-idle-42@4x.png",
+      "sha256": "fa0d128352f4283138148d5155513574d44e6b0d94ad257287eff268af0fa9fa"
+    },
+    {
+      "logical_size": 44,
+      "scale": 1,
+      "pixels": [
+        44,
+        44
+      ],
+      "file": "png/astral-idle-44.png",
+      "sha256": "757e231ee9dbcabfab005fbd5da16c19a5154e479c440f7b3cef8f66334bce64"
+    },
+    {
+      "logical_size": 44,
+      "scale": 1.5,
+      "pixels": [
+        66,
+        66
+      ],
+      "file": "png/astral-idle-44@1.5x.png",
+      "sha256": "e7f88c77e017fd473ddfbc44e4eef11a8c385f9bdd6c29e665fbdd5b162cf41e"
+    },
+    {
+      "logical_size": 44,
+      "scale": 2,
+      "pixels": [
+        88,
+        88
+      ],
+      "file": "png/astral-idle-44@2x.png",
+      "sha256": "4770e885a459fb8414713124743f6f8b4ddca1c0e3544837cadf544f3bf194c2"
+    },
+    {
+      "logical_size": 44,
+      "scale": 3,
+      "pixels": [
+        132,
+        132
+      ],
+      "file": "png/astral-idle-44@3x.png",
+      "sha256": "d15b80065ee3cfd72cf63da537e8bb548238a335b6c9a4d7178a8e4fe193998c"
+    },
+    {
+      "logical_size": 44,
+      "scale": 4,
+      "pixels": [
+        176,
+        176
+      ],
+      "file": "png/astral-idle-44@4x.png",
+      "sha256": "54a290c04b9df1390b027df7c5c1f35f71ae64ef4418bcba26dde89f3b2333de"
+    },
+    {
+      "logical_size": 46,
+      "scale": 1,
+      "pixels": [
+        46,
+        46
+      ],
+      "file": "png/astral-idle-46.png",
+      "sha256": "25b125a79559cdb4aab849e035761b6f64658f1600083022bb9d25786d869ada"
+    },
+    {
+      "logical_size": 46,
+      "scale": 1.5,
+      "pixels": [
+        69,
+        69
+      ],
+      "file": "png/astral-idle-46@1.5x.png",
+      "sha256": "a56d8799b48f6f2cadd1f9d8f2e67db95ab91d5d3c662628591adbcd83bdeb83"
+    },
+    {
+      "logical_size": 46,
+      "scale": 2,
+      "pixels": [
+        92,
+        92
+      ],
+      "file": "png/astral-idle-46@2x.png",
+      "sha256": "38efba770c9655259f652b01180b974c8b1df316b803897e06ed6e3ce28e13b7"
+    },
+    {
+      "logical_size": 46,
+      "scale": 3,
+      "pixels": [
+        138,
+        138
+      ],
+      "file": "png/astral-idle-46@3x.png",
+      "sha256": "47087ad58bf402afe820eb3be85939299ff44ba8de7b34411d9f80bf0e4be5bb"
+    },
+    {
+      "logical_size": 46,
+      "scale": 4,
+      "pixels": [
+        184,
+        184
+      ],
+      "file": "png/astral-idle-46@4x.png",
+      "sha256": "ce7b676711d7f217a405d0c6cf6280057ee3ba7c8c00d4777045a535b488476b"
+    },
+    {
+      "logical_size": 48,
+      "scale": 1,
+      "pixels": [
+        48,
+        48
+      ],
+      "file": "png/astral-idle-48.png",
+      "sha256": "17db01f896a6b26cce696e28bfdea63a5b72d2c1f9092316612ce8431d6d65a8"
+    },
+    {
+      "logical_size": 48,
+      "scale": 1.5,
+      "pixels": [
+        72,
+        72
+      ],
+      "file": "png/astral-idle-48@1.5x.png",
+      "sha256": "3d252da738e5a35684c918694aa0c18882fccae83c720e65f932d2adf2e30347"
+    },
+    {
+      "logical_size": 48,
+      "scale": 2,
+      "pixels": [
+        96,
+        96
+      ],
+      "file": "png/astral-idle-48@2x.png",
+      "sha256": "91716ac058ced1d05066fc75edcdf36b3ec8c2785e8afd4c9e22f125188e692c"
+    },
+    {
+      "logical_size": 48,
+      "scale": 3,
+      "pixels": [
+        144,
+        144
+      ],
+      "file": "png/astral-idle-48@3x.png",
+      "sha256": "0d09d7e60da40e6c14f1703f4bb848a92d582ac36334597167703f4e506cdc05"
+    },
+    {
+      "logical_size": 48,
+      "scale": 4,
+      "pixels": [
+        192,
+        192
+      ],
+      "file": "png/astral-idle-48@4x.png",
+      "sha256": "060b4daa77abd86ad846a5556e82bfe635c826cd7695709970471661c92cce07"
+    },
+    {
+      "logical_size": 50,
+      "scale": 1,
+      "pixels": [
+        50,
+        50
+      ],
+      "file": "png/astral-idle-50.png",
+      "sha256": "a34d5755c455cd7226c472230af98003dce7a73ba93afd1b9c5372dbaff6b5a9"
+    },
+    {
+      "logical_size": 50,
+      "scale": 1.5,
+      "pixels": [
+        75,
+        75
+      ],
+      "file": "png/astral-idle-50@1.5x.png",
+      "sha256": "879a00fc251193198f085aafdcffc185d31647799ce204c6121bceba2041ea4b"
+    },
+    {
+      "logical_size": 50,
+      "scale": 2,
+      "pixels": [
+        100,
+        100
+      ],
+      "file": "png/astral-idle-50@2x.png",
+      "sha256": "f27cd3701e7120af2c1100f7674e3461766bfb337e4803fb25d78f774fbe7199"
+    },
+    {
+      "logical_size": 50,
+      "scale": 3,
+      "pixels": [
+        150,
+        150
+      ],
+      "file": "png/astral-idle-50@3x.png",
+      "sha256": "7d69d260c3182305178168ee1d0772cc20532e79439201e15588e461b0c25438"
+    },
+    {
+      "logical_size": 50,
+      "scale": 4,
+      "pixels": [
+        200,
+        200
+      ],
+      "file": "png/astral-idle-50@4x.png",
+      "sha256": "c03608fa997292798bbaf8d1d958093f4b38e2a0db04fd8b938235549284d002"
+    },
+    {
+      "logical_size": 52,
+      "scale": 1,
+      "pixels": [
+        52,
+        52
+      ],
+      "file": "png/astral-idle-52.png",
+      "sha256": "39e046a32a3042b281cc979fe434734da3d77b2a1778911ac720e1e84cc4761a"
+    },
+    {
+      "logical_size": 52,
+      "scale": 1.5,
+      "pixels": [
+        78,
+        78
+      ],
+      "file": "png/astral-idle-52@1.5x.png",
+      "sha256": "768386582f704af4f8ee40b44a731ab4fea93e4a77ea3d0655199f5e5e168d08"
+    },
+    {
+      "logical_size": 52,
+      "scale": 2,
+      "pixels": [
+        104,
+        104
+      ],
+      "file": "png/astral-idle-52@2x.png",
+      "sha256": "26db8a07e0778ad232ac31efb8fa67b29d1ed7dd0fd86fab3b4fd2609e996b92"
+    },
+    {
+      "logical_size": 52,
+      "scale": 3,
+      "pixels": [
+        156,
+        156
+      ],
+      "file": "png/astral-idle-52@3x.png",
+      "sha256": "bf44434d05dc1b1a1ce502d6c186094c9ff1097a90cbf13e9be460e8923c42b1"
+    },
+    {
+      "logical_size": 52,
+      "scale": 4,
+      "pixels": [
+        208,
+        208
+      ],
+      "file": "png/astral-idle-52@4x.png",
+      "sha256": "53b169a4eefdd2b3edd12f6c6f67b6c31615418be2a4d9a73dfe6afb20191b76"
+    },
+    {
+      "logical_size": 54,
+      "scale": 1,
+      "pixels": [
+        54,
+        54
+      ],
+      "file": "png/astral-idle-54.png",
+      "sha256": "3dd86a4bbbef59750fb4771d4a4a8c6c3dba87aaa87e4eab24cb167569aa80d6"
+    },
+    {
+      "logical_size": 54,
+      "scale": 1.5,
+      "pixels": [
+        81,
+        81
+      ],
+      "file": "png/astral-idle-54@1.5x.png",
+      "sha256": "b48f2cb7bf1012114d9267cbf77c3a09de67143d019d554e58b7e6a7536ff963"
+    },
+    {
+      "logical_size": 54,
+      "scale": 2,
+      "pixels": [
+        108,
+        108
+      ],
+      "file": "png/astral-idle-54@2x.png",
+      "sha256": "b59e7027465f79f15af1725e684bd2f1fa711b0cf69df9f6a7bfb014514073c4"
+    },
+    {
+      "logical_size": 54,
+      "scale": 3,
+      "pixels": [
+        162,
+        162
+      ],
+      "file": "png/astral-idle-54@3x.png",
+      "sha256": "13cc545f9d8c8103eb478ab44a4162e337240e12ab1b6fc5d3b76ba1f4d0cba9"
+    },
+    {
+      "logical_size": 54,
+      "scale": 4,
+      "pixels": [
+        216,
+        216
+      ],
+      "file": "png/astral-idle-54@4x.png",
+      "sha256": "b8cdf9cda80d75a9fc8816c1575a46f2fc6feb4828bbfadb5f5b44a1d8ae2dad"
+    },
+    {
+      "logical_size": 56,
+      "scale": 1,
+      "pixels": [
+        56,
+        56
+      ],
+      "file": "png/astral-idle-56.png",
+      "sha256": "d1beb80a1bbc3595c2ff298b0cea3cf74572bd61ab3063c334f64ea43659f89e"
+    },
+    {
+      "logical_size": 56,
+      "scale": 1.5,
+      "pixels": [
+        84,
+        84
+      ],
+      "file": "png/astral-idle-56@1.5x.png",
+      "sha256": "f1e80ee2e34f133b0ad36e2ec84b740030c91a2dc7faf73e4bcc4fa64f3bda36"
+    },
+    {
+      "logical_size": 56,
+      "scale": 2,
+      "pixels": [
+        112,
+        112
+      ],
+      "file": "png/astral-idle-56@2x.png",
+      "sha256": "3223d087234dfb3746be689ad06231ea953284c5f11a2db9124cd8abea857508"
+    },
+    {
+      "logical_size": 56,
+      "scale": 3,
+      "pixels": [
+        168,
+        168
+      ],
+      "file": "png/astral-idle-56@3x.png",
+      "sha256": "fa0d128352f4283138148d5155513574d44e6b0d94ad257287eff268af0fa9fa"
+    },
+    {
+      "logical_size": 56,
+      "scale": 4,
+      "pixels": [
+        224,
+        224
+      ],
+      "file": "png/astral-idle-56@4x.png",
+      "sha256": "e2f5b1542e09ab4eb10d59b3c97af187313b2cc62eae044c35c9379153f43f75"
+    },
+    {
+      "logical_size": 58,
+      "scale": 1,
+      "pixels": [
+        58,
+        58
+      ],
+      "file": "png/astral-idle-58.png",
+      "sha256": "076dc3c1d56fb5a6f704d0cb708b863f6300bb844d9f2504b4ff06339c091731"
+    },
+    {
+      "logical_size": 58,
+      "scale": 1.5,
+      "pixels": [
+        87,
+        87
+      ],
+      "file": "png/astral-idle-58@1.5x.png",
+      "sha256": "9c895fc8a814d4105436b84a039e13bb225b0e79c7969c4304dcf71e37e7b468"
+    },
+    {
+      "logical_size": 58,
+      "scale": 2,
+      "pixels": [
+        116,
+        116
+      ],
+      "file": "png/astral-idle-58@2x.png",
+      "sha256": "8d2455bf1d689fd8accb01380c7eb8fbf83fed35cabf52e57f43a16b80ec1f93"
+    },
+    {
+      "logical_size": 58,
+      "scale": 3,
+      "pixels": [
+        174,
+        174
+      ],
+      "file": "png/astral-idle-58@3x.png",
+      "sha256": "cf818f70b9f981f89b8dcf74bcf4708fd4b55e014bd20d58cf6f973e09b42f35"
+    },
+    {
+      "logical_size": 58,
+      "scale": 4,
+      "pixels": [
+        232,
+        232
+      ],
+      "file": "png/astral-idle-58@4x.png",
+      "sha256": "417d54ea7a737334064807b5210f76a7b4277a028d8987def150f035f9490379"
+    },
+    {
+      "logical_size": 60,
+      "scale": 1,
+      "pixels": [
+        60,
+        60
+      ],
+      "file": "png/astral-idle-60.png",
+      "sha256": "fee6212e7785e19643fb517bfb2e2e390391ffdca119ce3fe5ceb5a86f877639"
+    },
+    {
+      "logical_size": 60,
+      "scale": 1.5,
+      "pixels": [
+        90,
+        90
+      ],
+      "file": "png/astral-idle-60@1.5x.png",
+      "sha256": "8365299c62c50374781423ca01c903417c4fc81cb4b5096f2b4c9b2a5fdfcacd"
+    },
+    {
+      "logical_size": 60,
+      "scale": 2,
+      "pixels": [
+        120,
+        120
+      ],
+      "file": "png/astral-idle-60@2x.png",
+      "sha256": "ecca03c9d8783be93607aa1d25637db1592b18e95663a9464589f376ae9bc5ff"
+    },
+    {
+      "logical_size": 60,
+      "scale": 3,
+      "pixels": [
+        180,
+        180
+      ],
+      "file": "png/astral-idle-60@3x.png",
+      "sha256": "854f54b22db941a3335716409e99135517ad3a426d5332920926e887fd01f3a4"
+    },
+    {
+      "logical_size": 60,
+      "scale": 4,
+      "pixels": [
+        240,
+        240
+      ],
+      "file": "png/astral-idle-60@4x.png",
+      "sha256": "7e550a5b232fdee381ac025b2989dc7014006ff5c7a4c8a2685fa6c5241cf233"
+    },
+    {
+      "logical_size": 62,
+      "scale": 1,
+      "pixels": [
+        62,
+        62
+      ],
+      "file": "png/astral-idle-62.png",
+      "sha256": "28df8354f744dd6dfc55a4a85504c842c8d092d89165900ce2588098d87f043b"
+    },
+    {
+      "logical_size": 62,
+      "scale": 1.5,
+      "pixels": [
+        93,
+        93
+      ],
+      "file": "png/astral-idle-62@1.5x.png",
+      "sha256": "b08577fba9bddf3c3287584e5641c67797f2e204883591ae725c2d92ea7ef429"
+    },
+    {
+      "logical_size": 62,
+      "scale": 2,
+      "pixels": [
+        124,
+        124
+      ],
+      "file": "png/astral-idle-62@2x.png",
+      "sha256": "5d21170fb66b5a050226dbe582b8af10d1a4a1e79e5cd848792a4930a9cefb6d"
+    },
+    {
+      "logical_size": 62,
+      "scale": 3,
+      "pixels": [
+        186,
+        186
+      ],
+      "file": "png/astral-idle-62@3x.png",
+      "sha256": "13f6ead3d4ce731bea06b78de84062ea758e32449d9594a2d9a8c32637db6c73"
+    },
+    {
+      "logical_size": 62,
+      "scale": 4,
+      "pixels": [
+        248,
+        248
+      ],
+      "file": "png/astral-idle-62@4x.png",
+      "sha256": "7163eff0184afd671126b45d0faa893811d42e022306e06fc08401a04c53ca01"
+    },
+    {
+      "logical_size": 64,
+      "scale": 1,
+      "pixels": [
+        64,
+        64
+      ],
+      "file": "png/astral-idle-64.png",
+      "sha256": "a07ff15da7502991fc3c117200f546222f229e0b231d804d9aae605ee7919052"
+    },
+    {
+      "logical_size": 64,
+      "scale": 1.5,
+      "pixels": [
+        96,
+        96
+      ],
+      "file": "png/astral-idle-64@1.5x.png",
+      "sha256": "91716ac058ced1d05066fc75edcdf36b3ec8c2785e8afd4c9e22f125188e692c"
+    },
+    {
+      "logical_size": 64,
+      "scale": 2,
+      "pixels": [
+        128,
+        128
+      ],
+      "file": "png/astral-idle-64@2x.png",
+      "sha256": "2b4085eb60fb7d3cf25a943edb46f0cd09e14a5e7da6b1236acb31b988ebdd15"
+    },
+    {
+      "logical_size": 64,
+      "scale": 3,
+      "pixels": [
+        192,
+        192
+      ],
+      "file": "png/astral-idle-64@3x.png",
+      "sha256": "060b4daa77abd86ad846a5556e82bfe635c826cd7695709970471661c92cce07"
+    },
+    {
+      "logical_size": 64,
+      "scale": 4,
+      "pixels": [
+        256,
+        256
+      ],
+      "file": "png/astral-idle-64@4x.png",
+      "sha256": "b143dc82ce89284b392b448ca517a31e82ddc5761b2150c647f92de4dfd09103"
+    },
+    {
+      "logical_size": 66,
+      "scale": 1,
+      "pixels": [
+        66,
+        66
+      ],
+      "file": "png/astral-idle-66.png",
+      "sha256": "e7f88c77e017fd473ddfbc44e4eef11a8c385f9bdd6c29e665fbdd5b162cf41e"
+    },
+    {
+      "logical_size": 66,
+      "scale": 1.5,
+      "pixels": [
+        99,
+        99
+      ],
+      "file": "png/astral-idle-66@1.5x.png",
+      "sha256": "75a010c569aa9039581daa144a89a86417bee957eb6698c59f25e58164ed4eef"
+    },
+    {
+      "logical_size": 66,
+      "scale": 2,
+      "pixels": [
+        132,
+        132
+      ],
+      "file": "png/astral-idle-66@2x.png",
+      "sha256": "d15b80065ee3cfd72cf63da537e8bb548238a335b6c9a4d7178a8e4fe193998c"
+    },
+    {
+      "logical_size": 66,
+      "scale": 3,
+      "pixels": [
+        198,
+        198
+      ],
+      "file": "png/astral-idle-66@3x.png",
+      "sha256": "5c6415e0993a802c5bf66132bc2e261e4c70b9d08ff332cd25b39ac8f16cc591"
+    },
+    {
+      "logical_size": 66,
+      "scale": 4,
+      "pixels": [
+        264,
+        264
+      ],
+      "file": "png/astral-idle-66@4x.png",
+      "sha256": "aaf7ac1c60aefdbb888c4e5bb085bd5cf3a5c32afacb6bf8e73fcb06010690a9"
+    },
+    {
+      "logical_size": 70,
+      "scale": 1,
+      "pixels": [
+        70,
+        70
+      ],
+      "file": "png/astral-idle-70.png",
+      "sha256": "ab4d004c6b0b82444e84e81bd1d5c37c96b881c8c05a6ed1dbe2507d1ecdac21"
+    },
+    {
+      "logical_size": 70,
+      "scale": 1.5,
+      "pixels": [
+        105,
+        105
+      ],
+      "file": "png/astral-idle-70@1.5x.png",
+      "sha256": "e790a6fb297f77e80c4521d44f2125a84c4bc974acdd0316a7a71278375997f6"
+    },
+    {
+      "logical_size": 70,
+      "scale": 2,
+      "pixels": [
+        140,
+        140
+      ],
+      "file": "png/astral-idle-70@2x.png",
+      "sha256": "5ebf85ffcc89e0efab62c9e3ab78016e27c7f29e7a64a7e68ac157b7e78cb033"
+    },
+    {
+      "logical_size": 70,
+      "scale": 3,
+      "pixels": [
+        210,
+        210
+      ],
+      "file": "png/astral-idle-70@3x.png",
+      "sha256": "455d51bc506186b082a4a0552e2f87c2a5998ac11cdea3cd6e7062c6f15c4c0a"
+    },
+    {
+      "logical_size": 70,
+      "scale": 4,
+      "pixels": [
+        280,
+        280
+      ],
+      "file": "png/astral-idle-70@4x.png",
+      "sha256": "6594cfe4ea2650f32a10b944ab14fb70aea4f92ca90ad46c0d83503f9ee5cbd1"
+    },
+    {
+      "logical_size": 72,
+      "scale": 1,
+      "pixels": [
+        72,
+        72
+      ],
+      "file": "png/astral-idle-72.png",
+      "sha256": "3d252da738e5a35684c918694aa0c18882fccae83c720e65f932d2adf2e30347"
+    },
+    {
+      "logical_size": 72,
+      "scale": 1.5,
+      "pixels": [
+        108,
+        108
+      ],
+      "file": "png/astral-idle-72@1.5x.png",
+      "sha256": "b59e7027465f79f15af1725e684bd2f1fa711b0cf69df9f6a7bfb014514073c4"
+    },
+    {
+      "logical_size": 72,
+      "scale": 2,
+      "pixels": [
+        144,
+        144
+      ],
+      "file": "png/astral-idle-72@2x.png",
+      "sha256": "0d09d7e60da40e6c14f1703f4bb848a92d582ac36334597167703f4e506cdc05"
+    },
+    {
+      "logical_size": 72,
+      "scale": 3,
+      "pixels": [
+        216,
+        216
+      ],
+      "file": "png/astral-idle-72@3x.png",
+      "sha256": "b8cdf9cda80d75a9fc8816c1575a46f2fc6feb4828bbfadb5f5b44a1d8ae2dad"
+    },
+    {
+      "logical_size": 72,
+      "scale": 4,
+      "pixels": [
+        288,
+        288
+      ],
+      "file": "png/astral-idle-72@4x.png",
+      "sha256": "9939f128ce3aef33ac57d7c634cfb91ee04b29ac239ab9f773f76bb78b7c7cf2"
+    },
+    {
+      "logical_size": 74,
+      "scale": 1,
+      "pixels": [
+        74,
+        74
+      ],
+      "file": "png/astral-idle-74.png",
+      "sha256": "6eac5bc4e0b718e602af7efba386f36225413bc54ee30707467a5d4c78382f89"
+    },
+    {
+      "logical_size": 74,
+      "scale": 1.5,
+      "pixels": [
+        111,
+        111
+      ],
+      "file": "png/astral-idle-74@1.5x.png",
+      "sha256": "a2856c156f46e94d59d6461c422ac2632fb8866f167477ead8d71701f7632669"
+    },
+    {
+      "logical_size": 74,
+      "scale": 2,
+      "pixels": [
+        148,
+        148
+      ],
+      "file": "png/astral-idle-74@2x.png",
+      "sha256": "09e324a118a986d21a4b600b1fe8e3bf52c33c677f7897267496709a505dd924"
+    },
+    {
+      "logical_size": 74,
+      "scale": 3,
+      "pixels": [
+        222,
+        222
+      ],
+      "file": "png/astral-idle-74@3x.png",
+      "sha256": "bddbe7be7a228060f7ea2bf0ba39512c7109a3bb4574663143c77c0759df70e1"
+    },
+    {
+      "logical_size": 74,
+      "scale": 4,
+      "pixels": [
+        296,
+        296
+      ],
+      "file": "png/astral-idle-74@4x.png",
+      "sha256": "4c4c864125169eb5356c2b11d9c83cdbbc48ee539e1db330de09b772a1157029"
+    },
+    {
+      "logical_size": 76,
+      "scale": 1,
+      "pixels": [
+        76,
+        76
+      ],
+      "file": "png/astral-idle-76.png",
+      "sha256": "eae9ca76215bedd509179fe170485b69dd2cb0af051b0b5f86b33f2e29963824"
+    },
+    {
+      "logical_size": 76,
+      "scale": 1.5,
+      "pixels": [
+        114,
+        114
+      ],
+      "file": "png/astral-idle-76@1.5x.png",
+      "sha256": "2d893f937c2b2a895a1243e6544f0dc4257c981c8711ba69c1a57daa66ef5136"
+    },
+    {
+      "logical_size": 76,
+      "scale": 2,
+      "pixels": [
+        152,
+        152
+      ],
+      "file": "png/astral-idle-76@2x.png",
+      "sha256": "0b4680191805efde1fd87fde90ef20a3a461f95502917e71f021d9b47fc0cd86"
+    },
+    {
+      "logical_size": 76,
+      "scale": 3,
+      "pixels": [
+        228,
+        228
+      ],
+      "file": "png/astral-idle-76@3x.png",
+      "sha256": "13c00e86531f113f97349a81d8fc4aa5d77d84ab2cc4a984c9e922bfae69ab9a"
+    },
+    {
+      "logical_size": 76,
+      "scale": 4,
+      "pixels": [
+        304,
+        304
+      ],
+      "file": "png/astral-idle-76@4x.png",
+      "sha256": "d9297ffe51a0fb650f3b382866dd50262b558a79dff881e0fdf59d4b1930828b"
+    },
+    {
+      "logical_size": 77,
+      "scale": 1,
+      "pixels": [
+        77,
+        77
+      ],
+      "file": "png/astral-idle-77.png",
+      "sha256": "f989a759a72ab26550af64eb206bd448c359db7578a26e4193ea70e13a596063"
+    },
+    {
+      "logical_size": 77,
+      "scale": 1.5,
+      "pixels": [
+        116,
+        116
+      ],
+      "file": "png/astral-idle-77@1.5x.png",
+      "sha256": "8d2455bf1d689fd8accb01380c7eb8fbf83fed35cabf52e57f43a16b80ec1f93"
+    },
+    {
+      "logical_size": 77,
+      "scale": 2,
+      "pixels": [
+        154,
+        154
+      ],
+      "file": "png/astral-idle-77@2x.png",
+      "sha256": "e30483eacd7de125ac6f5a4cc2a3b5801aa0ca2d0e0ef6121eacc7e595c23843"
+    },
+    {
+      "logical_size": 77,
+      "scale": 3,
+      "pixels": [
+        231,
+        231
+      ],
+      "file": "png/astral-idle-77@3x.png",
+      "sha256": "4a79f78f79cd39009db366e96d1147b33461c330cab345ae3b5e60588ced67f7"
+    },
+    {
+      "logical_size": 77,
+      "scale": 4,
+      "pixels": [
+        308,
+        308
+      ],
+      "file": "png/astral-idle-77@4x.png",
+      "sha256": "12896df96f6ee8cb2f966b9a61da0df88847cdbec1cf7d2bd61879d039c7c349"
+    },
+    {
+      "logical_size": 84,
+      "scale": 1,
+      "pixels": [
+        84,
+        84
+      ],
+      "file": "png/astral-idle-84.png",
+      "sha256": "f1e80ee2e34f133b0ad36e2ec84b740030c91a2dc7faf73e4bcc4fa64f3bda36"
+    },
+    {
+      "logical_size": 84,
+      "scale": 1.5,
+      "pixels": [
+        126,
+        126
+      ],
+      "file": "png/astral-idle-84@1.5x.png",
+      "sha256": "fc257aa8f01f91cd0685db0c74b7321ebf50c89323456173e09b6f41e60e4a1e"
+    },
+    {
+      "logical_size": 84,
+      "scale": 2,
+      "pixels": [
+        168,
+        168
+      ],
+      "file": "png/astral-idle-84@2x.png",
+      "sha256": "fa0d128352f4283138148d5155513574d44e6b0d94ad257287eff268af0fa9fa"
+    },
+    {
+      "logical_size": 84,
+      "scale": 3,
+      "pixels": [
+        252,
+        252
+      ],
+      "file": "png/astral-idle-84@3x.png",
+      "sha256": "96da86b48cb0f9f42597e2a5dc0b4797a7d80509b6c143bb02e37b23046f7642"
+    },
+    {
+      "logical_size": 84,
+      "scale": 4,
+      "pixels": [
+        336,
+        336
+      ],
+      "file": "png/astral-idle-84@4x.png",
+      "sha256": "60c7e5baf6391c69a33b4fa4119a1c45fd5e1778d002d8b94cb134596e6da866"
+    },
+    {
+      "logical_size": 87,
+      "scale": 1,
+      "pixels": [
+        87,
+        87
+      ],
+      "file": "png/astral-idle-87.png",
+      "sha256": "9c895fc8a814d4105436b84a039e13bb225b0e79c7969c4304dcf71e37e7b468"
+    },
+    {
+      "logical_size": 87,
+      "scale": 1.5,
+      "pixels": [
+        131,
+        131
+      ],
+      "file": "png/astral-idle-87@1.5x.png",
+      "sha256": "5b0946c23431830b895a02bbb81036fc2526b6fbb64423bd1d845dfb41c5e028"
+    },
+    {
+      "logical_size": 87,
+      "scale": 2,
+      "pixels": [
+        174,
+        174
+      ],
+      "file": "png/astral-idle-87@2x.png",
+      "sha256": "cf818f70b9f981f89b8dcf74bcf4708fd4b55e014bd20d58cf6f973e09b42f35"
+    },
+    {
+      "logical_size": 87,
+      "scale": 3,
+      "pixels": [
+        261,
+        261
+      ],
+      "file": "png/astral-idle-87@3x.png",
+      "sha256": "eeb500688416d17394721a55335aadb3293f69b964a2efc5cae77a91538cd494"
+    },
+    {
+      "logical_size": 87,
+      "scale": 4,
+      "pixels": [
+        348,
+        348
+      ],
+      "file": "png/astral-idle-87@4x.png",
+      "sha256": "7d4044a64c6ed715b19673a7c55b5d4c1c35eeeebc15ee3e7f70a8b99bf7532d"
+    },
+    {
+      "logical_size": 88,
+      "scale": 1,
+      "pixels": [
+        88,
+        88
+      ],
+      "file": "png/astral-idle-88.png",
+      "sha256": "4770e885a459fb8414713124743f6f8b4ddca1c0e3544837cadf544f3bf194c2"
+    },
+    {
+      "logical_size": 88,
+      "scale": 1.5,
+      "pixels": [
+        132,
+        132
+      ],
+      "file": "png/astral-idle-88@1.5x.png",
+      "sha256": "d15b80065ee3cfd72cf63da537e8bb548238a335b6c9a4d7178a8e4fe193998c"
+    },
+    {
+      "logical_size": 88,
+      "scale": 2,
+      "pixels": [
+        176,
+        176
+      ],
+      "file": "png/astral-idle-88@2x.png",
+      "sha256": "54a290c04b9df1390b027df7c5c1f35f71ae64ef4418bcba26dde89f3b2333de"
+    },
+    {
+      "logical_size": 88,
+      "scale": 3,
+      "pixels": [
+        264,
+        264
+      ],
+      "file": "png/astral-idle-88@3x.png",
+      "sha256": "aaf7ac1c60aefdbb888c4e5bb085bd5cf3a5c32afacb6bf8e73fcb06010690a9"
+    },
+    {
+      "logical_size": 88,
+      "scale": 4,
+      "pixels": [
+        352,
+        352
+      ],
+      "file": "png/astral-idle-88@4x.png",
+      "sha256": "05dc6e793443d372e94c3c8da74d6b2c3f57a879f407e375f23a775767cfe286"
+    },
+    {
+      "logical_size": 94,
+      "scale": 1,
+      "pixels": [
+        94,
+        94
+      ],
+      "file": "png/astral-idle-94.png",
+      "sha256": "602392dd0d855827f26631cf074504cf6099aaa89edc266780219cd59abaf054"
+    },
+    {
+      "logical_size": 94,
+      "scale": 1.5,
+      "pixels": [
+        141,
+        141
+      ],
+      "file": "png/astral-idle-94@1.5x.png",
+      "sha256": "28169ad18cde78478e585e1e9ec1ba2776f0fa497eec89518b2a506ccae24f42"
+    },
+    {
+      "logical_size": 94,
+      "scale": 2,
+      "pixels": [
+        188,
+        188
+      ],
+      "file": "png/astral-idle-94@2x.png",
+      "sha256": "e36c56bdfcd333e43bd9f5e349f21c4ffbac3b78caf593c1b7d63b1da4f5dd22"
+    },
+    {
+      "logical_size": 94,
+      "scale": 3,
+      "pixels": [
+        282,
+        282
+      ],
+      "file": "png/astral-idle-94@3x.png",
+      "sha256": "9eff1004230cae4902ebd703bda6fa20caebcb40d3f01fceb2b1e6f48c06ee2b"
+    },
+    {
+      "logical_size": 94,
+      "scale": 4,
+      "pixels": [
+        376,
+        376
+      ],
+      "file": "png/astral-idle-94@4x.png",
+      "sha256": "1e882b3a765f5fe0ba06947dae38ad08dfb6c3dbb5481f034b328bdbc4c5c994"
+    },
+    {
+      "logical_size": 96,
+      "scale": 1,
+      "pixels": [
+        96,
+        96
+      ],
+      "file": "png/astral-idle-96.png",
+      "sha256": "91716ac058ced1d05066fc75edcdf36b3ec8c2785e8afd4c9e22f125188e692c"
+    },
+    {
+      "logical_size": 96,
+      "scale": 1.5,
+      "pixels": [
+        144,
+        144
+      ],
+      "file": "png/astral-idle-96@1.5x.png",
+      "sha256": "0d09d7e60da40e6c14f1703f4bb848a92d582ac36334597167703f4e506cdc05"
+    },
+    {
+      "logical_size": 96,
+      "scale": 2,
+      "pixels": [
+        192,
+        192
+      ],
+      "file": "png/astral-idle-96@2x.png",
+      "sha256": "060b4daa77abd86ad846a5556e82bfe635c826cd7695709970471661c92cce07"
+    },
+    {
+      "logical_size": 96,
+      "scale": 3,
+      "pixels": [
+        288,
+        288
+      ],
+      "file": "png/astral-idle-96@3x.png",
+      "sha256": "9939f128ce3aef33ac57d7c634cfb91ee04b29ac239ab9f773f76bb78b7c7cf2"
+    },
+    {
+      "logical_size": 96,
+      "scale": 4,
+      "pixels": [
+        384,
+        384
+      ],
+      "file": "png/astral-idle-96@4x.png",
+      "sha256": "38867e93c9cd699c7b159e44d9a0883ca560af1beec39a67748435b519bae44f"
+    },
+    {
+      "logical_size": 97,
+      "scale": 1,
+      "pixels": [
+        97,
+        97
+      ],
+      "file": "png/astral-idle-97.png",
+      "sha256": "f8e5b74223e9abd34705eee48cc132b721bd85f1127ffbb825462093875a409d"
+    },
+    {
+      "logical_size": 97,
+      "scale": 1.5,
+      "pixels": [
+        146,
+        146
+      ],
+      "file": "png/astral-idle-97@1.5x.png",
+      "sha256": "40c9669b4b90c0eadb816ebf164b5813dc7cb5ede53e97afa7f3fce7341bdf49"
+    },
+    {
+      "logical_size": 97,
+      "scale": 2,
+      "pixels": [
+        194,
+        194
+      ],
+      "file": "png/astral-idle-97@2x.png",
+      "sha256": "9254930f405ecb0df998f4645c5c05899883f1ebddb45a353fcfad2949423cc9"
+    },
+    {
+      "logical_size": 97,
+      "scale": 3,
+      "pixels": [
+        291,
+        291
+      ],
+      "file": "png/astral-idle-97@3x.png",
+      "sha256": "9b1b759a38e0ca374e8ad79cc0a94fa1601f83c1ce3e9b677fcc8d6041e4fb2c"
+    },
+    {
+      "logical_size": 97,
+      "scale": 4,
+      "pixels": [
+        388,
+        388
+      ],
+      "file": "png/astral-idle-97@4x.png",
+      "sha256": "8744ca5d243c897ad09e202394e07a575007ab0d1f42d885e7e906da4d4fd1f9"
+    },
+    {
+      "logical_size": 104,
+      "scale": 1,
+      "pixels": [
+        104,
+        104
+      ],
+      "file": "png/astral-idle-104.png",
+      "sha256": "26db8a07e0778ad232ac31efb8fa67b29d1ed7dd0fd86fab3b4fd2609e996b92"
+    },
+    {
+      "logical_size": 104,
+      "scale": 1.5,
+      "pixels": [
+        156,
+        156
+      ],
+      "file": "png/astral-idle-104@1.5x.png",
+      "sha256": "bf44434d05dc1b1a1ce502d6c186094c9ff1097a90cbf13e9be460e8923c42b1"
+    },
+    {
+      "logical_size": 104,
+      "scale": 2,
+      "pixels": [
+        208,
+        208
+      ],
+      "file": "png/astral-idle-104@2x.png",
+      "sha256": "53b169a4eefdd2b3edd12f6c6f67b6c31615418be2a4d9a73dfe6afb20191b76"
+    },
+    {
+      "logical_size": 104,
+      "scale": 3,
+      "pixels": [
+        312,
+        312
+      ],
+      "file": "png/astral-idle-104@3x.png",
+      "sha256": "21ac5a3fff829ca63f6fe1a98efdf3ebf22c60410d07601a5c6e4a7e06aa16c4"
+    },
+    {
+      "logical_size": 104,
+      "scale": 4,
+      "pixels": [
+        416,
+        416
+      ],
+      "file": "png/astral-idle-104@4x.png",
+      "sha256": "51efefd5ff7e90343bd557c03dd688d3b7ec9c2fff36fee2df0a1fd3b2c68bd3"
+    },
+    {
+      "logical_size": 108,
+      "scale": 1,
+      "pixels": [
+        108,
+        108
+      ],
+      "file": "png/astral-idle-108.png",
+      "sha256": "b59e7027465f79f15af1725e684bd2f1fa711b0cf69df9f6a7bfb014514073c4"
+    },
+    {
+      "logical_size": 108,
+      "scale": 1.5,
+      "pixels": [
+        162,
+        162
+      ],
+      "file": "png/astral-idle-108@1.5x.png",
+      "sha256": "13cc545f9d8c8103eb478ab44a4162e337240e12ab1b6fc5d3b76ba1f4d0cba9"
+    },
+    {
+      "logical_size": 108,
+      "scale": 2,
+      "pixels": [
+        216,
+        216
+      ],
+      "file": "png/astral-idle-108@2x.png",
+      "sha256": "b8cdf9cda80d75a9fc8816c1575a46f2fc6feb4828bbfadb5f5b44a1d8ae2dad"
+    },
+    {
+      "logical_size": 108,
+      "scale": 3,
+      "pixels": [
+        324,
+        324
+      ],
+      "file": "png/astral-idle-108@3x.png",
+      "sha256": "3d87ba21f72293cd0327b7a48dc031ee69991f43cb9097fdce2ed1c202736e13"
+    },
+    {
+      "logical_size": 108,
+      "scale": 4,
+      "pixels": [
+        432,
+        432
+      ],
+      "file": "png/astral-idle-108@4x.png",
+      "sha256": "791f65236208f3efbfc2f6aa7ab67e6a13950694691d6581d97887eb798028da"
+    },
+    {
+      "logical_size": 110,
+      "scale": 1,
+      "pixels": [
+        110,
+        110
+      ],
+      "file": "png/astral-idle-110.png",
+      "sha256": "12ae07ffb0799abdb319b0c7aa5d64c2b1ab6e42afdd630fda43a25949dce3c4"
+    },
+    {
+      "logical_size": 110,
+      "scale": 1.5,
+      "pixels": [
+        165,
+        165
+      ],
+      "file": "png/astral-idle-110@1.5x.png",
+      "sha256": "50e90321c19f18c6baff2eab8e137d307f4fb4a6cec307f7eb9ce0ea51e2f099"
+    },
+    {
+      "logical_size": 110,
+      "scale": 2,
+      "pixels": [
+        220,
+        220
+      ],
+      "file": "png/astral-idle-110@2x.png",
+      "sha256": "0cfb96ac52126c92a6c8a440a28a0804c2d8293caeec90d41f65854d739c2c82"
+    },
+    {
+      "logical_size": 110,
+      "scale": 3,
+      "pixels": [
+        330,
+        330
+      ],
+      "file": "png/astral-idle-110@3x.png",
+      "sha256": "06c27a44e6989f4044629f4adee24705d65ef3a5dfd892145a68ce05c6fdd485"
+    },
+    {
+      "logical_size": 110,
+      "scale": 4,
+      "pixels": [
+        440,
+        440
+      ],
+      "file": "png/astral-idle-110@4x.png",
+      "sha256": "912a70d008f7f15f97150d27a01d9445159d8f25b1fd3c64fabb28f744db3c4e"
+    },
+    {
+      "logical_size": 112,
+      "scale": 1,
+      "pixels": [
+        112,
+        112
+      ],
+      "file": "png/astral-idle-112.png",
+      "sha256": "3223d087234dfb3746be689ad06231ea953284c5f11a2db9124cd8abea857508"
+    },
+    {
+      "logical_size": 112,
+      "scale": 1.5,
+      "pixels": [
+        168,
+        168
+      ],
+      "file": "png/astral-idle-112@1.5x.png",
+      "sha256": "fa0d128352f4283138148d5155513574d44e6b0d94ad257287eff268af0fa9fa"
+    },
+    {
+      "logical_size": 112,
+      "scale": 2,
+      "pixels": [
+        224,
+        224
+      ],
+      "file": "png/astral-idle-112@2x.png",
+      "sha256": "e2f5b1542e09ab4eb10d59b3c97af187313b2cc62eae044c35c9379153f43f75"
+    },
+    {
+      "logical_size": 112,
+      "scale": 3,
+      "pixels": [
+        336,
+        336
+      ],
+      "file": "png/astral-idle-112@3x.png",
+      "sha256": "60c7e5baf6391c69a33b4fa4119a1c45fd5e1778d002d8b94cb134596e6da866"
+    },
+    {
+      "logical_size": 112,
+      "scale": 4,
+      "pixels": [
+        448,
+        448
+      ],
+      "file": "png/astral-idle-112@4x.png",
+      "sha256": "366422262f96349238ffa9d225e38e95263e52134b55fd3750d124efe35567c3"
+    },
+    {
+      "logical_size": 120,
+      "scale": 1,
+      "pixels": [
+        120,
+        120
+      ],
+      "file": "png/astral-idle-120.png",
+      "sha256": "ecca03c9d8783be93607aa1d25637db1592b18e95663a9464589f376ae9bc5ff"
+    },
+    {
+      "logical_size": 120,
+      "scale": 1.5,
+      "pixels": [
+        180,
+        180
+      ],
+      "file": "png/astral-idle-120@1.5x.png",
+      "sha256": "854f54b22db941a3335716409e99135517ad3a426d5332920926e887fd01f3a4"
+    },
+    {
+      "logical_size": 120,
+      "scale": 2,
+      "pixels": [
+        240,
+        240
+      ],
+      "file": "png/astral-idle-120@2x.png",
+      "sha256": "7e550a5b232fdee381ac025b2989dc7014006ff5c7a4c8a2685fa6c5241cf233"
+    },
+    {
+      "logical_size": 120,
+      "scale": 3,
+      "pixels": [
+        360,
+        360
+      ],
+      "file": "png/astral-idle-120@3x.png",
+      "sha256": "56c7549ebd237ccea4b1a6fbf70d324a1d8e05644a7aaded6e2539dd0be5c3b9"
+    },
+    {
+      "logical_size": 120,
+      "scale": 4,
+      "pixels": [
+        480,
+        480
+      ],
+      "file": "png/astral-idle-120@4x.png",
+      "sha256": "d64629845a85d3ffc1bd5ec2f23471070a5b0fd94cc430faccdf19efb0e13a08"
+    },
+    {
+      "logical_size": 132,
+      "scale": 1,
+      "pixels": [
+        132,
+        132
+      ],
+      "file": "png/astral-idle-132.png",
+      "sha256": "d15b80065ee3cfd72cf63da537e8bb548238a335b6c9a4d7178a8e4fe193998c"
+    },
+    {
+      "logical_size": 132,
+      "scale": 1.5,
+      "pixels": [
+        198,
+        198
+      ],
+      "file": "png/astral-idle-132@1.5x.png",
+      "sha256": "5c6415e0993a802c5bf66132bc2e261e4c70b9d08ff332cd25b39ac8f16cc591"
+    },
+    {
+      "logical_size": 132,
+      "scale": 2,
+      "pixels": [
+        264,
+        264
+      ],
+      "file": "png/astral-idle-132@2x.png",
+      "sha256": "aaf7ac1c60aefdbb888c4e5bb085bd5cf3a5c32afacb6bf8e73fcb06010690a9"
+    },
+    {
+      "logical_size": 132,
+      "scale": 3,
+      "pixels": [
+        396,
+        396
+      ],
+      "file": "png/astral-idle-132@3x.png",
+      "sha256": "29be7588500fac908aec2036f5c92a9b6af96b8b4e941d2d85cefb38c9584b82"
+    },
+    {
+      "logical_size": 132,
+      "scale": 4,
+      "pixels": [
+        528,
+        528
+      ],
+      "file": "png/astral-idle-132@4x.png",
+      "sha256": "61391fd527c3ca78bf542a211e71fc207e05f939a9fda4d15240e494019a2643"
+    },
+    {
+      "logical_size": 140,
+      "scale": 1,
+      "pixels": [
+        140,
+        140
+      ],
+      "file": "png/astral-idle-140.png",
+      "sha256": "5ebf85ffcc89e0efab62c9e3ab78016e27c7f29e7a64a7e68ac157b7e78cb033"
+    },
+    {
+      "logical_size": 140,
+      "scale": 1.5,
+      "pixels": [
+        210,
+        210
+      ],
+      "file": "png/astral-idle-140@1.5x.png",
+      "sha256": "455d51bc506186b082a4a0552e2f87c2a5998ac11cdea3cd6e7062c6f15c4c0a"
+    },
+    {
+      "logical_size": 140,
+      "scale": 2,
+      "pixels": [
+        280,
+        280
+      ],
+      "file": "png/astral-idle-140@2x.png",
+      "sha256": "6594cfe4ea2650f32a10b944ab14fb70aea4f92ca90ad46c0d83503f9ee5cbd1"
+    },
+    {
+      "logical_size": 140,
+      "scale": 3,
+      "pixels": [
+        420,
+        420
+      ],
+      "file": "png/astral-idle-140@3x.png",
+      "sha256": "3107c45c5628f6d486aa30f4ec1ea762116916333344c2a2bb1bd95aef9b6786"
+    },
+    {
+      "logical_size": 140,
+      "scale": 4,
+      "pixels": [
+        560,
+        560
+      ],
+      "file": "png/astral-idle-140@4x.png",
+      "sha256": "555cdb70334319f17e59dc5c9e498044afcb01bde07abbfd982be905f24ca6a3"
+    },
+    {
+      "logical_size": 150,
+      "scale": 1,
+      "pixels": [
+        150,
+        150
+      ],
+      "file": "png/astral-idle-150.png",
+      "sha256": "7d69d260c3182305178168ee1d0772cc20532e79439201e15588e461b0c25438"
+    },
+    {
+      "logical_size": 150,
+      "scale": 1.5,
+      "pixels": [
+        225,
+        225
+      ],
+      "file": "png/astral-idle-150@1.5x.png",
+      "sha256": "c3d739f49f03486a860e86769ea856d72df8b0f6656334493940d00fa1c969fc"
+    },
+    {
+      "logical_size": 150,
+      "scale": 2,
+      "pixels": [
+        300,
+        300
+      ],
+      "file": "png/astral-idle-150@2x.png",
+      "sha256": "00ea11912937822ce8676c8178673c5683c75a06dff52418dba253ca1200e9c7"
+    },
+    {
+      "logical_size": 150,
+      "scale": 3,
+      "pixels": [
+        450,
+        450
+      ],
+      "file": "png/astral-idle-150@3x.png",
+      "sha256": "010997233c0be13ffcec21ac6b841928ab065fdcae7211ca3d3a3f9057994acc"
+    },
+    {
+      "logical_size": 150,
+      "scale": 4,
+      "pixels": [
+        600,
+        600
+      ],
+      "file": "png/astral-idle-150@4x.png",
+      "sha256": "124bf190f62e834e5b8b240c4da9907003bf5cefde67546ffb7daa1c4bcf4300"
+    },
+    {
+      "logical_size": 160,
+      "scale": 1,
+      "pixels": [
+        160,
+        160
+      ],
+      "file": "png/astral-idle-160.png",
+      "sha256": "34d8b0e183a4f950eb8867c583cca9d8d47aeefef943029c9760683a75f4d9a9"
+    },
+    {
+      "logical_size": 160,
+      "scale": 1.5,
+      "pixels": [
+        240,
+        240
+      ],
+      "file": "png/astral-idle-160@1.5x.png",
+      "sha256": "7e550a5b232fdee381ac025b2989dc7014006ff5c7a4c8a2685fa6c5241cf233"
+    },
+    {
+      "logical_size": 160,
+      "scale": 2,
+      "pixels": [
+        320,
+        320
+      ],
+      "file": "png/astral-idle-160@2x.png",
+      "sha256": "ec4137f93768d904b7723b4cb0bfffc312910bef9b9b39510b10627f9f31aadc"
+    },
+    {
+      "logical_size": 160,
+      "scale": 3,
+      "pixels": [
+        480,
+        480
+      ],
+      "file": "png/astral-idle-160@3x.png",
+      "sha256": "d64629845a85d3ffc1bd5ec2f23471070a5b0fd94cc430faccdf19efb0e13a08"
+    },
+    {
+      "logical_size": 160,
+      "scale": 4,
+      "pixels": [
+        640,
+        640
+      ],
+      "file": "png/astral-idle-160@4x.png",
+      "sha256": "1526e8e4481514638473fa7b632ca6945fa1925162a364ff953ff836e34837be"
+    },
+    {
+      "logical_size": 170,
+      "scale": 1,
+      "pixels": [
+        170,
+        170
+      ],
+      "file": "png/astral-idle-170.png",
+      "sha256": "abe44e7c126c74bd5b96ff027c74d79e7736ddb2872d4a4db9da4bc84134a291"
+    },
+    {
+      "logical_size": 170,
+      "scale": 1.5,
+      "pixels": [
+        255,
+        255
+      ],
+      "file": "png/astral-idle-170@1.5x.png",
+      "sha256": "3dd7b3a5febad8fc488ec8a95891ac65519c7c49b020b40c93ca09cf42c8b59d"
+    },
+    {
+      "logical_size": 170,
+      "scale": 2,
+      "pixels": [
+        340,
+        340
+      ],
+      "file": "png/astral-idle-170@2x.png",
+      "sha256": "fb540a186d2002f6ba4c7928e2acabf5dc08e9d4a91fec7d7af0206d7afa36f4"
+    },
+    {
+      "logical_size": 170,
+      "scale": 3,
+      "pixels": [
+        510,
+        510
+      ],
+      "file": "png/astral-idle-170@3x.png",
+      "sha256": "04da3f64aca0557ddf71cb812065ef0d2d6ae091607a555d930c8373dc91dcc7"
+    },
+    {
+      "logical_size": 170,
+      "scale": 4,
+      "pixels": [
+        680,
+        680
+      ],
+      "file": "png/astral-idle-170@4x.png",
+      "sha256": "2e8608ffbfcac74ef842f655bc6bd9ecda23ff504ca1f49c653b7c8a7e14bcba"
+    },
+    {
+      "logical_size": 240,
+      "scale": 1,
+      "pixels": [
+        240,
+        240
+      ],
+      "file": "png/astral-idle-240.png",
+      "sha256": "7e550a5b232fdee381ac025b2989dc7014006ff5c7a4c8a2685fa6c5241cf233"
+    },
+    {
+      "logical_size": 240,
+      "scale": 1.5,
+      "pixels": [
+        360,
+        360
+      ],
+      "file": "png/astral-idle-240@1.5x.png",
+      "sha256": "56c7549ebd237ccea4b1a6fbf70d324a1d8e05644a7aaded6e2539dd0be5c3b9"
+    },
+    {
+      "logical_size": 240,
+      "scale": 2,
+      "pixels": [
+        480,
+        480
+      ],
+      "file": "png/astral-idle-240@2x.png",
+      "sha256": "d64629845a85d3ffc1bd5ec2f23471070a5b0fd94cc430faccdf19efb0e13a08"
+    },
+    {
+      "logical_size": 240,
+      "scale": 3,
+      "pixels": [
+        720,
+        720
+      ],
+      "file": "png/astral-idle-240@3x.png",
+      "sha256": "1ac6d4e41dea6fef7399d29803a63f82abb1f09fd0921b7cd0ac38dcc0bf6960"
+    },
+    {
+      "logical_size": 240,
+      "scale": 4,
+      "pixels": [
+        960,
+        960
+      ],
+      "file": "png/astral-idle-240@4x.png",
+      "sha256": "0be9176082eccef81a1ca7d7e279136a640e9dbcfa153244f76301e126a857cb"
+    }
+  ]
+}

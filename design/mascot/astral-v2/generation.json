@@ -1,0 +1,36 @@
+{
+  "tool": "built-in image_gen",
+  "asset": "astral-idle-master.png",
+  "original_size": [
+    1254,
+    1254
+  ],
+  "format": "PNG RGBA",
+  "state": "idle",
+  "view": "front",
+  "core": false,
+  "scope": "static visual proposal; native app not changed; animation deferred",
+  "preview": "../../prototype/mascot-generated-v2.html",
+  "reference": "../../prototype/astral_morph_concept.jpg",
+  "prompts": {
+    "generation": "Use case: stylized-concept.\nAsset type: final single mascot PNG cutout for a native macOS notch companion app called Coucou, ready for later sprite animation.\nInput image: reference concept board, use ONLY the large ghost on the right as the visual identity reference, not the typography, panels, cube, ball or explanatory layout.\nPrimary request: create ONE exquisite production-quality 3D astral glass ghost mascot, a perfected faithful realization of that reference. Full body, front-facing, perfectly centered symmetrical neutral idle pose, orthographic view with a little physical volume visible. Body occupies 80% of square canvas height with generous transparent safety margin on every side.\nSubject: adorable calm intelligent floating spirit, soft rounded dome head merging into a plump smooth tapered ghost body with exactly THREE rounded scallops at the bottom. Two tiny rounded floating arms resting at its sides, visually attached or extremely close. No legs, no separate head, no flame tuft, no ears, no clothes. Friendly expressive face consists of exactly TWO bright solid luminous ivory-white vertical oval eyes high in the body, clean and clearly readable at 24px, no dark pupils, NO mouth, NO blush. A single small softly glowing icy white four-point energy star floats INSIDE the LOWER BELLY BELOW the eyes, subtle and subordinate to the face.\nMaterials: luminous pearlescent frosted glass / translucent opalescent jelly, pale icy blue with restrained lilac refraction along the sides, sculptural soft volumetric subsurface scattering, enough silver-blue body density to remain visible on both black UI and white UI. Smooth controlled studio reflections, delicate sharp rim highlights, beautiful interior depth. Not photorealistic ice, not chrome or plastic.\nLighting: premium soft studio lighting upper left, subtle cool inner light, finite restrained glow that does not wash out silhouette or make a huge halo. All glow must fade into true alpha.\nComposition: single isolated mascot only. Face forward, hovering, clean full silhouette. Genuine transparent alpha background, no floor, no cast shadow plane, no backdrop, no black or white background, no checkerboard drawn in the image. No text, lettering, watermark, interface, diagram, props, laptop, tablet, platform, extra mascot or extra objects. This is a clean master asset not a concept sheet. Strong iconic silhouette, calm and delightful, suitable for premium dark macOS UI. Match the reference's translucent ghost quality and luminous WHITE eyes, NOT a rounded square icon with black eyes.",
+    "final_edit": "Use case: precise-object-edit. Edit target: the provided single transparent astral ghost mascot PNG.\nUser correction: REMOVE THE GLOWING STAR / ENERGY CORE FROM ITS BELLY COMPLETELY. There must be absolutely no star, nose, core, jewel, emblem, logo, dot, internal object or bright central point on or inside the belly. Replace the removed star and its local radiating light with uninterrupted softly shaded frosted blue translucent glass body matching the surrounding belly. The entire lower body is calm empty pearlescent glass.\nKeep the mascot identity, entire silhouette, scalloped bottom, two arms, exactly two luminous WHITE oval eyes, front-facing pose, icy blue/lilac material, premium soft 3D rendering and proportions unchanged. No mouth, no dark pupils, no blush, no decorations.\nAlso clean the isolated cutout alpha edge: no stray opaque speckles, ragged noise, matte fringe or detached white fragments. Smooth anti-aliased transparent silhouette. Preserve true transparent background and finite subtle edge glow. No backdrop, floor, shadow plane, checkerboard, text, UI or extra subjects. Keep same centered full-body square composition. Output final single production mascot cutout."
+  },
+  "current_render_comparison": {
+    "files": [
+      "current-compact.png",
+      "current-expanded.png"
+    ],
+    "origin": "Rendered directly from existing ShapeshifterCompactRenderer.swift and ShapeshifterExpandedRenderer.swift, at 4x pixel scale; not an app screenshot."
+  },
+  "integration": {
+    "expanded": "Later replace vector fallback with static asset or animated frames in ShapeshifterExpandedView; avoid feeding single master PNG into the existing 20-frame strip loader.",
+    "compact": "ShapeshifterCompactView used by notch, mini agents, HubLiveMascot. Keep full silhouette within the slot; set a common visual baseline.",
+    "phone": "HomeView still uses MochiStill and needs a separate native change.",
+    "hub": "Current Shapeshifter hero is only active on the TunnelGuard page.",
+    "provider": "Show provider colour separately from mascot body; no belly core."
+  },
+  "exports_manifest": "sizes.json",
+  "size_gallery": "sizes.html",
+  "exporter": "../../../scripts/export-astral-mascot.py"
+}
