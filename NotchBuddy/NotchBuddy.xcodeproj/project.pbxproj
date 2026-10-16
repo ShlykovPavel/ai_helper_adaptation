@@ -247,6 +247,14 @@
 		FAD78D74C6906D4EC8AA4101 /* UploadSequenceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FD65943C32E150F1CD65C31 /* UploadSequenceEngine.swift */; };
 		FB063FE6B8A4BB8FBAAF56CB /* LiveActivityLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA2D136C81C6D930C5357BD /* LiveActivityLink.swift */; };
 		FD4B5673A5427128DE1910F3 /* DictationTranscript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A2317343D062ACCAF4E5BD /* DictationTranscript.swift */; };
+		C44D5D0389B9C21A68C8673C /* MascotSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B7016E4FC172BB6DA89FED4 /* MascotSettings.swift */; };
+		DF19E78C907920D9E2367E01 /* MascotTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7352720833355868F5AFC1F /* MascotTypes.swift */; };
+		8E6091A25A163DB37CCF37F7 /* ShapeshifterCompactRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F873429B7DDFF09FD44CFE7 /* ShapeshifterCompactRenderer.swift */; };
+		6C830275BD5CAFA47078060A /* ShapeshifterCompactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CDB21175A10C7D79E6BD266 /* ShapeshifterCompactView.swift */; };
+		501131107F404D593D2B168E /* ShapeshifterExpandedRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6177641424325D226874557D /* ShapeshifterExpandedRenderer.swift */; };
+		A05505AB9FC7F326173F6FD6 /* ShapeshifterExpandedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C1F05856FBFD12F7BAC510B /* ShapeshifterExpandedView.swift */; };
+		D9AE827065B3607069913400 /* ShapeshifterHostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22BA9FC832D5754022C8FC7E /* ShapeshifterHostView.swift */; };
+		7B23E7197068C9748CB3B27F /* SpriteSheetAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 160770E15C2B6D1702A2BBDA /* SpriteSheetAnimator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -471,6 +479,14 @@
 		FA02B08886939FF6FE0475DD /* IslandViewContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandViewContent.swift; sourceTree = "<group>"; };
 		FA51E5B140C20812641168EA /* ShortcutLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutLogic.swift; sourceTree = "<group>"; };
 		FADC1FE5696B1075932D0B7C /* InstructionRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstructionRunner.swift; sourceTree = "<group>"; };
+		0B7016E4FC172BB6DA89FED4 /* MascotSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MascotSettings.swift; sourceTree = "<group>"; };
+		D7352720833355868F5AFC1F /* MascotTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MascotTypes.swift; sourceTree = "<group>"; };
+		3F873429B7DDFF09FD44CFE7 /* ShapeshifterCompactRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeshifterCompactRenderer.swift; sourceTree = "<group>"; };
+		6CDB21175A10C7D79E6BD266 /* ShapeshifterCompactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeshifterCompactView.swift; sourceTree = "<group>"; };
+		6177641424325D226874557D /* ShapeshifterExpandedRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeshifterExpandedRenderer.swift; sourceTree = "<group>"; };
+		3C1F05856FBFD12F7BAC510B /* ShapeshifterExpandedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeshifterExpandedView.swift; sourceTree = "<group>"; };
+		22BA9FC832D5754022C8FC7E /* ShapeshifterHostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeshifterHostView.swift; sourceTree = "<group>"; };
+		160770E15C2B6D1702A2BBDA /* SpriteSheetAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteSheetAnimator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -730,6 +746,7 @@
 				65F64746B2740D5FE26B7E5A /* ServiceDetail.swift */,
 				84ECC59BE7CDDEE348FC7096 /* ServiceSnapshot.swift */,
 				2A1C4152EBDBD7C24CABFFD7 /* TurnSnapshot.swift */,
+				3025C26DF93BA1273522A2C8 /* Mascots */,
 			);
 			path = CoucouKit;
 			sourceTree = "<group>";
@@ -766,6 +783,29 @@
 				68C3405BCC9BF5F378094BFB /* WakeWindowBackoff.swift */,
 			);
 			path = Voice;
+			sourceTree = "<group>";
+		};
+		3025C26DF93BA1273522A2C8 /* Mascots */ = {
+			isa = PBXGroup;
+			children = (
+				8C66C6CF9431721BF0019F9C /* Shapeshifter */,
+			);
+			path = Mascots;
+			sourceTree = "<group>";
+		};
+		8C66C6CF9431721BF0019F9C /* Shapeshifter */ = {
+			isa = PBXGroup;
+			children = (
+				0B7016E4FC172BB6DA89FED4 /* MascotSettings.swift */,
+				D7352720833355868F5AFC1F /* MascotTypes.swift */,
+				3F873429B7DDFF09FD44CFE7 /* ShapeshifterCompactRenderer.swift */,
+				6CDB21175A10C7D79E6BD266 /* ShapeshifterCompactView.swift */,
+				6177641424325D226874557D /* ShapeshifterExpandedRenderer.swift */,
+				3C1F05856FBFD12F7BAC510B /* ShapeshifterExpandedView.swift */,
+				22BA9FC832D5754022C8FC7E /* ShapeshifterHostView.swift */,
+				160770E15C2B6D1702A2BBDA /* SpriteSheetAnimator.swift */,
+			);
+			path = Shapeshifter;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1088,7 +1128,16 @@
 				4CA7948E8518229C04C6BE5A /* WakeWindowBackoff.swift in Sources */,
 				01B96F947DF2BDC352E8526D /* WeeklyRecapView.swift in Sources */,
 				2875610F701376BD65573386 /* WindowContextCapture.swift in Sources */,
-			);
+			
+				C44D5D0389B9C21A68C8673C /* MascotSettings.swift in Sources */,
+				DF19E78C907920D9E2367E01 /* MascotTypes.swift in Sources */,
+				8E6091A25A163DB37CCF37F7 /* ShapeshifterCompactRenderer.swift in Sources */,
+				6C830275BD5CAFA47078060A /* ShapeshifterCompactView.swift in Sources */,
+				501131107F404D593D2B168E /* ShapeshifterExpandedRenderer.swift in Sources */,
+				A05505AB9FC7F326173F6FD6 /* ShapeshifterExpandedView.swift in Sources */,
+				D9AE827065B3607069913400 /* ShapeshifterHostView.swift in Sources */,
+				7B23E7197068C9748CB3B27F /* SpriteSheetAnimator.swift in Sources */,
+);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		1A0F9A73C6B7D5D95C868C56 /* Sources */ = {
