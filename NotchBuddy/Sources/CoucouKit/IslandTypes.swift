@@ -16,6 +16,7 @@ enum IslandView: String, CaseIterable, Sendable {
     case voiceResult  // voice command executed — "✓ Musique lancée" for ~2 s
     case securityPanic // Режим тревоги ИБ
     case tunnelGuardShield // Меню защитника TunnelGuard в чёлке
+    case deadTunnelPrompt // Выбор действия при зависшем туннеле
 }
 
 // MARK: - Bot State
@@ -243,6 +244,8 @@ enum IslandConst {
         .securityPanic: ViewLayout(height: 160, botX: 62, botY: nil, botDiameter: 58, agentMode: .none),
         // TunnelGuard shield: status card with Mochi on left, VPN/IP controls on right
         .tunnelGuardShield: ViewLayout(height: 180, botX: 62, botY: nil, botDiameter: 58, agentMode: .none),
+        // TunnelGuard dead tunnel decision card
+        .deadTunnelPrompt: ViewLayout(height: 160, botX: 62, botY: nil, botDiameter: 58, agentMode: .none),
     ]
 
     // Project colors — keyed by lowercase display name or slug
@@ -282,5 +285,6 @@ enum IslandConst {
         .prompt:    "rgba(99,102,241,0.22)",
         .securityPanic: "rgba(244,80,94,0.7)",
         .tunnelGuardShield: "rgba(48,209,88,0.28)",
+        .deadTunnelPrompt: "rgba(251,146,60,0.4)",
     ]
 }

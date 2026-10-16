@@ -32,6 +32,7 @@ final class TunnelGuardWatchdog: ObservableObject {
     @Published private(set) var ipProbeResult: ExternalIpProbeResult?
     @Published private(set) var isCheckingIp: Bool = false
     @Published private(set) var isGracePeriodActive: Bool = false
+    @Published var isDeadTunnelPromptActive: Bool = false
     /// Единый статус, которым пользуются watchdog и UI. Он учитывает не только
     /// наличие utun, но и dead-tunnel/split-tunnel аварии.
     @Published private(set) var protectionStatus: TunnelGuardProtectionStatus = .protected
@@ -44,6 +45,10 @@ final class TunnelGuardWatchdog: ObservableObject {
             if !isEnabled {
                 protectionStatus = .disabled
                 isGracePeriodActive = false
+                if isDeadTunnelPromptActive {
+                    isDeadTunnelPromptActive = false
+                    AppState.shared.dismissDeadTunnelPrompt()
+                }
                 powerGuard.updateSleepAssertion(shouldHold: false)
             }
         }
@@ -62,6 +67,10 @@ final class TunnelGuardWatchdog: ObservableObject {
     @Published var sleepWakeGuardEnabled: Bool = true
     @Published var alarmSoundEnabled: Bool = true
     @Published var macNotificationsEnabled: Bool = true
+    @Published var basePingTimeout: Double = 2.0
+    @Published var progressiveTimeoutEnabled: Bool = true
+    @Published var maxPingFails: Int = 3
+    @Published var deadTunnelAction: String = "prompt" // "prompt" | "kill"
     @Published var targets: [TunnelGuardTargetApp] = TunnelGuardAppHunter.defaultTargets
 
     /// Домены, по которым пользователь может вручную проверить маршрут и внешний IP.
@@ -123,6 +132,18 @@ final class TunnelGuardWatchdog: ObservableObject {
             guard defaults.object(forKey: key) != nil else { return defaultValue }
             return defaults.bool(forKey: key)
         }
+        func double(forKey key: String, default defaultValue: Double) -> Double {
+            guard defaults.object(forKey: key) != nil else { return defaultValue }
+            return defaults.double(forKey: key)
+        }
+        func int(forKey key: String, default defaultValue: Int) -> Int {
+            guard defaults.object(forKey: key) != nil else { return defaultValue }
+            return defaults.integer(forKey: key)
+        }
+        func string(forKey key: String, default defaultValue: String) -> String {
+            guard let str = defaults.string(forKey: key), !str.isEmpty else { return defaultValue }
+            return str
+        }
 
         isEnabled = bool(forKey: "tunnelGuard.enabled", default: true)
         continuousKill = bool(forKey: "tunnelGuard.continuousKill", default: true)
@@ -132,6 +153,11 @@ final class TunnelGuardWatchdog: ObservableObject {
         sleepWakeGuardEnabled = bool(forKey: "tunnelGuard.sleepWakeGuardEnabled", default: true)
         alarmSoundEnabled = bool(forKey: "tunnelGuard.alarmSoundEnabled", default: true)
         macNotificationsEnabled = bool(forKey: "tunnelGuard.macNotificationsEnabled", default: true)
+
+        basePingTimeout = max(0.5, double(forKey: "tunnelGuard.basePingTimeout", default: 2.0))
+        progressiveTimeoutEnabled = bool(forKey: "tunnelGuard.progressiveTimeoutEnabled", default: true)
+        maxPingFails = max(1, int(forKey: "tunnelGuard.maxPingFails", default: 3))
+        deadTunnelAction = string(forKey: "tunnelGuard.deadTunnelAction", default: "prompt")
 
         targets = TunnelGuardAppHunter.defaultTargets.filter { target in
             bool(forKey: "tunnelGuard.target.\(target.id)", default: true)
@@ -225,12 +251,44 @@ final class TunnelGuardWatchdog: ObservableObject {
         let wasHealthy = previousHealthy
 
         if wasHealthy && !currentlyHealthy {
-            // Edge Trigger: Первое падение — полномасштабная авария
+            // Edge Trigger: Первое падение
             previousHealthy = false
-            executeTunnelGuardHardKill(reason: failureReason, detectedIface: snapshot.iface)
+            if snapshot.deadTunnelDetected && deadTunnelAction == "prompt" {
+                // Freeze and prompt
+                isDeadTunnelPromptActive = true
+                AppState.shared.triggerDeadTunnelPrompt(
+                    message: "VPN не отвечает (Dead Tunnel). Агенты временно заморожены (SIGSTOP)."
+                )
+                if alarmSoundEnabled {
+                    NSSound.beep()
+                }
+                if macNotificationsEnabled {
+                    TunnelGuardAppHunter.sendMacNotification(
+                        title: "⚠️ TUNNELGUARD: DEAD TUNNEL",
+                        message: "VPN не отвечает на пинг. Агенты временно заморожены (SIGSTOP)."
+                    )
+                }
+                let activeTargets = targets
+                queue.async {
+                    Self.logSecurityEvent("⏸ [DEAD_TUNNEL] Туннель не отвечает на пинг. Замораживаем агентов (SIGSTOP).")
+                    let suspended = TunnelGuardAppHunter.suspendAllActiveTargets(targets: activeTargets)
+                    if !suspended.isEmpty {
+                        Self.logSecurityEvent("⏸ [DEAD_TUNNEL] Заморожены: \(suspended.joined(separator: ", "))")
+                    }
+                }
+            } else {
+                executeTunnelGuardHardKill(reason: failureReason, detectedIface: snapshot.iface)
+            }
         } else if !wasHealthy && !currentlyHealthy {
-            // Level Trigger: Повторные тики пока сеть не восстановлена (Continuous Kill)
-            if continuousKill {
+            // Level Trigger: Повторные тики пока сеть не восстановлена
+            if isDeadTunnelPromptActive {
+                if !snapshot.isVpn || (splitTunnelCheck && !snapshot.targetDomainsOk) {
+                    isDeadTunnelPromptActive = false
+                    AppState.shared.dismissDeadTunnelPrompt()
+                    executeTunnelGuardHardKill(reason: failureReason, detectedIface: snapshot.iface)
+                }
+                // Иначе: пока активен диалог dead-tunnel и туннель всё ещё в utun, НЕ убиваем процессы hard kill, они остаются замороженными (SIGSTOP)
+            } else if continuousKill {
                 let activeTargets = targets
                 queue.async {
                     let killed = TunnelGuardAppHunter.killAllActiveTargets(targets: activeTargets)
@@ -242,7 +300,15 @@ final class TunnelGuardWatchdog: ObservableObject {
         } else if !wasHealthy && currentlyHealthy {
             // Восстановление сети
             previousHealthy = true
-            if AppState.shared.view == .securityPanic {
+            if isDeadTunnelPromptActive {
+                isDeadTunnelPromptActive = false
+                AppState.shared.dismissDeadTunnelPrompt()
+                let activeTargets = targets
+                queue.async {
+                    TunnelGuardAppHunter.resumeAllActiveTargets(targets: activeTargets)
+                    Self.logSecurityEvent("🟢 [WATCHDOG] Туннель восстановился. Агенты возобновлены (SIGCONT).")
+                }
+            } else if AppState.shared.view == .securityPanic {
                 AppState.shared.resetSecurityAlert()
                 let recoveredIface = snapshot.iface
                 queue.async {
@@ -265,11 +331,39 @@ final class TunnelGuardWatchdog: ObservableObject {
         handleNetworkSnapshot(snapshot, isGrace: false)
     }
 
+    // MARK: - Пользовательские действия при Dead Tunnel Prompt
+
+    func userConfirmedDeadTunnelKill() {
+        isDeadTunnelPromptActive = false
+        AppState.shared.dismissDeadTunnelPrompt()
+        executeTunnelGuardHardKill(reason: "Пользователь подтвердил завершение зависших агентов")
+    }
+
+    func userRequestedDeadTunnelWait() {
+        isDeadTunnelPromptActive = false
+        AppState.shared.dismissDeadTunnelPrompt()
+        Task { [networkWorker] in
+            await networkWorker.resetPingFails()
+        }
+        protectionStatus = .protected
+        previousHealthy = true
+        let activeTargets = targets
+        queue.async { [weak self] in
+            _ = self
+            TunnelGuardAppHunter.resumeAllActiveTargets(targets: activeTargets)
+            Self.logSecurityEvent("⏳ [DEAD_TUNNEL] Пользователь выбрал продолжить ожидание. Агенты возобновлены.")
+        }
+    }
+
     private func checkNetwork() {
         guard !isChecking else { return }
         guard isEnabled else {
             protectionStatus = .disabled
             isGracePeriodActive = false
+            if isDeadTunnelPromptActive {
+                isDeadTunnelPromptActive = false
+                AppState.shared.dismissDeadTunnelPrompt()
+            }
             powerGuard.updateSleepAssertion(shouldHold: false)
             return
         }
@@ -285,13 +379,19 @@ final class TunnelGuardWatchdog: ObservableObject {
 
         let targetDomains = splitTunnelCheck ? targets.map(\.domain).filter { !$0.isEmpty } : []
         let pingEnabled = pingCheckEnabled
+        let baseTimeout = basePingTimeout
+        let progressive = progressiveTimeoutEnabled
+        let maxFails = maxPingFails
 
         Task { [weak self] in
             guard let self else { return }
             let snapshot = await self.networkWorker.checkStatus(
                 targetDomains: targetDomains,
                 enablePing: pingEnabled,
-                isGracePeriod: isGrace
+                isGracePeriod: isGrace,
+                basePingTimeout: baseTimeout,
+                useProgressiveBackoff: progressive,
+                maxPingFails: maxFails
             )
             self.isChecking = false
             self.handleNetworkSnapshot(snapshot, isGrace: isGrace)

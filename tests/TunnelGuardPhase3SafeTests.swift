@@ -1,15 +1,26 @@
 import Foundation
 import AppKit
 
-enum IslandView { case overview, securityPanic }
+enum IslandView { case overview, securityPanic, deadTunnelPrompt }
 
 @MainActor
 final class AppState {
     static let shared = AppState()
     var view: IslandView = .overview
     var securityAlarmText = ""
+    var deadTunnelPromptText = ""
     func triggerSecurityPanic(message: String) { securityAlarmText = message; view = .securityPanic }
     func resetSecurityAlert() { securityAlarmText = ""; view = .overview }
+    func triggerDeadTunnelPrompt(message: String = "VPN не отвечает (Dead Tunnel). Агенты временно заморожены (SIGSTOP).") {
+        deadTunnelPromptText = message
+        view = .deadTunnelPrompt
+    }
+    func dismissDeadTunnelPrompt() {
+        deadTunnelPromptText = ""
+        if view == .deadTunnelPrompt {
+            view = .overview
+        }
+    }
 }
 
 @main
