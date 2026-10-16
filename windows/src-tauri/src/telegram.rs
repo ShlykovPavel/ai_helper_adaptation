@@ -202,9 +202,7 @@ impl TelegramActionRegistry {
     }
 
     pub fn prune(&mut self, now: Instant) {
-        self.entries.retain(|_, action| {
-            action.state == TelegramActionState::Pending && action.expires_at > now
-        });
+        self.entries.retain(|_, action| action.expires_at > now);
     }
 
     pub fn count(&self) -> usize {
@@ -438,6 +436,7 @@ struct TelegramInner {
     registry: TelegramActionRegistry,
     abort_handle: Option<tauri::async_runtime::JoinHandle<()>>,
     queue: NotificationQueue,
+    last_finished_key: Option<String>,
 }
 
 fn get_state() -> MutexGuard<'static, TelegramInner> {
@@ -449,6 +448,7 @@ fn get_state() -> MutexGuard<'static, TelegramInner> {
                 registry: TelegramActionRegistry::default(),
                 abort_handle: None,
                 queue: NotificationQueue::default(),
+                last_finished_key: None,
             })
         })
         .lock()
@@ -630,7 +630,7 @@ async fn handle_update_internal(app: &AppHandle, api: &TelegramApi, update: Tele
                 PairingResult::Success {
                     chat_id,
                     user_id,
-                    username,
+                    username: _,
                 } => {
                     {
                         let mut current = shared.settings.lock().unwrap();
@@ -638,9 +638,6 @@ async fn handle_update_internal(app: &AppHandle, api: &TelegramApi, update: Tele
                         current.telegram_paired_user_id = Some(user_id);
                         current.telegram_pairing_nonce = None;
                         current.telegram_pairing_expires_at = None;
-                        if current.telegram_paired_bot_username.is_none() {
-                            current.telegram_paired_bot_username = username;
-                        }
                         if let Err(e) = settings::save(&current) {
                             crate::log::line(format!("telegram: could not save settings: {e}"));
                         }
@@ -659,11 +656,7 @@ async fn handle_update_internal(app: &AppHandle, api: &TelegramApi, update: Tele
                         )
                         .await;
                 }
-                PairingResult::InvalidNonce => {
-                    let _ = api
-                        .send_message(msg.chat.id, "Invalid pairing link.", None)
-                        .await;
-                }
+                PairingResult::InvalidNonce => {}
                 PairingResult::Ignored => {}
             }
         }
@@ -794,6 +787,13 @@ pub fn on_pending_approval(app: &AppHandle, payload: &serde_json::Value) {
         .unwrap_or("")
         .to_string();
 
+    let message_text = if command.is_empty() {
+        format!("Permission Request: {}\nAction requested by agent.", tool)
+    } else {
+        format!("Permission Request: {}\nCommand: {}", tool, command)
+    };
+    let safe_text = truncate_text(&message_text, 3500);
+
     let now = Instant::now();
     let (allow_action, deny_action) = {
         let mut st = get_state();
@@ -815,6 +815,18 @@ pub fn on_pending_approval(app: &AppHandle, payload: &serde_json::Value) {
             0,
             now,
         );
+        st.queue.push(QueuedNotification {
+            id: format!(
+                "notif-{}",
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_nanos()
+            ),
+            kind: NotificationKind::Approval,
+            text: safe_text.clone(),
+            created_at: now,
+        });
         (allow, deny)
     };
 
@@ -832,13 +844,6 @@ pub fn on_pending_approval(app: &AppHandle, payload: &serde_json::Value) {
             },
         ]],
     };
-
-    let message_text = if command.is_empty() {
-        format!("Permission Request: {}\nAction requested by agent.", tool)
-    } else {
-        format!("Permission Request: {}\nCommand: {}", tool, command)
-    };
-    let safe_text = truncate_text(&message_text, 3500);
 
     let allow_ref = allow_action.r#ref.clone();
     let deny_ref = deny_action.r#ref.clone();
@@ -904,6 +909,15 @@ pub fn on_hook(app: &AppHandle, payload: serde_json::Value) {
             .and_then(|v| v.as_str())
             .unwrap_or("");
 
+        let key = format!("{agent}:{project}:{last_line}");
+        {
+            let mut st = get_state();
+            if st.last_finished_key.as_deref() == Some(&key) {
+                return;
+            }
+            st.last_finished_key = Some(key);
+        }
+
         let text = if project.is_empty() {
             format!("{agent} finished working.\n{last_line}")
         } else {
@@ -914,7 +928,13 @@ pub fn on_hook(app: &AppHandle, payload: serde_json::Value) {
         let can_send = {
             let mut st = get_state();
             st.queue.push(QueuedNotification {
-                id: format!("notif-{}", Instant::now().elapsed().as_nanos()),
+                id: format!(
+                    "notif-{}",
+                    std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_nanos()
+                ),
                 kind: NotificationKind::Finished,
                 text: safe_text.clone(),
                 created_at: Instant::now(),
