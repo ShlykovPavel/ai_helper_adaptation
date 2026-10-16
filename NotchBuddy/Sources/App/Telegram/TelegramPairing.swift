@@ -6,7 +6,7 @@ struct TelegramPair: Equatable, Sendable { let chatId: Int64; let userId: Int64;
 enum PairingError: Equatable, Error, Sendable { case invalidStart, invalidNonce, notPrivateChat, wrongUser, expired }
 
 enum TelegramPairing {
-    private static let lock = NSLock(); private static var issued: [String: Date] = [:]
+    private static let lock = NSLock(); nonisolated(unsafe) private static var issued: [String: Date] = [:]
     static func nonce() -> String {
         var bytes = [UInt8](repeating: 0, count: 16); _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
         let n = Data(bytes).base64EncodedString().replacingOccurrences(of: "+", with: "-").replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "=", with: "")

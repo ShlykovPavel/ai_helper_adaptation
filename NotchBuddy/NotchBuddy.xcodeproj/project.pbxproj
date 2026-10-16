@@ -18,6 +18,12 @@
 		06BF5FD95E03010CAFDBF2D0 /* NotchBuddyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1BD8F3CAA60CF37640759E1 /* NotchBuddyApp.swift */; };
 		077ECE0906D8E820BD5FA764 /* DiffEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B32FB972D02162720E566674 /* DiffEngine.swift */; };
 		07B49D6825179DAA18DFF4D3 /* PillCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C64C4C5D705CE486221B74 /* PillCatalog.swift */; };
+		20633392CC27415FBCA7FBE7 /* TelegramModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37EE85B89E649CBBD3E79E8 /* TelegramModels.swift */; };
+		6C5A8DF8251840C6ABF51483 /* TelegramActionRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 291124242C09425585527BEC /* TelegramActionRegistry.swift */; };
+		6C696BF2C0874A7587390313 /* TelegramPairing.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0BC0346AFE14C4CAEEE8DD6 /* TelegramPairing.swift */; };
+		B7F46FE93FB34F6586FD1750 /* TelegramBotAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE09E9895F7E43E6B6D6E00F /* TelegramBotAPI.swift */; };
+		460B45D451CC4A4DB43541B0 /* TelegramPolling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4332692EC56D40D6BB6CBDD6 /* TelegramPolling.swift */; };
+		E6153F92C19D43D1B5E87F75 /* TelegramBotController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06E6A5D1620D40B6BF313730 /* TelegramBotController.swift */; };
 		07EC91820A69E8BF11EC778D /* PillColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37564F5F041B38C976DF3DEF /* PillColors.swift */; };
 		08A485F2AC63FF5298ED897B /* OpenLeadMochiIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D96E57E8DADE6B82628E3E /* OpenLeadMochiIntent.swift */; };
 		091EC3B2F1060D7EE1317E4E /* IslandWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D710BD7834228045869D0184 /* IslandWindowController.swift */; };
@@ -282,6 +288,12 @@
 
 /* Begin PBXFileReference section */
 		011D05714C97CF5CAB32DCE7 /* AgentNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentNotifier.swift; sourceTree = "<group>"; };
+		D37EE85B89E649CBBD3E79E8 /* TelegramModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramModels.swift; sourceTree = "<group>"; };
+		291124242C09425585527BEC /* TelegramActionRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramActionRegistry.swift; sourceTree = "<group>"; };
+		C0BC0346AFE14C4CAEEE8DD6 /* TelegramPairing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramPairing.swift; sourceTree = "<group>"; };
+		CE09E9895F7E43E6B6D6E00F /* TelegramBotAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramBotAPI.swift; sourceTree = "<group>"; };
+		4332692EC56D40D6BB6CBDD6 /* TelegramPolling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramPolling.swift; sourceTree = "<group>"; };
+		06E6A5D1620D40B6BF313730 /* TelegramBotController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramBotController.swift; sourceTree = "<group>"; };
 		0364C7995680F9FA9F85F905 /* PortfolioController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioController.swift; sourceTree = "<group>"; };
 		0365DDE3C554F5E8570055F4 /* IslandTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandTypes.swift; sourceTree = "<group>"; };
 		045E7300878138F0AC385920 /* MochiStill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MochiStill.swift; sourceTree = "<group>"; };
@@ -587,6 +599,7 @@
 				888B3E1420BCB6292BDC8117 /* WeeklyRecapView.swift */,
 				E91B733ADC638E14E9BB6EFA /* WindowContextCapture.swift */,
 				9207F9B32D9C7844F5332A31 /* PhoneLink */,
+				3D2A972CC3F945B396F882ED /* Telegram */,
 				FB8E4AAB0B5E949069B8D03D /* Voice */,
 			);
 			path = App;
@@ -628,6 +641,19 @@
 				C2DFAEAF1DD1CBF03D3C314E /* TurnRecorder.swift */,
 			);
 			path = PhoneLink;
+			sourceTree = "<group>";
+		};
+		3D2A972CC3F945B396F882ED /* Telegram */ = {
+			isa = PBXGroup;
+			children = (
+				D37EE85B89E649CBBD3E79E8 /* TelegramModels.swift */,
+				291124242C09425585527BEC /* TelegramActionRegistry.swift */,
+				C0BC0346AFE14C4CAEEE8DD6 /* TelegramPairing.swift */,
+				CE09E9895F7E43E6B6D6E00F /* TelegramBotAPI.swift */,
+				4332692EC56D40D6BB6CBDD6 /* TelegramPolling.swift */,
+				06E6A5D1620D40B6BF313730 /* TelegramBotController.swift */,
+			);
+			path = Telegram;
 			sourceTree = "<group>";
 		};
 		AEBA361B10A737C684E95B82 /* NotificationContent */ = {
@@ -945,6 +971,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				C940B651C6CA952D99388E04 /* AppDelegate.swift in Sources */,
+				20633392CC27415FBCA7FBE7 /* TelegramModels.swift in Sources */,
+				6C5A8DF8251840C6ABF51483 /* TelegramActionRegistry.swift in Sources */,
+				6C696BF2C0874A7587390313 /* TelegramPairing.swift in Sources */,
+				B7F46FE93FB34F6586FD1750 /* TelegramBotAPI.swift in Sources */,
+				460B45D451CC4A4DB43541B0 /* TelegramPolling.swift in Sources */,
+				E6153F92C19D43D1B5E87F75 /* TelegramBotController.swift in Sources */,
 				4B6AC00F22EC75E90E0157D5 /* AppLog.swift in Sources */,
 				1F11EC4E6F604C612A1ADAD1 /* AppState.swift in Sources */,
 				0325A44358904B44C2237CCE /* ApprovalQueue.swift in Sources */,

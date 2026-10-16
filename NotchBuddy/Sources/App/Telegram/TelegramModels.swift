@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 struct TelegramSettings: Codable, Equatable, Sendable {
     var enabled: Bool = false
@@ -266,5 +267,124 @@ enum TelegramAPIError: Error, Equatable, Sendable, CustomStringConvertible {
             result = regex.stringByReplacingMatches(in: result, options: [], range: range, withTemplate: "bot<redacted-token>")
         }
         return result
+    }
+}
+
+// MARK: - Normalized Hook Server Events
+
+enum TelegramEventKind: String, Codable, Equatable, Sendable {
+    case finished
+    case question
+    case approval
+    case error
+    case approvalResolved = "approval_resolved"
+    case questionResolved = "question_resolved"
+}
+
+struct ApprovalSnapshot: Codable, Equatable, Sendable {
+    let id: UUID?
+    let tool: String
+    let command: String
+    let inputKey: String
+    let pillId: String
+    let sessionId: String
+    let projectName: String?
+    let fingerprint: String
+
+    init(
+        id: UUID? = nil,
+        tool: String,
+        command: String,
+        inputKey: String = "",
+        pillId: String = "",
+        sessionId: String = "",
+        projectName: String? = nil,
+        fingerprint: String? = nil
+    ) {
+        self.id = id
+        self.tool = tool
+        self.command = command
+        self.inputKey = inputKey
+        self.pillId = pillId
+        self.sessionId = sessionId
+        self.projectName = projectName
+        if let fingerprint = fingerprint {
+            self.fingerprint = fingerprint
+        } else {
+            let raw = [pillId, sessionId, tool, command, inputKey].joined(separator: "\u{1F}")
+            self.fingerprint = SHA256.hash(data: Data(raw.utf8)).map { String(format: "%02x", $0) }.joined()
+        }
+    }
+}
+
+struct QuestionOptionSnapshot: Codable, Equatable, Sendable {
+    let label: String
+    let description: String
+
+    init(label: String, description: String = "") {
+        self.label = label
+        self.description = description
+    }
+}
+
+struct QuestionItemSnapshot: Codable, Equatable, Sendable {
+    let question: String
+    let header: String
+    let options: [QuestionOptionSnapshot]
+    let multiSelect: Bool
+
+    init(question: String, header: String = "", options: [QuestionOptionSnapshot], multiSelect: Bool = false) {
+        self.question = question
+        self.header = header
+        self.options = options
+        self.multiSelect = multiSelect
+    }
+}
+
+struct QuestionSnapshot: Codable, Equatable, Sendable {
+    let items: [QuestionItemSnapshot]
+    let fingerprint: String
+
+    init(items: [QuestionItemSnapshot], fingerprint: String? = nil) {
+        self.items = items
+        if let fingerprint = fingerprint {
+            self.fingerprint = fingerprint
+        } else {
+            let raw = items.map { item in
+                ([item.question, item.multiSelect ? "multi" : "single"] + item.options.map(\.label)).joined(separator: "\u{1F}")
+            }.joined(separator: "\u{1E}")
+            self.fingerprint = SHA256.hash(data: Data(raw.utf8)).map { String(format: "%02x", $0) }.joined()
+        }
+    }
+}
+
+struct TelegramEvent: Codable, Equatable, Sendable {
+    let sessionId: String
+    let agentId: String
+    let agentName: String
+    let projectName: String?
+    let kind: TelegramEventKind
+    let finalText: String?
+    let approval: ApprovalSnapshot?
+    let question: QuestionSnapshot?
+
+    init(
+        sessionId: String,
+        agentId: String,
+        agentName: String,
+        projectName: String? = nil,
+        kind: TelegramEventKind,
+        finalText: String? = nil,
+        approval: ApprovalSnapshot? = nil,
+        question: QuestionSnapshot? = nil
+    ) {
+        self.sessionId = sessionId
+        self.agentId = agentId
+        self.agentName = agentName
+        self.projectName = projectName
+        self.kind = kind
+        self.finalText = finalText
+        self.approval = approval
+        self.question = question
     }
 }

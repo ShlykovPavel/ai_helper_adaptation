@@ -3,6 +3,7 @@ import Darwin
 import AppKit
 import SwiftUI
 import CryptoKit
+import Combine
 
 // MARK: - HookServer
 // Listens on a Unix domain socket for events from nb-hook (Claude Code hooks).
@@ -57,6 +58,12 @@ final class HookServer: @unchecked Sendable {
     private var activeSessionId: String? = nil        // current Claude Code session
     private var focusBeforeApproval: String? = nil    // saved focus to restore after approval
     private var sessions = PillSessionRegistry()      // live sessions behind each pill
+
+    // MARK: - Telegram Event Publisher
+    nonisolated(unsafe) static let events = PassthroughSubject<TelegramEvent, Never>()
+    static func emitEvent(_ event: TelegramEvent) {
+        events.send(event)
+    }
 
     private init() {}
 
@@ -120,6 +127,12 @@ final class HookServer: @unchecked Sendable {
     @MainActor
     private func removeApproval(id: UUID, answer json: String? = nil, note: String? = nil) {
         guard let entry = approvals.remove(id: id) else { return }
+        Self.emitEvent(TelegramEvent(
+            sessionId: entry.sessionId,
+            agentId: entry.pillId,
+            agentName: "",
+            kind: .approvalResolved
+        ))
         let source = approvalSources.removeValue(forKey: id)
         if let json {
             let fd = entry.fd
@@ -177,6 +190,12 @@ final class HookServer: @unchecked Sendable {
         pendingQuestionFD = -1
         let state = AppState.shared
         let pillId = questionPillId
+        Self.emitEvent(TelegramEvent(
+            sessionId: questionSessionId,
+            agentId: pillId,
+            agentName: "",
+            kind: .questionResolved
+        ))
         state.pendingQuestion = nil
         state.isPinned = false
         state.updateTask(id: pillId, state: .working)
@@ -610,6 +629,15 @@ final class HookServer: @unchecked Sendable {
             if !finalText.isEmpty, let idx = state.tasks.firstIndex(where: { $0.id == agentId }) {
                 state.tasks[idx].finalLine = finalText
             }
+            let agentName = PillCatalog.definition(for: agentId)?.name ?? (agentId.hasPrefix("agent_") ? String(agentId.dropFirst(6)) : "Claude Code")
+            Self.emitEvent(TelegramEvent(
+                sessionId: sessionId,
+                agentId: agentId,
+                agentName: agentName,
+                projectName: projectName,
+                kind: .finished,
+                finalText: finalText.isEmpty ? nil : finalText
+            ))
             SoundEngine.shared.play("finish")
             if focused {
                 expandIfNeeded(to: .finished)
@@ -630,6 +658,15 @@ final class HookServer: @unchecked Sendable {
         case "StopFailure":
             RecapStore.shared.stop(sessionId: recapSessionId)
             guard sessions.endTurn(pill: agentId, session: sessionId) == .pill else { break }
+            let failAgentName = PillCatalog.definition(for: agentId)?.name ?? (agentId.hasPrefix("agent_") ? String(agentId.dropFirst(6)) : "Claude Code")
+            Self.emitEvent(TelegramEvent(
+                sessionId: sessionId,
+                agentId: agentId,
+                agentName: failAgentName,
+                projectName: projectName,
+                kind: .error,
+                finalText: nil
+            ))
             state.updateTask(id: agentId, state: .error)
             SoundEngine.shared.play("error")
             if focused {
@@ -867,6 +904,25 @@ final class HookServer: @unchecked Sendable {
         state.updateTask(id: pillId, state: .approval)
         SoundEngine.shared.play("approval")
 
+        let approvalAgentName = PillCatalog.definition(for: pillId)?.name ?? (pillId.hasPrefix("agent_") ? String(pillId.dropFirst(6)) : "Claude Code")
+        let snap = ApprovalSnapshot(
+            id: entry.id,
+            tool: entry.tool,
+            command: entry.command,
+            inputKey: entry.inputKey,
+            pillId: entry.pillId,
+            sessionId: entry.sessionId,
+            projectName: entry.projectName
+        )
+        Self.emitEvent(TelegramEvent(
+            sessionId: sessionId,
+            agentId: pillId,
+            agentName: approvalAgentName,
+            projectName: projectName,
+            kind: .approval,
+            approval: snap
+        ))
+
         // Monitor fd: if the agent closes the connection (answered in its own UI), drop the
         // request. The cancel handler closes the fd — never close it anywhere else.
         let entryId = entry.id
@@ -1004,6 +1060,25 @@ final class HookServer: @unchecked Sendable {
         state.pendingQuestion = parsed
         state.isPinned = true
         SoundEngine.shared.play("approval")
+
+        let questionAgentName = PillCatalog.definition(for: pillId)?.name ?? (pillId.hasPrefix("agent_") ? String(pillId.dropFirst(6)) : "Claude Code")
+        let qItems = parsed.questions.map { q in
+            QuestionItemSnapshot(
+                question: q.question,
+                header: q.header,
+                options: q.options.map { QuestionOptionSnapshot(label: $0.label, description: $0.description) },
+                multiSelect: q.multiSelect
+            )
+        }
+        let snap = QuestionSnapshot(items: qItems)
+        Self.emitEvent(TelegramEvent(
+            sessionId: sessionId,
+            agentId: pillId,
+            agentName: questionAgentName,
+            projectName: projectName,
+            kind: .question,
+            question: snap
+        ))
 
         if focusBeforeQuestion == nil { focusBeforeQuestion = state.focusId }
         withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) { state.focusId = pillId }

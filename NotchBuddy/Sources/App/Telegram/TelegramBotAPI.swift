@@ -101,7 +101,7 @@ final class URLSessionTelegramHTTPTransport: TelegramHTTPTransport, @unchecked S
     }
 }
 
-actor TelegramBotAPI {
+final class TelegramBotAPI: Sendable {
     private let transport: TelegramHTTPTransport
 
     init(transport: TelegramHTTPTransport) {
