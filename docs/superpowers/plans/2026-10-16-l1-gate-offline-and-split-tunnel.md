@@ -129,7 +129,7 @@ Verify that all existing tests and new offline bypass tests pass.
   4. Fallback 2: `iface = _get_route_interface("default")`. If `is_vpn_interface(iface)` $\to$ return `True`.
   5. Return `False` (Traffic would leak over unprotected interface).
 
-- [ ] **Step 1: Write unit tests in `tests/test_tunnelguard_hook_gate.py` for split-tunnel routing**
+- [x] **Step 1: Write unit tests in `tests/test_tunnelguard_hook_gate.py` for split-tunnel routing**
 Add tests:
 - `test_split_tunnel_target_domain_utun_default_en0`:
   `1.1.1.1` $\to$ `en0`, `default` $\to$ `en0`, but `generativelanguage.googleapis.com` $\to$ `utun3`.
@@ -140,10 +140,10 @@ Add tests:
   `generativelanguage.googleapis.com` $\to$ `en0` and `default` $\to$ `en0`.
   `verify_vpn_route("antigravity")` MUST return `False`.
 
-- [ ] **Step 2: Update `verify_vpn_route` and `is_vpn_interface` in `nbHookPythonGitHub` (`HookServer.swift`)**
+- [x] **Step 2: Update `verify_vpn_route` and `is_vpn_interface` in `nbHookPythonGitHub` (`HookServer.swift`)**
 Implement target domain mapping, extended interface prefix checks, and prioritized route resolution.
 
-- [ ] **Step 3: Update `isVpnInterface` in `TunnelGuardWatchdog.swift`**
+- [x] **Step 3: Update `isVpnInterface` in `TunnelGuardWatchdog.swift`**
 Keep Swift L2 Watchdog and Python L1 Gate interface prefixes synchronized:
 ```swift
 nonisolated static func isVpnInterface(_ iface: String) -> Bool {
@@ -152,7 +152,7 @@ nonisolated static func isVpnInterface(_ iface: String) -> Bool {
 }
 ```
 
-- [ ] **Step 4: Run full test suite**
+- [x] **Step 4: Run full test suite**
 Run:
 `python3 tests/test_tunnelguard_hook_gate.py`
 `make test-tunnelguard-safe`

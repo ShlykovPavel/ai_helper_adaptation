@@ -575,9 +575,10 @@ class TestTunnelGuardGateE2E(unittest.TestCase):
             "def _unused():\n"
         )
         # Форсируем вызов tunnel_guard_kill_agent_and_exit при старте
-        safe_kill_py = safe_kill_py.replace(
-            "if not verify_vpn_route_utun():",
-            "if True: # forced VPN drop for test"
+        safe_kill_py = re.sub(
+            r"if not verify_vpn_route.*?:",
+            "if True: # forced VPN drop for test",
+            safe_kill_py
         )
         test_py.write_text(safe_kill_py, encoding="utf-8")
 
@@ -700,6 +701,147 @@ class TestSimulateVPNDrop(unittest.TestCase):
             os.kill(victim_pid, 0)
 
         self.assertLess(latency_ms, 25.0)
+
+
+class TestSplitTunnelAndExtendedInterfaces(unittest.TestCase):
+    """
+    Тестирование распознавания расширенных VPN-интерфейсов и маршрутизации
+    Split-Tunnel для целевых доменов AI-агентов (Point 3).
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        _, python_code = extract_hook_scripts()
+        cls.hook_mod = load_hook_module(python_code)
+
+    def test_is_vpn_interface(self):
+        """Проверяет распознавание расширенного списка VPN-интерфейсов и отсечение локальных."""
+        valid_vpns = [
+            "utun0", "utun2", "utun22", "tun0", "tun1", "tap0",
+            "ppp0", "ppp1", "cscotun0", "cscotun1", "fctun0", "fctun2", "ipsec0"
+        ]
+        for iface in valid_vpns:
+            with self.subTest(iface=iface):
+                self.assertTrue(self.hook_mod.is_vpn_interface(iface), f"{iface} должен быть распознан как VPN")
+
+        invalid_ifaces = ["en0", "en1", "bridge0", "pdp_ip0", "lo0", "", None]
+        for iface in invalid_ifaces:
+            with self.subTest(iface=iface):
+                self.assertFalse(self.hook_mod.is_vpn_interface(iface), f"{iface} НЕ должен быть распознан как VPN")
+
+    def test_get_target_ai_domain_defaults(self):
+        """Проверяет маппинг доменов по умолчанию для встроенных агентов."""
+        self.assertEqual(self.hook_mod.get_target_ai_domain("antigravity"), "generativelanguage.googleapis.com")
+        self.assertEqual(self.hook_mod.get_target_ai_domain("agy"), "generativelanguage.googleapis.com")
+        self.assertEqual(self.hook_mod.get_target_ai_domain("agy-cli"), "generativelanguage.googleapis.com")
+        self.assertEqual(self.hook_mod.get_target_ai_domain("gemini"), "generativelanguage.googleapis.com")
+        self.assertEqual(self.hook_mod.get_target_ai_domain("gemini-cli"), "generativelanguage.googleapis.com")
+        self.assertEqual(self.hook_mod.get_target_ai_domain("claude"), "claude.ai")
+        self.assertEqual(self.hook_mod.get_target_ai_domain("claude-cli"), "claude.ai")
+        self.assertEqual(self.hook_mod.get_target_ai_domain("claude-desktop"), "claude.ai")
+        self.assertEqual(self.hook_mod.get_target_ai_domain("codex"), "chatgpt.com")
+        self.assertEqual(self.hook_mod.get_target_ai_domain("codex-cli"), "chatgpt.com")
+        self.assertEqual(self.hook_mod.get_target_ai_domain("cursor"), "cursor.sh")
+        self.assertEqual(self.hook_mod.get_target_ai_domain("cursor-agent"), "cursor.sh")
+        self.assertEqual(self.hook_mod.get_target_ai_domain("cursor-agent-cli"), "cursor.sh")
+        self.assertEqual(self.hook_mod.get_target_ai_domain("unknown-agent"), "")
+        self.assertEqual(self.hook_mod.get_target_ai_domain(""), "")
+
+    def test_get_target_ai_domain_from_state_file(self):
+        """Проверяет приоритет чтения target_domains из файла состояния."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_file = Path(tmpdir) / "state.json"
+            state_file.write_text(json.dumps({
+                "target_domains": {
+                    "custom-ai": "api.custom-ai.internal",
+                    "agy": "custom-gemini.endpoint.com"
+                }
+            }), encoding="utf-8")
+            self.assertEqual(
+                self.hook_mod.get_target_ai_domain("custom-ai", state_file=str(state_file)),
+                "api.custom-ai.internal"
+            )
+            # Нормализация: antigravity -> agy в target_domains
+            self.assertEqual(
+                self.hook_mod.get_target_ai_domain("antigravity", state_file=str(state_file)),
+                "custom-gemini.endpoint.com"
+            )
+
+    def test_split_tunnel_target_domain_utun_default_en0(self):
+        """
+        Split tunnel: 1.1.1.1 -> en0, default -> en0,
+        но generativelanguage.googleapis.com -> utun3.
+        verify_vpn_route("antigravity") ОБЯЗАН вернуть True!
+        """
+        routes = {
+            "generativelanguage.googleapis.com": "utun3",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        }
+        with patch.object(self.hook_mod, "_get_route_interface", side_effect=lambda dest: routes.get(dest, "en0")):
+            self.assertTrue(self.hook_mod.verify_vpn_route("antigravity"))
+            self.assertTrue(self.hook_mod.verify_vpn_route("agy"))
+
+    def test_split_tunnel_target_domain_cisco_vpn(self):
+        """
+        Split tunnel: 1.1.1.1 -> en0, default -> en0,
+        но claude.ai -> cscotun0 (Cisco AnyConnect).
+        verify_vpn_route("claude") ОБЯЗАН вернуть True!
+        """
+        routes = {
+            "claude.ai": "cscotun0",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        }
+        with patch.object(self.hook_mod, "_get_route_interface", side_effect=lambda dest: routes.get(dest, "en0")):
+            self.assertTrue(self.hook_mod.verify_vpn_route("claude"))
+            self.assertTrue(self.hook_mod.verify_vpn_route("claude-desktop"))
+
+    def test_split_tunnel_leak_detected(self):
+        """
+        Утечка трафика: целевой домен AI идет в en0, дефолтный маршрут тоже en0.
+        verify_vpn_route("antigravity") ОБЯЗАН вернуть False!
+        """
+        routes = {
+            "generativelanguage.googleapis.com": "en0",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        }
+        with patch.object(self.hook_mod, "_get_route_interface", side_effect=lambda dest: routes.get(dest, "en0")):
+            self.assertFalse(self.hook_mod.verify_vpn_route("antigravity"))
+            self.assertFalse(self.hook_mod.verify_vpn_route("agy"))
+
+    def test_fallback_to_1111_and_default_when_no_agent_domain(self):
+        """
+        Если агент не указан или домен неизвестен:
+        - 1.1.1.1 -> utun0 => True
+        - 1.1.1.1 -> en0, default -> utun0 => True
+        - 1.1.1.1 -> en0, default -> en0 => False
+        """
+        # Case A: 1.1.1.1 is VPN
+        with patch.object(self.hook_mod, "_get_route_interface", side_effect=lambda d: "utun0" if d == "1.1.1.1" else "en0"):
+            self.assertTrue(self.hook_mod.verify_vpn_route(""))
+            self.assertTrue(self.hook_mod.verify_vpn_route("unknown-agent"))
+
+        # Case B: default is VPN
+        with patch.object(self.hook_mod, "_get_route_interface", side_effect=lambda d: "utun0" if d == "default" else "en0"):
+            self.assertTrue(self.hook_mod.verify_vpn_route(""))
+            self.assertTrue(self.hook_mod.verify_vpn_route("unknown-agent"))
+
+        # Case C: both en0
+        with patch.object(self.hook_mod, "_get_route_interface", return_value="en0"):
+            self.assertFalse(self.hook_mod.verify_vpn_route(""))
+            self.assertFalse(self.hook_mod.verify_vpn_route("unknown-agent"))
+
+    def test_verify_vpn_route_utun_backward_compatibility(self):
+        """Проверяет обратную совместимость обертки verify_vpn_route_utun."""
+        with patch.object(self.hook_mod, "_get_route_interface", return_value="utun0"):
+            self.assertTrue(self.hook_mod.verify_vpn_route_utun())
+            self.assertTrue(self.hook_mod.verify_vpn_route_utun("antigravity"))
+
+        with patch.object(self.hook_mod, "_get_route_interface", return_value="en0"):
+            self.assertFalse(self.hook_mod.verify_vpn_route_utun())
+            self.assertFalse(self.hook_mod.verify_vpn_route_utun("antigravity"))
 
 
 if __name__ == "__main__":

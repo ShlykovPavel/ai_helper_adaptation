@@ -376,7 +376,8 @@ final class TunnelGuardWatchdog: ObservableObject {
     // MARK: - Статические утилиты (Nonisolated для Swift 6 и обратной совместимости)
 
     nonisolated static func isVpnInterface(_ iface: String) -> Bool {
-        iface.hasPrefix("utun")
+        let prefixes = ["utun", "tun", "tap", "ppp", "cscotun", "fctun", "ipsec"]
+        return prefixes.contains { iface.hasPrefix($0) }
     }
 
     nonisolated static func parseInterface(fromRouteOutput output: String) -> String {

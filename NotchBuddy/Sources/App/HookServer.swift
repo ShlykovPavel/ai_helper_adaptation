@@ -3250,13 +3250,59 @@ def is_tunnelguard_active(agent_name="", state_file=None, socket_path=None):
 
     return True
 
-def verify_vpn_route_utun():
+def is_vpn_interface(iface):
+    vpn_prefixes = ("utun", "tun", "tap", "ppp", "cscotun", "fctun", "ipsec")
+    return bool(iface and iface.startswith(vpn_prefixes))
+
+def get_target_ai_domain(agent_name="", state_file=None):
+    if state_file is None:
+        state_file = os.environ.get('TUNNELGUARD_STATE_FILE') or os.environ.get('_TUNNELGUARD_STATE_FILE') or os.path.expanduser('~/Library/Application Support/NotchBuddy/tunnelguard-state.json')
+    if os.path.exists(state_file):
+        try:
+            with open(state_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            domains = data.get("target_domains", {})
+            if isinstance(domains, dict):
+                if agent_name in domains:
+                    return domains[agent_name]
+                norm = "agy" if agent_name in ("antigravity", "agy-cli") else agent_name
+                if norm in domains:
+                    return domains[norm]
+        except Exception:
+            pass
+    mapping = {
+        "antigravity": "generativelanguage.googleapis.com",
+        "agy": "generativelanguage.googleapis.com",
+        "agy-cli": "generativelanguage.googleapis.com",
+        "gemini": "generativelanguage.googleapis.com",
+        "gemini-cli": "generativelanguage.googleapis.com",
+        "claude": "claude.ai",
+        "claude-cli": "claude.ai",
+        "claude-desktop": "claude.ai",
+        "codex": "chatgpt.com",
+        "codex-cli": "chatgpt.com",
+        "cursor": "cursor.sh",
+        "cursor-agent": "cursor.sh",
+        "cursor-agent-cli": "cursor.sh",
+    }
+    return mapping.get(agent_name, "")
+
+def verify_vpn_route(agent_name="", state_file=None):
+    domain = get_target_ai_domain(agent_name, state_file=state_file)
+    if domain:
+        domain_iface = _get_route_interface(domain)
+        if is_vpn_interface(domain_iface):
+            return True
     iface = _get_route_interface("1.1.1.1")
-    if not iface.startswith("utun"):
-        def_iface = _get_route_interface("default")
-        if def_iface.startswith("utun"):
-            iface = def_iface
-    return iface.startswith("utun")
+    if is_vpn_interface(iface):
+        return True
+    def_iface = _get_route_interface("default")
+    if is_vpn_interface(def_iface):
+        return True
+    return False
+
+def verify_vpn_route_utun(agent_name=""):
+    return verify_vpn_route(agent_name)
 
 def get_real_agent_pid():
     # Определение PID реального процесса агента через обход дерева процессов вверх
@@ -3382,7 +3428,7 @@ def main():
 
     # ШЛАГБАУМ TUNNELGUARD: блокируем только если TunnelGuard активен в NotchBuddy
     if is_tunnelguard_active(agent):
-        if not verify_vpn_route_utun():
+        if not verify_vpn_route(agent):
             tunnel_guard_kill_agent_and_exit()
 
     raw = b''

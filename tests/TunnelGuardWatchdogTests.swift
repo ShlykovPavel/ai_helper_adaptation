@@ -97,8 +97,12 @@ enum TunnelGuardWatchdogTests {
         precondition(!TunnelGuardWatchdog.isVpnInterface("en0"), "en0 must NOT be recognized as VPN")
         precondition(!TunnelGuardWatchdog.isVpnInterface("en1"), "en1 must NOT be recognized as VPN")
         precondition(!TunnelGuardWatchdog.isVpnInterface("bridge0"), "bridge0 must NOT be recognized as VPN")
-        precondition(!TunnelGuardWatchdog.isVpnInterface("pdp_ip0"), "pdp_ip0 must NOT be recognized as VPN")
-        precondition(!TunnelGuardWatchdog.isVpnInterface("tun0"), "tun0 without u-prefix must not be treated as macOS utun")
+        precondition(TunnelGuardWatchdog.isVpnInterface("tun0"), "tun0 must be recognized as VPN")
+        precondition(TunnelGuardWatchdog.isVpnInterface("tap0"), "tap0 must be recognized as VPN")
+        precondition(TunnelGuardWatchdog.isVpnInterface("ppp0"), "ppp0 must be recognized as VPN")
+        precondition(TunnelGuardWatchdog.isVpnInterface("cscotun0"), "cscotun0 must be recognized as VPN")
+        precondition(TunnelGuardWatchdog.isVpnInterface("fctun0"), "fctun0 must be recognized as VPN")
+        precondition(TunnelGuardWatchdog.isVpnInterface("ipsec0"), "ipsec0 must be recognized as VPN")
         precondition(!TunnelGuardWatchdog.isVpnInterface(""), "empty interface must NOT be recognized as VPN")
 
         // 1.3 checkVpnTunnel with mock route binaries
