@@ -160,6 +160,7 @@ macOS releases are published as `v*` tags. See [CHANGELOG.md](CHANGELOG.md) for 
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| [0.6.0](https://github.com/Louis-CFM/coucou/releases/tag/v0.6.0) | Oct 17, 2026 | Coucou Telegram Bot: turn completions, interactive approvals and questions on your phone |
 | [0.4.0](https://github.com/Louis-CFM/coucou/releases/tag/v0.4.0) | Oct 14, 2026 | Coucou becomes an app: Flow dictation anywhere, Parakeet offline, the Notetaker, a window in the Dock |
 | [0.3.0](https://github.com/Louis-CFM/coucou/releases/tag/v0.3.0) | Oct 11, 2026 | « OK Coucou »: talk to Mochi, powered by Claude — pills, music, your services, web search, emails |
 | [0.2.3](https://github.com/Louis-CFM/coucou/releases/tag/v0.2.3) | Oct 8, 2026 | Terminal sessions, Spotify, a colour per Mochi, dictation in any language, open on hover, your own sounds |
@@ -181,6 +182,7 @@ Windows and Linux are released together, under the `windows-v*` and `linux-v*` t
 
 | Windows & Linux | Date | Highlights |
 |---------|------|------------|
+| 0.6.0 · [Windows](https://github.com/Louis-CFM/coucou/releases/tag/windows-v0.6.0) · [Linux](https://github.com/Louis-CFM/coucou/releases/tag/linux-v0.6.0) | Oct 17, 2026 | Coucou Telegram Bot: turn completions, interactive approvals and questions on your phone |
 | 0.5.0 · [Windows](https://github.com/Louis-CFM/coucou/releases/tag/windows-v0.5.0) · [Linux](https://github.com/Louis-CFM/coucou/releases/tag/linux-v0.5.0) | Oct 15, 2026 | Catches up with the Mac: the Coucou window, Flow dictation with Parakeet offline (X11 and Wayland), the Notetaker, « OK Coucou » |
 | 0.4.0 · [Windows](https://github.com/Louis-CFM/coucou/releases/tag/windows-v0.4.0) · [Linux](https://github.com/Louis-CFM/coucou/releases/tag/linux-v0.4.0) | Oct 11, 2026 | Your Android phone: the link for Coucou for Android, by @Rhytam23 — approvals with your fingerprint, answers, chat, off by default |
 | 0.3.0 · [Windows](https://github.com/Louis-CFM/coucou/releases/tag/windows-v0.3.0) · [Linux](https://github.com/Louis-CFM/coucou/releases/tag/linux-v0.3.0) | Oct 9, 2026 | Linux catches up: Spotify with Mochi dancing, global shortcuts on Wayland, Open terminal brings the terminal back; open on hover, your own sounds, a colour per Mochi |
