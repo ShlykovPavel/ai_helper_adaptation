@@ -707,6 +707,7 @@ struct QuestionView: View {
     var question: AskQuestion? { state.pendingQuestion }
 
     var body: some View {
+        let shownId = question?.id
         ZStack {
             CardBackground(wash: .cyan)
             if let q = question, !q.questions.isEmpty {
@@ -718,18 +719,27 @@ struct QuestionView: View {
                 let curOther = qi < showOther.count ? showOther[qi] : false
                 let curOtherText = qi < otherTexts.count ? otherTexts[qi] : ""
                 let canProceed = !curSel.isEmpty || (curOther && !curOtherText.isEmpty)
+                let askerId = q.pillId.isEmpty ? (state.focusTask?.id ?? "integration_claude") : q.pillId
+                let askerName = PillCatalog.definition(for: askerId)?.name ?? "Agent"
+                let askerTask = state.tasks.first(where: { $0.id == askerId }) ?? state.focusTask
 
                 VStack(alignment: .leading, spacing: 4) {
                     // Header row: agent name + question counter + "Reply in terminal" link
-                    HStack(spacing: 4) {
-                        AgentWho(task: nil, label: "Claude Code is asking")
+                    HStack(spacing: 6) {
+                        AgentWho(task: askerTask, label: "\(askerName) is asking")
+                        if q.queueCount > 1 {
+                            Text(verbatim: "\(q.queueIndex)/\(q.queueCount)")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(Color(hex: "#8E939C"))
+                                .monospacedDigit()
+                        }
                         Spacer(minLength: 4)
                         if q.questions.count > 1 {
                             Text("\(qi + 1)/\(q.questions.count)")
                                 .font(.system(size: 10))
                                 .foregroundColor(Color(hex: "#6B7079"))
                         }
-                        Button("Reply in terminal") { HookServer.shared.sendQuestionAsk() }
+                        Button("Reply in terminal") { HookServer.shared.sendQuestionAsk(for: shownId) }
                             .buttonStyle(.plain)
                             .font(.system(size: 10))
                             .foregroundColor(Color(hex: "#6B7079"))
@@ -862,7 +872,11 @@ struct QuestionView: View {
         }
         .onAppear { resetQuestionState() }
         .onChange(of: state.pendingQuestion) { _, _ in resetQuestionState() }
-        .onDisappear { HookServer.shared.releaseQuestionFD() }
+        .onDisappear {
+            if state.view != .question {
+                HookServer.shared.releaseQuestionFD(for: shownId)
+            }
+        }
     }
 
     private func resetQuestionState() {
@@ -909,7 +923,7 @@ struct QuestionView: View {
 
     private func sendAnswers(q: AskQuestion) {
         let answers = AskQuestion.buildAnswers(questions: q.questions, selections: selections)
-        HookServer.shared.sendQuestionAnswers(answers)
+        HookServer.shared.sendQuestionAnswers(answers, for: q.id)
     }
 }
 

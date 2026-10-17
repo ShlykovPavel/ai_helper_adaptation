@@ -2,12 +2,12 @@ import Foundation
 
 // MARK: - AskUserQuestion model (Foundation-only, testable)
 
-struct AskQuestionOption: Equatable {
+struct AskQuestionOption: Equatable, Sendable {
     var label: String
     var description: String
 }
 
-struct AskQuestionItem: Equatable {
+struct AskQuestionItem: Equatable, Sendable {
     var question: String    // full question text
     var header: String      // ≤12 chars; used as section label
     var options: [AskQuestionOption]   // 2–4 choices
@@ -24,8 +24,27 @@ extension AskQuestionItem {
     var hasDescriptions: Bool { options.contains { !$0.description.isEmpty } }
 }
 
-struct AskQuestion: Equatable {
+struct AskQuestion: Equatable, Sendable {
     var questions: [AskQuestionItem]   // 1–4 questions
+    var id: UUID = UUID()
+    var pillId: String = ""
+    var projectName: String = ""
+    var queueIndex: Int = 1
+    var queueCount: Int = 1
+
+    init(questions: [AskQuestionItem],
+         id: UUID = UUID(),
+         pillId: String = "",
+         projectName: String = "",
+         queueIndex: Int = 1,
+         queueCount: Int = 1) {
+        self.questions = questions
+        self.id = id
+        self.pillId = pillId
+        self.projectName = projectName
+        self.queueIndex = queueIndex
+        self.queueCount = queueCount
+    }
 
     /// Island height that fits the tallest question without truncation (rough estimate, text wraps at ~500 pt).
     var estimatedIslandHeight: CGFloat {
