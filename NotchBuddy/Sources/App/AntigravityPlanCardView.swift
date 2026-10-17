@@ -30,13 +30,13 @@ struct AntigravityPlanCardView: View {
 
             // Gauge rows
             VStack(alignment: .leading, spacing: 5) {
-                GaugeRowView(label: "Gemini 5h", window: usage?.geminiFiveHour, now: now)
-                GaugeRowView(label: "Gemini Wk", window: usage?.geminiWeekly, now: now, weekly: true)
+                GaugeRowView(label: "Gemini 5h", window: usage?.geminiFiveHour, now: now, labelWidth: 64)
+                GaugeRowView(label: "Gemini Wk", window: usage?.geminiWeekly, now: now, weekly: true, labelWidth: 64)
                 if usage?.thirdPartyWeekly != nil {
-                    GaugeRowView(label: "3P Wk", window: usage?.thirdPartyWeekly, now: now, weekly: true)
+                    GaugeRowView(label: "3P Wk", window: usage?.thirdPartyWeekly, now: now, weekly: true, labelWidth: 64)
                 }
                 if usage?.thirdPartyFiveHour != nil {
-                    GaugeRowView(label: "3P 5h", window: usage?.thirdPartyFiveHour, now: now)
+                    GaugeRowView(label: "3P 5h", window: usage?.thirdPartyFiveHour, now: now, labelWidth: 64)
                 }
             }
             .padding(.top, 8)

@@ -97,27 +97,24 @@ enum AntigravityPlanGauge {
 
     /// Discovers language_server process and queries RetrieveUserQuotaSummary.
     static func fetch() async -> AntigravityPlanUsage? {
-        await Task.detached { queryLocalServer() }.value
-    }
+        let candidates = await Task.detached { findLanguageServerProcesses() }.value
+        guard !candidates.isEmpty else { return nil }
 
-    private static func queryLocalServer() -> AntigravityPlanUsage? {
-        let (pid, token) = findLanguageServerProcess()
-        guard let pid, let token else { return nil }
-        let ports = findListeningPorts(pid: pid)
-        guard !ports.isEmpty else { return nil }
-
-        for port in ports {
-            if let usage = queryPort(scheme: "https", port: port, token: token) {
-                return usage
-            }
-            if let usage = queryPort(scheme: "http", port: port, token: token) {
-                return usage
+        for candidate in candidates {
+            let ports = await Task.detached { findListeningPorts(pid: candidate.pid) }.value
+            for port in ports {
+                if let usage = await queryPort(scheme: "https", port: port, token: candidate.token) {
+                    return usage
+                }
+                if let usage = await queryPort(scheme: "http", port: port, token: candidate.token) {
+                    return usage
+                }
             }
         }
         return nil
     }
 
-    private static func queryPort(scheme: String, port: Int, token: String) -> AntigravityPlanUsage? {
+    static func queryPort(scheme: String, port: Int, token: String) async -> AntigravityPlanUsage? {
         guard let url = URL(string: "\(scheme)://127.0.0.1:\(port)/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary") else { return nil }
         var request = URLRequest(url: url, timeoutInterval: 3.0)
         request.httpMethod = "POST"
@@ -125,60 +122,97 @@ enum AntigravityPlanGauge {
         request.setValue(token, forHTTPHeaderField: "x-codeium-csrf-token")
         request.httpBody = Data("{}".utf8)
 
-        let session = URLSession(configuration: .ephemeral, delegate: InsecureLocalhostDelegate(), delegateQueue: nil)
-        var resultData: Data? = nil
-        let sema = DispatchSemaphore(value: 0)
-        let task = session.dataTask(with: request) { data, response, error in
-            if let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) {
-                resultData = data
-            } else if error == nil, let d = data, !d.isEmpty {
-                resultData = d
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 3.0
+        config.timeoutIntervalForResource = 3.0
+        let session = URLSession(configuration: config, delegate: InsecureLocalhostDelegate(), delegateQueue: nil)
+        defer { session.invalidateAndCancel() }
+
+        do {
+            let (data, response) = try await session.data(for: request)
+            guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+                return nil
             }
-            sema.signal()
+            return parse(data: data)
+        } catch {
+            return nil
         }
-        task.resume()
-        _ = sema.wait(timeout: .now() + 3.5)
-        session.invalidateAndCancel()
-        guard let data = resultData else { return nil }
-        return parse(data: data)
     }
 
-    private static func findLanguageServerProcess() -> (Int?, String?) {
+    static func findLanguageServerProcess() -> (Int?, String?) {
+        let list = findLanguageServerProcesses()
+        return (list.first?.pid, list.first?.token)
+    }
+
+    static func findLanguageServerProcesses() -> [(pid: Int, token: String)] {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/bin/ps")
         task.arguments = ["-ax", "-o", "pid,command"]
         let pipe = Pipe()
         task.standardOutput = pipe
         task.standardError = FileHandle.nullDevice
-        do { try task.run(); task.waitUntilExit() } catch { return (nil, nil) }
-        let output = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+
+        let watchdog = DispatchWorkItem { if task.isRunning { task.terminate() } }
+        DispatchQueue.global().asyncAfter(deadline: .now() + 5.0, execute: watchdog)
+        defer { watchdog.cancel() }
+
+        do {
+            try task.run()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            task.waitUntilExit()
+            let output = String(data: data, encoding: .utf8) ?? ""
+            return parseProcesses(output)
+        } catch {
+            return []
+        }
+    }
+
+    static func parseProcesses(_ output: String) -> [(pid: Int, token: String)] {
+        var results: [(pid: Int, token: String)] = []
         for line in output.components(separatedBy: "\n") {
             if line.contains("language_server") && line.contains("--csrf_token") {
                 let parts = line.trimmingCharacters(in: .whitespaces).components(separatedBy: .whitespaces).filter { !$0.isEmpty }
                 guard let pid = Int(parts[0]) else { continue }
                 if let tokenIdx = parts.firstIndex(of: "--csrf_token"), tokenIdx + 1 < parts.count {
-                    return (pid, parts[tokenIdx + 1])
+                    results.append((pid: pid, token: parts[tokenIdx + 1]))
+                    continue
                 }
                 for part in parts {
                     if part.starts(with: "--csrf_token=") {
                         let token = String(part.dropFirst("--csrf_token=".count))
-                        return (pid, token)
+                        results.append((pid: pid, token: token))
+                        break
                     }
                 }
             }
         }
-        return (nil, nil)
+        return results
     }
 
-    private static func findListeningPorts(pid: Int) -> [Int] {
+    static func findListeningPorts(pid: Int) -> [Int] {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/sbin/lsof")
         task.arguments = ["-a", "-iTCP", "-sTCP:LISTEN", "-n", "-P", "-p", "\(pid)"]
         let pipe = Pipe()
         task.standardOutput = pipe
         task.standardError = FileHandle.nullDevice
-        do { try task.run(); task.waitUntilExit() } catch { return [] }
-        let output = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+
+        let watchdog = DispatchWorkItem { if task.isRunning { task.terminate() } }
+        DispatchQueue.global().asyncAfter(deadline: .now() + 5.0, execute: watchdog)
+        defer { watchdog.cancel() }
+
+        do {
+            try task.run()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            task.waitUntilExit()
+            let output = String(data: data, encoding: .utf8) ?? ""
+            return parseListeningPorts(output)
+        } catch {
+            return []
+        }
+    }
+
+    static func parseListeningPorts(_ output: String) -> [Int] {
         var ports: [Int] = []
         for line in output.components(separatedBy: "\n") {
             guard line.contains("LISTEN") else { continue }
@@ -196,9 +230,14 @@ enum AntigravityPlanGauge {
     }
 }
 
-private final class InsecureLocalhostDelegate: NSObject, URLSessionDelegate, @unchecked Sendable {
+final class InsecureLocalhostDelegate: NSObject, URLSessionDelegate, @unchecked Sendable {
     func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge,
                     completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        let host = challenge.protectionSpace.host
+        guard host == "127.0.0.1" || host == "localhost" else {
+            completionHandler(.performDefaultHandling, nil)
+            return
+        }
         if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
            let trust = challenge.protectionSpace.serverTrust {
             completionHandler(.useCredential, URLCredential(trust: trust))

@@ -575,7 +575,7 @@ final class AppState: ObservableObject {
     }
 
     // Antigravity plan gauge (from local LanguageServerService RPC)
-    @Published var showAntigravityPlanInNotch: Bool = true {
+    @Published var showAntigravityPlanInNotch: Bool = false {
         didSet { UserDefaults.standard.set(showAntigravityPlanInNotch, forKey: "showAntigravityPlanInNotch") }
     }
     @Published var antigravityPlanUsage: AntigravityPlanUsage? = nil

@@ -427,10 +427,12 @@ struct OverviewView: View {
                         } else if state.planDetailIsCodex {
                             CodexPlanCardView(usage: state.codexPlanUsage)
                         } else {
-                            // Claude and Codex both on: the header shows only the Claude pill,
-                            // Codex is a third row here that opens its own card.
+                            // Claude and Codex/Antigravity both on: the header shows only the Claude pill,
+                            // Codex and Antigravity are additional rows here that open their own cards.
                             let bothPlans = state.showPlanInNotch && state.planRelayInstalled
                                 && state.showCodexPlanInNotch
+                            let agyPlanRow = state.showPlanInNotch && state.planRelayInstalled
+                                && state.showAntigravityPlanInNotch
                             ClaudePlanCardView(usage: state.claudePlanUsage,
                                                codexRow: bothPlans,
                                                codexUsage: state.codexPlanUsage,
@@ -440,6 +442,15 @@ struct OverviewView: View {
                                                        state.planDetailIsCodex = true
                                                    }
                                                    state.refreshCodexPlanUsage()
+                                               },
+                                               antigravityRow: agyPlanRow,
+                                               antigravityUsage: state.antigravityPlanUsage,
+                                               onAntigravity: {
+                                                   withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                                       state.planDetailIsCodex = false
+                                                       state.planDetailIsAntigravity = true
+                                                   }
+                                                   state.refreshAntigravityPlanUsage()
                                                })
                         }
                     }

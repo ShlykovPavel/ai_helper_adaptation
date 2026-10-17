@@ -9,6 +9,9 @@ struct ClaudePlanCardView: View {
     var codexRow: Bool = false
     var codexUsage: CodexPlanUsage? = nil
     var onCodex: () -> Void = {}
+    var antigravityRow: Bool = false
+    var antigravityUsage: AntigravityPlanUsage? = nil
+    var onAntigravity: (() -> Void)? = nil
     #endif
 
     @State private var now = Date()
@@ -49,6 +52,16 @@ struct ClaudePlanCardView: View {
                     }
                     .buttonStyle(.plain)
                 }
+                if antigravityRow {
+                    // The Antigravity window closest to its limit; a click opens the Antigravity card.
+                    Button(action: { onAntigravity?() }) {
+                        let window = antigravityDominantWindow
+                        GaugeRowView(label: "Gemini", window: window, now: now,
+                                     weekly: window != nil && window == antigravityUsage?.geminiWeekly)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
                 #endif
             }
             .padding(.top, 8)
@@ -69,6 +82,17 @@ struct ClaudePlanCardView: View {
     private var codexDominantWindow: PlanWindow? {
         guard let u = codexUsage else { return nil }
         switch (u.fiveHour, u.sevenDay) {
+        case (nil, nil): return nil
+        case (let f?, nil): return f
+        case (nil, let w?): return w
+        case (let f?, let w?):
+            return ClaudePlanGauge.effectivePct(f) >= ClaudePlanGauge.effectivePct(w) ? f : w
+        }
+    }
+
+    private var antigravityDominantWindow: PlanWindow? {
+        guard let u = antigravityUsage else { return nil }
+        switch (u.geminiFiveHour, u.geminiWeekly) {
         case (nil, nil): return nil
         case (let f?, nil): return f
         case (nil, let w?): return w
@@ -102,13 +126,14 @@ struct GaugeRowView: View {
     let window: PlanWindow?
     let now: Date
     var weekly: Bool = false
+    var labelWidth: CGFloat = 40
 
     var body: some View {
         HStack(spacing: 5) {
             Text(label)
                 .font(.system(size: 11))
                 .foregroundColor(Color(hex: "#6B7079"))
-                .frame(width: 40, alignment: .leading)
+                .frame(width: labelWidth, alignment: .leading)
             if let w = window {
                 let pct = ClaudePlanGauge.effectivePct(w)
                 let accent = Color(hex: ClaudePlanGauge.color(for: pct))
