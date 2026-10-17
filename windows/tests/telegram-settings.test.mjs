@@ -131,8 +131,10 @@ test("shows (stored) placeholder when token is already present", async () => {
 
 test("saving a token invokes secret_set, updates presence, clears input, and sets (stored)", async () => {
   const present = {};
-  const settings = { ...DEFAULT_SETTINGS };
-  const section = telegramSection(present, settings, () => {});
+  const settings = { ...DEFAULT_SETTINGS, telegramEnabled: false };
+  let savedCount = 0;
+  const save = () => { savedCount++; };
+  const section = telegramSection(present, settings, save);
 
   const input = section.querySelector(".telegram-token-input");
   const saveBtn = section.querySelector(".telegram-save-btn");
@@ -149,6 +151,13 @@ test("saving a token invokes secret_set, updates presence, clears input, and set
   assert.equal(secretCalls.length, 1);
   assert.equal(secretCalls[0].key, "telegram-bot-token");
   assert.equal(secretCalls[0].value, "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11");
+
+  // Verified telegram_set_enabled called and settings.telegramEnabled activated
+  assert.equal(settings.telegramEnabled, true);
+  const setEnabledCalls = sent("telegram_set_enabled");
+  assert.equal(setEnabledCalls.length, 1);
+  assert.equal(setEnabledCalls[0].enabled, true);
+  assert.ok(savedCount >= 1, "save() was called on token save");
 
   // Cleared input and updated placeholder
   assert.equal(input.value, "");
@@ -205,6 +214,9 @@ test("clicking Pair invokes telegram_new_pairing and opens URL", async () => {
   pairBtn.fire("click");
   await settle();
 
+  assert.equal(sent("telegram_set_enabled").length, 1);
+  assert.equal(sent("telegram_set_enabled")[0].enabled, true);
+
   const pairingCalls = sent("telegram_new_pairing");
   assert.equal(pairingCalls.length, 1);
 
@@ -254,6 +266,8 @@ test("re-pair invokes telegram_new_pairing and open_url", async () => {
   repairBtn.fire("click");
   await settle();
 
+  assert.equal(sent("telegram_set_enabled").length, 1);
+  assert.equal(sent("telegram_set_enabled")[0].enabled, true);
   assert.equal(sent("telegram_new_pairing").length, 1);
   assert.equal(sent("open_url").length, 1);
 });
@@ -317,17 +331,20 @@ test("notification checkboxes toggle independently and invoke save()", async () 
   assert.equal(approvalsCb.checked, true);
 
   // Toggle finished
-  finishedCb.fire("click");
+  finishedCb.checked = false;
+  finishedCb.fire("change");
   assert.equal(settings.telegramNotifyFinished, false);
   assert.equal(saved, 1);
 
   // Toggle questions
-  questionsCb.fire("click");
+  questionsCb.checked = false;
+  questionsCb.fire("change");
   assert.equal(settings.telegramNotifyQuestions, false);
   assert.equal(saved, 2);
 
   // Toggle approvals
-  approvalsCb.fire("click");
+  approvalsCb.checked = false;
+  approvalsCb.fire("change");
   assert.equal(settings.telegramNotifyApprovals, false);
   assert.equal(saved, 3);
 

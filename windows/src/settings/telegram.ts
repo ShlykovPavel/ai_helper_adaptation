@@ -93,21 +93,11 @@ export function telegramSection(
     input.checked = checked;
     if (checked) input.setAttribute("checked", "true");
 
-    const onToggle = () => {
-      if ("fire" in input) {
-        input.checked = !input.checked;
-      }
-      if (input.checked) input.setAttribute("checked", "true");
-      else input.removeAttribute("checked");
-      onChange(input.checked);
-    };
-
     input.addEventListener("change", () => {
       if (input.checked) input.setAttribute("checked", "true");
       else input.removeAttribute("checked");
       onChange(input.checked);
     });
-    input.addEventListener("click", onToggle);
 
     const label = h("label", { class: "telegram-checkbox-row", style: "display:flex;align-items:center;gap:8px;cursor:pointer" },
       input,
@@ -232,6 +222,8 @@ export function telegramSection(
 
       pairBtn.addEventListener("click", async () => {
         try {
+          settings.telegramEnabled = true;
+          await Bridge.telegramSetEnabled(true);
           const url = await Bridge.telegramNewPairing();
           void Bridge.openUrl(url);
 
@@ -288,6 +280,9 @@ export function telegramSection(
       present["telegram-bot-token"] = true;
       tokenInput.value = "";
       tokenInput.placeholder = t("(stored)");
+      settings.telegramEnabled = true;
+      await Bridge.telegramSetEnabled(true);
+      await save();
       feedback.textContent = t("Saved. Token stored securely.");
       feedback.className = "hint success";
       await refresh();
@@ -319,6 +314,8 @@ export function telegramSection(
   // Re-pair handler
   repairBtn.addEventListener("click", async () => {
     try {
+      settings.telegramEnabled = true;
+      await Bridge.telegramSetEnabled(true);
       const url = await Bridge.telegramNewPairing();
       void Bridge.openUrl(url);
       await refresh();

@@ -697,6 +697,7 @@ async fn handle_update_internal(app: &AppHandle, api: &TelegramApi, update: Tele
                 } => {
                     {
                         let mut current = shared.settings.lock().unwrap();
+                        current.telegram_enabled = true;
                         current.telegram_paired_chat_id = Some(chat_id);
                         current.telegram_paired_user_id = Some(user_id);
                         current.telegram_pairing_nonce = None;
@@ -1514,13 +1515,21 @@ pub fn telegram_status(shared: State<'_, Shared>) -> TelegramStatusResponse {
 
 #[tauri::command]
 pub async fn telegram_test_token(token: String) -> Result<String, String> {
-    let api = TelegramApi::new(&token);
+    let effective = if token.trim().is_empty() {
+        secrets::get("telegram-bot-token").unwrap_or_default()
+    } else {
+        token
+    };
+    if effective.trim().is_empty() {
+        return Err("No bot token configured".to_string());
+    }
+    let api = TelegramApi::new(&effective);
     match api.get_me().await {
         Ok(me) => {
             let name = me.username.unwrap_or(me.first_name);
             Ok(name)
         }
-        Err(e) => Err(telegram_api::sanitize(&e.to_string(), Some(&token))),
+        Err(e) => Err(telegram_api::sanitize(&e.to_string(), Some(&effective))),
     }
 }
 
@@ -2220,6 +2229,16 @@ mod tests {
         assert_eq!(notif_err.text, "Claude stopped with an error.\nProcess aborted");
 
         reset_state_for_test();
+    }
+
+    #[tokio::test]
+    async fn test_telegram_test_token_stored_fallback() {
+        let _ = secrets::clear("telegram-bot-token");
+        let err_empty = telegram_test_token("".to_string()).await.unwrap_err();
+        assert_eq!(err_empty, "No bot token configured");
+
+        let err_spaces = telegram_test_token("   ".to_string()).await.unwrap_err();
+        assert_eq!(err_spaces, "No bot token configured");
     }
 }
 

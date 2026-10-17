@@ -263,23 +263,41 @@ pub mod secrets {
         "phone-relay-access",
     ];
 
+    static STORE: std::sync::Mutex<Option<std::collections::HashMap<String, String>>> = std::sync::Mutex::new(None);
+
     pub fn present(key: &str) -> bool {
-        KNOWN_KEYS.contains(&key)
+        get(key).is_some()
     }
 
     pub fn get(key: &str) -> Option<String> {
-        if key == "telegram-bot-token" {
-            Some("fake_bot_token".to_string())
-        } else {
-            None
-        }
+        let mut guard = STORE.lock().unwrap();
+        let map = guard.get_or_insert_with(|| {
+            let mut m = std::collections::HashMap::new();
+            m.insert("telegram-bot-token".to_string(), "fake_bot_token".to_string());
+            m
+        });
+        map.get(key).cloned().filter(|v| !v.is_empty())
     }
 
-    pub fn set(_key: &str, _val: &str) -> Result<(), String> {
+    pub fn set(key: &str, val: &str) -> Result<(), String> {
+        let mut guard = STORE.lock().unwrap();
+        let map = guard.get_or_insert_with(|| {
+            let mut m = std::collections::HashMap::new();
+            m.insert("telegram-bot-token".to_string(), "fake_bot_token".to_string());
+            m
+        });
+        if val.is_empty() {
+            map.remove(key);
+        } else {
+            map.insert(key.to_string(), val.to_string());
+        }
         Ok(())
     }
 
-    pub fn clear(_key: &str) -> Result<(), String> {
+    pub fn clear(key: &str) -> Result<(), String> {
+        let mut guard = STORE.lock().unwrap();
+        let map = guard.get_or_insert_with(std::collections::HashMap::new);
+        map.remove(key);
         Ok(())
     }
 }
@@ -650,6 +668,36 @@ fn main() {
     );
 
     telegram::reset_state_for_test();
+    println!("ok");
+
+    // 13. telegram_test_token Fallback to Stored Secret
+    print!("test telegram_test_token_stored_fallback ... ");
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+
+    // 13a: When empty token provided and no secret stored -> Err("No bot token configured")
+    secrets::clear("telegram-bot-token").unwrap();
+    let err_empty = rt.block_on(telegram::telegram_test_token("".to_string())).unwrap_err();
+    assert_eq!(err_empty, "No bot token configured");
+
+    let err_spaces = rt.block_on(telegram::telegram_test_token("   ".to_string())).unwrap_err();
+    assert_eq!(err_spaces, "No bot token configured");
+
+    // 13b: When empty token provided and secret IS stored -> uses stored secret
+    secrets::set("telegram-bot-token", "stored_secret_token_12345").unwrap();
+    let err_fallback = rt.block_on(telegram::telegram_test_token("".to_string())).unwrap_err();
+    assert_ne!(err_fallback, "No bot token configured");
+    assert!(!err_fallback.contains("stored_secret_token_12345"));
+
+    // 13c: When non-empty token is provided -> uses the provided token (overriding secret)
+    let err_explicit = rt.block_on(telegram::telegram_test_token("explicit_token_99999".to_string())).unwrap_err();
+    assert_ne!(err_explicit, "No bot token configured");
+    assert!(!err_explicit.contains("explicit_token_99999"));
+
+    // Reset secret
+    secrets::set("telegram-bot-token", "fake_bot_token").unwrap();
     println!("ok");
 
     println!("\nALL TELEGRAM RUST UNIT TESTS PASSED (100% OK)");
