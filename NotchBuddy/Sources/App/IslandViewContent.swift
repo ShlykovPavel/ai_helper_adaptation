@@ -422,21 +422,35 @@ struct OverviewView: View {
                 if state.showingPlanDetail {
                     CardBackground(wash: nil)
                     Group {
-                        if state.planDetailIsCodex {
+                        if state.planDetailIsAntigravity {
+                            AntigravityPlanCardView(usage: state.antigravityPlanUsage)
+                        } else if state.planDetailIsCodex {
                             CodexPlanCardView(usage: state.codexPlanUsage)
                         } else {
-                            // Claude and Codex both on: the header shows only the Claude pill,
-                            // Codex is a third row here that opens its own card.
+                            // Claude and Codex/Antigravity both on: the header shows only the Claude pill,
+                            // Codex and Antigravity are additional rows here that open their own cards.
                             let bothPlans = state.showPlanInNotch && state.planRelayInstalled
                                 && state.showCodexPlanInNotch
+                            let agyPlanRow = state.showPlanInNotch && state.planRelayInstalled
+                                && state.showAntigravityPlanInNotch
                             ClaudePlanCardView(usage: state.claudePlanUsage,
                                                codexRow: bothPlans,
                                                codexUsage: state.codexPlanUsage,
                                                onCodex: {
                                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                                       state.planDetailIsAntigravity = false
                                                        state.planDetailIsCodex = true
                                                    }
                                                    state.refreshCodexPlanUsage()
+                                               },
+                                               antigravityRow: agyPlanRow,
+                                               antigravityUsage: state.antigravityPlanUsage,
+                                               onAntigravity: {
+                                                   withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                                       state.planDetailIsCodex = false
+                                                       state.planDetailIsAntigravity = true
+                                                   }
+                                                   state.refreshAntigravityPlanUsage()
                                                })
                         }
                     }
@@ -707,6 +721,7 @@ struct QuestionView: View {
     var question: AskQuestion? { state.pendingQuestion }
 
     var body: some View {
+        let shownId = question?.id
         ZStack {
             CardBackground(wash: .cyan)
             if let q = question, !q.questions.isEmpty {
@@ -718,18 +733,26 @@ struct QuestionView: View {
                 let curOther = qi < showOther.count ? showOther[qi] : false
                 let curOtherText = qi < otherTexts.count ? otherTexts[qi] : ""
                 let canProceed = !curSel.isEmpty || (curOther && !curOtherText.isEmpty)
+                let askerId = q.pillId.isEmpty ? (state.focusTask?.id ?? "integration_claude") : q.pillId
+                let askerName = PillCatalog.definition(for: askerId)?.sessionSubtitle ?? "Agent"
 
                 VStack(alignment: .leading, spacing: 4) {
                     // Header row: agent name + question counter + "Reply in terminal" link
-                    HStack(spacing: 4) {
-                        AgentWho(task: nil, label: "Claude Code is asking")
+                    HStack(spacing: 6) {
+                        AgentWho(task: nil, label: "\(askerName) is asking")
+                        if q.queueCount > 1 {
+                            Text(verbatim: "\(q.queueIndex)/\(q.queueCount)")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(Color(hex: "#8E939C"))
+                                .monospacedDigit()
+                        }
                         Spacer(minLength: 4)
                         if q.questions.count > 1 {
                             Text("\(qi + 1)/\(q.questions.count)")
                                 .font(.system(size: 10))
                                 .foregroundColor(Color(hex: "#6B7079"))
                         }
-                        Button("Reply in terminal") { HookServer.shared.sendQuestionAsk() }
+                        Button("Reply in terminal") { HookServer.shared.sendQuestionAsk(for: shownId) }
                             .buttonStyle(.plain)
                             .font(.system(size: 10))
                             .foregroundColor(Color(hex: "#6B7079"))
@@ -862,7 +885,6 @@ struct QuestionView: View {
         }
         .onAppear { resetQuestionState() }
         .onChange(of: state.pendingQuestion) { _, _ in resetQuestionState() }
-        .onDisappear { HookServer.shared.releaseQuestionFD() }
     }
 
     private func resetQuestionState() {
@@ -909,7 +931,7 @@ struct QuestionView: View {
 
     private func sendAnswers(q: AskQuestion) {
         let answers = AskQuestion.buildAnswers(questions: q.questions, selections: selections)
-        HookServer.shared.sendQuestionAnswers(answers)
+        HookServer.shared.sendQuestionAnswers(answers, for: q.id)
     }
 }
 
@@ -959,7 +981,8 @@ struct FinishedView: View {
         ZStack {
             CardBackground(wash: .green)
             VStack(alignment: .leading, spacing: 5) {
-                AgentWho(task: state.focusTask, label: "Claude Code finished")
+                let finishedName = PillCatalog.definition(for: state.focusTask?.id ?? "")?.sessionSubtitle ?? state.focusTask?.name ?? "Agent"
+                AgentWho(task: state.focusTask, label: "\(finishedName) finished")
                 Text({
                     if let fl = state.focusTask?.finalLine { return fl }
                     if let s = state.focusTask?.steps.last(where: { !$0.isDiffStep }) { return s }

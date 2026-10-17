@@ -446,6 +446,34 @@ final class AppState: ObservableObject {
         didSet { QuestionLayout.height = pendingQuestion?.estimatedIslandHeight }
     }
 
+    // Background agent completion toast
+    @Published var agentToast: AgentToast? = nil
+    private var toastDismissTimer: DispatchWorkItem?
+
+    func showAgentToast(pillId: String, message: String, colorHex: String) {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            agentToast = AgentToast(pillId: pillId, message: message, colorHex: colorHex)
+        }
+        toastDismissTimer?.cancel()
+        let timer = DispatchWorkItem { [weak self] in
+            MainActor.assumeIsolated {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    self?.agentToast = nil
+                }
+            }
+        }
+        toastDismissTimer = timer
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0, execute: timer)
+    }
+
+    func dismissAgentToast() {
+        toastDismissTimer?.cancel()
+        toastDismissTimer = nil
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            agentToast = nil
+        }
+    }
+
     // Per-pill flat list of FileDiffs, in order of reception.
     // Not @Published — steps[] changes already trigger redraws.
     var sessionDiffs: [String: [FileDiff]] = [:]
@@ -546,6 +574,27 @@ final class AppState: ObservableObject {
         }
     }
 
+    // Antigravity plan gauge (from local LanguageServerService RPC)
+    @Published var showAntigravityPlanInNotch: Bool = false {
+        didSet { UserDefaults.standard.set(showAntigravityPlanInNotch, forKey: "showAntigravityPlanInNotch") }
+    }
+    @Published var antigravityPlanUsage: AntigravityPlanUsage? = nil
+    @Published var planDetailIsAntigravity: Bool = false
+
+    private static var lastAgyAttempt: Date = .distantPast
+    private static var agyFetchInFlight = false
+
+    func refreshAntigravityPlanUsage() {
+        if let u = antigravityPlanUsage, Date().timeIntervalSince(u.updatedAt) < 60 { return }
+        guard !Self.agyFetchInFlight, Date().timeIntervalSince(Self.lastAgyAttempt) > 60 else { return }
+        Self.agyFetchInFlight = true
+        Self.lastAgyAttempt = Date()
+        Task {
+            if let u = await AntigravityPlanGauge.fetch() { antigravityPlanUsage = u }
+            Self.agyFetchInFlight = false
+        }
+    }
+
     func refreshPlanRelayState() {
         planRelayInstalled = HookServer.statusLineInstalled()
     }
@@ -598,6 +647,7 @@ final class AppState: ObservableObject {
         #if !APPSTORE
         if let v = ud.object(forKey: "showPlanInNotch") as? Bool { showPlanInNotch = v }
         if let v = ud.object(forKey: "showCodexPlanInNotch") as? Bool { showCodexPlanInNotch = v }
+        if let v = ud.object(forKey: "showAntigravityPlanInNotch") as? Bool { showAntigravityPlanInNotch = v }
         planRelayInstalled = HookServer.statusLineInstalled()
         #endif
 
@@ -629,6 +679,9 @@ final class AppState: ObservableObject {
     }
 
     func removeTask(id: String) {
+        if agentToast?.pillId == id {
+            dismissAgentToast()
+        }
         // mainPillId: always reset, never remove (the active workspace tool)
         // activeIntegrations: also reset (user declared it active, keep it as idle)
         let isProtected = id == mainPillId

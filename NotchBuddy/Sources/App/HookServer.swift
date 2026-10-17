@@ -45,15 +45,16 @@ final class HookServer: @unchecked Sendable {
     /// One read source per queued request: it notices the client hanging up, and its
     /// cancel handler is the only place the request's fd is closed.
     private var approvalSources: [UUID: any DispatchSourceRead] = [:]
-    private var pendingQuestionFD: Int32 = -1         // held open while user answers AskUserQuestion
-    private var questionFDSource: (any DispatchSourceRead)? = nil  // monitors pendingQuestionFD
+    /// Questions waiting for an answer, oldest first; the head is on the card.
+    private var questions = QuestionQueue()
+    /// One read source per queued question: it notices the client hanging up, and its
+    /// cancel handler is the only place the question's fd is closed.
+    private var questionSources: [UUID: any DispatchSourceRead] = [:]
 
     /// True when a real nb-hook connection is holding the approval fd open.
     @MainActor var hasRealPendingApproval: Bool { !approvals.isEmpty }
     /// True when a real nb-hook connection is holding the question fd open.
-    @MainActor var hasRealPendingQuestion: Bool { pendingQuestionFD >= 0 }
-    private var questionPillId: String = ""           // pill that owns the pending question
-    private var questionSessionId: String = ""        // sessionId for the pending question (recap tracking)
+    @MainActor var hasRealPendingQuestion: Bool { !questions.isEmpty }
     private var focusBeforeQuestion: String? = nil    // saved focus to restore after question
     private var activeSessionId: String? = nil        // current Claude Code session
     private var focusBeforeApproval: String? = nil    // saved focus to restore after approval
@@ -73,12 +74,13 @@ final class HookServer: @unchecked Sendable {
     @MainActor
     private func handledNote(pill: String) -> String {
         switch pill {
-        case "agent_cursor":  return "Handled in Cursor."
-        case "agent_codex":   return "Handled in Codex."
-        case "agent_copilot": return "Handled in Copilot CLI."
-        case "agent_muse":    return "Handled in Muse Code."
-        case "agent_hermes":  return "Handled in Hermes."
-        default:              return "Handled in \(claudeHostName)."
+        case "agent_cursor":      return "Handled in Cursor."
+        case "agent_codex":       return "Handled in Codex."
+        case "agent_copilot":     return "Handled in Copilot CLI."
+        case "agent_muse":        return "Handled in Muse Code."
+        case "agent_hermes":      return "Handled in Hermes."
+        case "agent_antigravity": return "Handled in Antigravity."
+        default:                  return "Handled in \(claudeHostName)."
         }
     }
 
@@ -86,12 +88,13 @@ final class HookServer: @unchecked Sendable {
     @MainActor
     private func waitingNote(pill: String) -> String {
         switch pill {
-        case "agent_cursor":  return "Still waiting in Cursor."
-        case "agent_codex":   return "Still waiting in Codex."
-        case "agent_copilot": return "Still waiting in Copilot CLI."
-        case "agent_muse":    return "Still waiting in Muse Code."
-        case "agent_hermes":  return "Still waiting in Hermes."
-        default:              return "Still waiting in \(claudeHostName)."
+        case "agent_cursor":      return "Still waiting in Cursor."
+        case "agent_codex":       return "Still waiting in Codex."
+        case "agent_copilot":     return "Still waiting in Copilot CLI."
+        case "agent_muse":        return "Still waiting in Muse Code."
+        case "agent_hermes":      return "Still waiting in Hermes."
+        case "agent_antigravity": return "Still waiting in Antigravity."
+        default:                  return "Still waiting in \(claudeHostName)."
         }
     }
 
@@ -174,6 +177,10 @@ final class HookServer: @unchecked Sendable {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) { state.focusId = prev }
             }
         }
+        if questions.head != nil {
+            showQuestionHead()
+            return
+        }
         if let note {
             state.noteMessage = note
             state.view = .note
@@ -185,37 +192,84 @@ final class HookServer: @unchecked Sendable {
         }
     }
 
-    // MARK: - Question fd helpers
+    // MARK: - Question queue helpers
 
+    /// Puts the oldest waiting question on the card. When the card already shows it, only
+    /// its queue count is refreshed (no sound, no focus change).
     @MainActor
-    private func cancelQuestionFDSource() {
-        questionFDSource?.cancel()
-        questionFDSource = nil
+    private func showQuestionHead() {
+        let state = AppState.shared
+        guard let head = questions.head else { return }
+        if let shown = state.pendingQuestion, shown.id == head.id {
+            if shown.queueCount != questions.count {
+                state.pendingQuestion?.queueCount = questions.count
+            }
+            return
+        }
+        state.updateTask(id: head.pillId, state: .question)
+        var q = head.question
+        q.id = head.id
+        q.pillId = head.pillId
+        q.projectName = head.projectName
+        q.queueIndex = 1
+        q.queueCount = questions.count
+        state.pendingQuestion = q
+        state.isPinned = true
+        if focusBeforeQuestion == nil { focusBeforeQuestion = state.focusId }
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) { state.focusId = head.pillId }
+        expandIfNeeded(to: .question)
     }
 
+    /// Takes one question out of the queue. With `answer`, the decision is written to its
+    /// nb-hook first; without, the connection just closes and the agent asks again itself.
+    /// The cancel handler of its source closes the fd — never close it directly.
+    /// The next question in line then takes the card; when none is left the card closes,
+    /// with `note` for three seconds if one is given.
     @MainActor
-    private func dismissQuestionCard(note: String) {
-        cancelQuestionFDSource()
-        pendingQuestionFD = -1
+    private func removeQuestion(id: UUID, answer json: String? = nil, note: String? = nil) {
+        guard let entry = questions.remove(id: id) else { return }
+        let source = questionSources.removeValue(forKey: id)
+        if let json {
+            let fd = entry.fd
+            Task { @MainActor [weak self] in
+                await Task.detached {
+                    self?.sendLine(fd: fd, text: json)
+                }.value
+                source?.cancel()
+            }
+        } else {
+            source?.cancel()
+        }
+
         let state = AppState.shared
-        let pillId = questionPillId
         Self.emitEvent(TelegramEvent(
-            sessionId: questionSessionId,
-            agentId: pillId,
+            sessionId: entry.sessionId,
+            agentId: entry.pillId,
             agentName: "",
             kind: .questionResolved
         ))
+        if !questions.hasEntries(forPill: entry.pillId) {
+            state.updateTask(id: entry.pillId, state: .working)
+            clearPillBadge(id: entry.pillId)
+        }
+        if questions.head != nil {
+            showQuestionHead()
+            return
+        }
+        // Last question gone: close the card and give the focus back.
         state.pendingQuestion = nil
         state.isPinned = false
-        state.updateTask(id: pillId, state: .working)
-        clearPillBadge(id: pillId)
         if let prev = focusBeforeQuestion {
             focusBeforeQuestion = nil
-            if state.focusId == pillId, state.tasks.contains(where: { $0.id == prev }) {
+            if state.focusId == entry.pillId, state.tasks.contains(where: { $0.id == prev }) {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) { state.focusId = prev }
             }
         }
-        if !note.isEmpty {
+        if approvals.head != nil {
+            showApprovalHead()
+            return
+        }
+        if let note, !note.isEmpty {
             state.noteMessage = note
             state.view = .note
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
@@ -228,72 +282,57 @@ final class HookServer: @unchecked Sendable {
 
     /// Called by QuestionView. Sends answers JSON and cleans up.
     @MainActor
-    func sendQuestionAnswers(_ answers: [String: Any]) {
+    func sendQuestionAnswers(_ answers: [String: Any], for id: UUID? = nil) {
         // Only intercept a demo question — real questions always have a live fd.
-        if DemoEngine.shared.isActive, pendingQuestionFD < 0 {
+        if DemoEngine.shared.isActive, questions.isEmpty {
             AppState.shared.pendingQuestion = nil
             AppState.shared.isPinned = false
             AppState.shared.view = AppState.shared.tasks.isEmpty ? .empty : .overview
             DemoEngine.shared.handleQuestionAnswered(answers: answers)
             return
         }
-        let fd = pendingQuestionFD
-        pendingQuestionFD = -1
-        let source = questionFDSource
-        questionFDSource = nil
-        let sid = questionSessionId
-        questionSessionId = ""
-        if fd >= 0, let data = try? JSONSerialization.data(withJSONObject: ["permissionDecision": "answer", "answers": answers], options: .withoutEscapingSlashes),
-           let json = String(data: data, encoding: .utf8) {
-            Task { @MainActor [weak self] in
-                await Task.detached {
-                    self?.sendLine(fd: fd, text: json)
-                }.value
-                source?.cancel()
+        guard let head = questions.head else {
+            let s = AppState.shared
+            s.pendingQuestion = nil
+            s.isPinned = false
+            if approvals.head != nil {
+                showApprovalHead()
+            } else {
+                s.view = s.tasks.isEmpty ? .empty : .overview
             }
+            return
+        }
+        if let id, id != head.id {
+            nbLog("Question answer for a question no longer on the card, ignored")
+            return
+        }
+        let sid = head.sessionId
+        let jsonStr: String
+        if let data = try? JSONSerialization.data(withJSONObject: ["permissionDecision": "answer", "answers": answers], options: .withoutEscapingSlashes),
+           let json = String(data: data, encoding: .utf8) {
+            jsonStr = json
         } else {
-            source?.cancel()
+            jsonStr = #"{"permissionDecision":"ask"}"#
         }
         if !sid.isEmpty { RecapStore.shared.recordQuestionAnswered(sessionId: sid) }
-        dismissQuestionCard(note: "")
-    }
-
-    /// Called by QuestionView.onDisappear — card left screen without an explicit answer.
-    /// Sends "ask" immediately to unblock nb-hook; does NOT navigate (view already changed).
-    @MainActor
-    func releaseQuestionFD() {
-        guard pendingQuestionFD >= 0 else { return }
-        let fd = pendingQuestionFD
-        pendingQuestionFD = -1
-        let source = questionFDSource
-        questionFDSource = nil
-        AppState.shared.pendingQuestion = nil
-        Task { @MainActor [weak self] in
-            await Task.detached {
-                self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
-            }.value
-            source?.cancel()
-        }
+        removeQuestion(id: head.id, answer: jsonStr)
     }
 
     /// Called by QuestionView "Reply in terminal" button.
     @MainActor
-    func sendQuestionAsk() {
-        let fd = pendingQuestionFD
-        pendingQuestionFD = -1
-        let source = questionFDSource
-        questionFDSource = nil
-        if fd >= 0 {
-            Task { @MainActor [weak self] in
-                await Task.detached {
-                    self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
-                }.value
-                source?.cancel()
+    func sendQuestionAsk(for id: UUID? = nil) {
+        guard let targetId = id ?? questions.head?.id else {
+            let s = AppState.shared
+            s.pendingQuestion = nil
+            s.isPinned = false
+            if approvals.head != nil {
+                showApprovalHead()
+            } else {
+                s.view = s.tasks.isEmpty ? .empty : .overview
             }
-        } else {
-            source?.cancel()
+            return
         }
-        dismissQuestionCard(note: "")
+        removeQuestion(id: targetId, answer: #"{"permissionDecision":"ask"}"#)
     }
 
     /// Returns the tool_input serialized as sorted-keys JSON, "" if absent or empty.
@@ -477,8 +516,10 @@ final class HookServer: @unchecked Sendable {
         // • a known terminal (Warp, Terminal, iTerm…) → integration_claude, host recorded on the task
         #if !APPSTORE
         let isCodexEvent = rawAgent == "codex"
+        let isAgyEvent = rawAgent == "antigravity" || rawAgent == "agy"
         #else
         let isCodexEvent = false
+        let isAgyEvent = false
         #endif
         let agentId: String
         let isExternalAgent: Bool
@@ -486,9 +527,13 @@ final class HookServer: @unchecked Sendable {
         if isCodexEvent {
             agentId = "agent_codex"
             isExternalAgent = false
+        } else if isAgyEvent {
+            agentId = "agent_antigravity"
+            isExternalAgent = false
         } else if let agent = validAgent {
             agentId = "agent_\(agent)"
-            isExternalAgent = true
+            // Any agent declared in PillCatalog with .workspace category is first-class
+            isExternalAgent = PillCatalog.definition(for: agentId)?.category != .workspace
         } else if isCursorEditor {
             agentId = "agent_cursor"
             isExternalAgent = false
@@ -539,9 +584,24 @@ final class HookServer: @unchecked Sendable {
                 return
             }
         }
-        // A sibling session's event must not take the pill out of its approval state.
+        if !questions.isEmpty {
+            let effectiveSessionId = (sessionId == "unknown" || sessionId.isEmpty)
+                ? "\(agentId)+\(cwd)"
+                : sessionId
+            for entry in questions.resolved(byEvent: name, sessionId: effectiveSessionId, pillId: agentId) {
+                removeQuestion(id: entry.id, note: handledNote(pill: entry.pillId))
+            }
+            if questions.entries.contains(where: { $0.pillId == agentId && $0.sessionId == effectiveSessionId }) {
+                return
+            }
+        }
+        // A sibling session's event must not take the pill out of its approval or question state.
         defer {
-            if approvals.hasEntries(forPill: agentId) { state.updateTask(id: agentId, state: .approval) }
+            if approvals.hasEntries(forPill: agentId) {
+                state.updateTask(id: agentId, state: .approval)
+            } else if questions.hasEntries(forPill: agentId) {
+                state.updateTask(id: agentId, state: .question)
+            }
         }
 
         switch name {
@@ -581,7 +641,7 @@ final class HookServer: @unchecked Sendable {
             RecapStore.shared.preToolUse(sessionId: recapSessionId, tool: tool)
             // AskUserQuestion is handled via the dedicated --ask hook.
             // Skip state/step update here to avoid flickering over the question card.
-            guard tool != "AskUserQuestion" else { break }
+            guard tool != "AskUserQuestion" && tool != "ask_question" else { break }
             upsertTask(pill: agentId, display: display, working: true,
                        externalAgent: isExternalAgent ? validAgent : nil)
             state.updateTask(id: agentId, state: .working)
@@ -652,15 +712,24 @@ final class HookServer: @unchecked Sendable {
                 expandIfNeeded(to: .finished)
             } else {
                 setPillBadge(id: agentId, badge: .finished)
+                let def = PillCatalog.definition(for: agentId)
+                let pillName = def?.sessionSubtitle ?? def?.name ?? "Agent"
+                let pillColor = def?.color ?? "#22C55E"
+                AppState.shared.showAgentToast(pillId: agentId, message: "\(pillName): Done", colorHex: pillColor)
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.2) {
                 // A session (this one or a sibling) may have started a new turn meanwhile.
                 guard self.sessions.workingCount(pill: agentId) == 0 else { return }
                 if isExternalAgent {
                     AppState.shared.removeTask(id: agentId)
+                    if AppState.shared.agentToast?.pillId == agentId {
+                        AppState.shared.dismissAgentToast()
+                    }
                 } else {
                     AppState.shared.updateTask(id: agentId, state: .idle)
-                    self.clearPillBadge(id: agentId)
+                    if AppState.shared.focusId == agentId {
+                        self.clearPillBadge(id: agentId)
+                    }
                 }
             }
 
@@ -760,7 +829,7 @@ final class HookServer: @unchecked Sendable {
     // MARK: - Helpers
 
     @MainActor
-    private func expandIfNeeded(to view: IslandView) {
+    func expandIfNeeded(to view: IslandView) {
         let state = AppState.shared
         let isAlert: Bool
         switch view {
@@ -771,7 +840,7 @@ final class HookServer: @unchecked Sendable {
             // Approval and question always win; other alerts are blocked while a card is showing
             if view == .approval || view == .question {
                 state.view = view
-            } else if isAlert && state.pendingApproval == nil {
+            } else if isAlert && state.pendingApproval == nil && state.pendingQuestion == nil {
                 state.view = view
             }
         } else if isAlert {
@@ -974,11 +1043,15 @@ final class HookServer: @unchecked Sendable {
             return
         }
         guard let head = approvals.head else {
-            // A card with nothing behind it any more: just close it.
+            // A card with nothing behind it any more: check if questions waiting or close it.
             let s = AppState.shared
             s.pendingApproval = nil
             s.isPinned = false
-            s.view = s.tasks.isEmpty ? .empty : .overview
+            if questions.head != nil {
+                showQuestionHead()
+            } else {
+                s.view = s.tasks.isEmpty ? .empty : .overview
+            }
             return
         }
         if let id, id != head.id {
@@ -1002,11 +1075,11 @@ final class HookServer: @unchecked Sendable {
     @MainActor
     private func processQuestionRequest(fd: Int32, parsed: AskQuestion, payload: [String: Any]) {
         let state = AppState.shared
-        let sessionId = payload["session_id"] as? String
-                     ?? payload["conversation_id"] as? String
-                     ?? "unknown"
-        let cwd       = payload["cwd"]        as? String ?? ""
-        let rawName   = URL(fileURLWithPath: cwd).lastPathComponent
+        let rawSessionId = payload["session_id"] as? String
+                        ?? payload["conversation_id"] as? String
+                        ?? "unknown"
+        let cwd         = payload["cwd"]        as? String ?? ""
+        let rawName     = URL(fileURLWithPath: cwd).lastPathComponent
         let projectName = aliasProjectName(rawName.isEmpty ? "Session" : rawName)
 
         let rawAgent    = payload["coucou_agent"] as? String ?? ""
@@ -1021,8 +1094,11 @@ final class HookServer: @unchecked Sendable {
         #else
         let isCodexRequest = false
         #endif
+        let isAgyRequest = rawAgent == "antigravity" || rawAgent == "agy"
         let pillId: String
-        if isCodexRequest {
+        if isAgyRequest {
+            pillId = "agent_antigravity"
+        } else if isCodexRequest {
             pillId = "agent_codex"
         } else if isCursorEditor {
             pillId = "agent_cursor"
@@ -1033,7 +1109,7 @@ final class HookServer: @unchecked Sendable {
         let terminalHost = isCursorEditor || isVSCodeEditor ? nil
             : ClaudeHost.terminal(termProgram: termProgram, bundleId: bundleId)
         let isTerminal = terminalHost != nil && ClaudeHost.terminalCardsEnabled
-        guard isCodexRequest || isCursorEditor || isVSCodeEditor || isTerminal else {
+        guard isAgyRequest || isCodexRequest || isCursorEditor || isVSCodeEditor || isTerminal else {
             Task.detached { [weak self] in
                 self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
                 close(fd)
@@ -1041,24 +1117,23 @@ final class HookServer: @unchecked Sendable {
             return
         }
 
-        // Displace any previous question waiting for an answer.
-        if pendingQuestionFD >= 0 {
-            let old = pendingQuestionFD
-            let oldSrc = questionFDSource
-            questionFDSource = nil
-            Task { @MainActor [weak self] in
-                await Task.detached {
-                    self?.sendLine(fd: old, text: #"{"permissionDecision":"ask"}"#)
-                }.value
-                oldSrc?.cancel()
-            }
-        }
-        pendingQuestionFD = fd
-        activeSessionId = sessionId
-        questionPillId = pillId
-        questionSessionId = (sessionId == "unknown" || sessionId.isEmpty)
+        let sessionId = (rawSessionId == "unknown" || rawSessionId.isEmpty)
             ? "\(pillId)+\(cwd)"
-            : sessionId
+            : rawSessionId
+
+        let entry = QueuedQuestion(id: UUID(), fd: fd, sessionId: sessionId, pillId: pillId,
+                                   projectName: projectName, cwd: cwd, question: parsed,
+                                   hostApp: terminalHost?.bundleId, bundleId: bundleId)
+
+        guard questions.enqueue(entry) == .accepted else {
+            nbLog("QuestionRequest: \(QuestionQueue.maxPending) already waiting, asked in the terminal")
+            Task.detached { [weak self] in
+                self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
+                close(fd)
+            }
+            return
+        }
+        activeSessionId = sessionId
 
         upsertTask(pill: pillId,
                    display: PillSessionRegistry.Display(session: sessionId, projectName: projectName,
@@ -1066,8 +1141,6 @@ final class HookServer: @unchecked Sendable {
                                                         bundleId: bundleId),
                    working: true, externalAgent: nil)
         state.updateTask(id: pillId, state: .question)
-        state.pendingQuestion = parsed
-        state.isPinned = true
         SoundEngine.shared.play("approval")
 
         let questionAgentName = PillCatalog.definition(for: pillId)?.name ?? (pillId.hasPrefix("agent_") ? String(pillId.dropFirst(6)) : "Claude Code")
@@ -1089,35 +1162,23 @@ final class HookServer: @unchecked Sendable {
             question: snap
         ))
 
-        if focusBeforeQuestion == nil { focusBeforeQuestion = state.focusId }
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) { state.focusId = pillId }
-        expandIfNeeded(to: .question)
-
+        let entryId = entry.id
+        let capturedPillId = pillId
         let source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: .main)
         source.setEventHandler { [weak self] in
-            guard let self, self.pendingQuestionFD == fd else { return }
-            self.dismissQuestionCard(note: "")
+            guard let self, self.questions.contains(id: entryId) else { return }
+            self.removeQuestion(id: entryId, note: self.handledNote(pill: capturedPillId))
         }
         source.setCancelHandler { close(fd) }
         source.resume()
-        questionFDSource = source
+        questionSources[entryId] = source
 
-        let captured = fd
         DispatchQueue.main.asyncAfter(deadline: .now() + 120) { [weak self] in
-            guard let self, self.pendingQuestionFD == captured else { return }
-            // Send "ask" so nb-hook exits cleanly; Claude Code re-asks in terminal.
-            let askFD = self.pendingQuestionFD
-            self.pendingQuestionFD = -1
-            let src = self.questionFDSource
-            self.questionFDSource = nil
-            Task { @MainActor [weak self] in
-                await Task.detached {
-                    self?.sendLine(fd: askFD, text: #"{"permissionDecision":"ask"}"#)
-                }.value
-                src?.cancel()
-            }
-            self.dismissQuestionCard(note: "")
+            guard let self, self.questions.contains(id: entryId) else { return }
+            self.removeQuestion(id: entryId, answer: #"{"permissionDecision":"ask"}"#, note: self.waitingNote(pill: capturedPillId))
         }
+
+        showQuestionHead()
     }
 
     /// "VS Code", "Warp"… — where the Claude Code pill's current session runs.
@@ -1229,6 +1290,10 @@ final class HookServer: @unchecked Sendable {
     // MARK: - Localized step labels
 
     private func localizedStep(tool: String, input: [String: Any]) -> String {
+        if let agy = AntigravityStepFormatter.formatStep(tool: tool, input: input) {
+            return agy
+        }
+
         let labels: [String: String] = [
             "Bash":         String(localized: "step.runs",       defaultValue: "Runs"),
             "Read":         String(localized: "step.reads",      defaultValue: "Reads"),
@@ -1306,6 +1371,10 @@ final class HookServer: @unchecked Sendable {
 
     @MainActor
     private func buildFileDiff(tool: String, input: [String: Any], pillId: String) -> FileDiff? {
+        if let agyDiff = DiffEngine.fromAntigravityTool(tool: tool, input: input) {
+            return agyDiff
+        }
+
         switch tool {
         case "Edit":
             guard let old = input["old_string"] as? String,
@@ -1339,6 +1408,16 @@ final class HookServer: @unchecked Sendable {
         default:
             return nil
         }
+    }
+
+    // MARK: - Antigravity testing helpers
+
+    static func formatStepForAntigravity(tool: String, input: [String: Any]) -> String {
+        AntigravityStepFormatter.formatStep(tool: tool, input: input) ?? tool
+    }
+
+    static func buildFileDiffForTesting(tool: String, input: [String: Any]) -> FileDiff? {
+        DiffEngine.fromAntigravityTool(tool: tool, input: input)
     }
 
     /// Collapses whitespace so a multi-line command stays one ticker row.
@@ -1942,15 +2021,27 @@ final class HookServer: @unchecked Sendable {
         var root = try Self.strictReadJSONObject(at: Self.agyHooksURL,
                                                  label: "~/.gemini/config/hooks.json")
         let base = hookBase()
-        // PreToolUse / PostToolUse: tool-level hooks — use matcher group
-        // PreInvocation / PostInvocation / Stop: lifecycle hooks — direct handler, no matcher
         var coucou: [String: Any] = [:]
-        for event in ["PreToolUse", "PostToolUse"] {
-            let hook: [String: Any] = ["type": "command",
-                                       "command": "\(base) --agent antigravity \(event)",
-                                       "timeout": 10]
-            coucou[event] = [["matcher": "*", "hooks": [hook]]]
-        }
+        let askHook: [String: Any] = [
+            "type": "command",
+            "command": "\(base) --agent antigravity --ask PreToolUse",
+            "timeout": 130
+        ]
+        let generalPreToolHook: [String: Any] = [
+            "type": "command",
+            "command": "\(base) --agent antigravity PreToolUse",
+            "timeout": 10
+        ]
+        coucou["PreToolUse"] = [
+            ["matcher": "ask_question", "hooks": [askHook]],
+            ["matcher": "*", "hooks": [generalPreToolHook]]
+        ]
+        let postToolHook: [String: Any] = [
+            "type": "command",
+            "command": "\(base) --agent antigravity PostToolUse",
+            "timeout": 10
+        ]
+        coucou["PostToolUse"] = [["matcher": "*", "hooks": [postToolHook]]]
         for event in ["PreInvocation", "PostInvocation", "Stop"] {
             let hook: [String: Any] = ["type": "command",
                                        "command": "\(base) --agent antigravity \(event)",
@@ -3504,6 +3595,36 @@ def normalize_tool_fields(payload):
     if not payload.get('cwd') and payload.get('workdir'):
         payload['cwd'] = payload['workdir']
 
+def extract_last_user_prompt(t_path):
+    if not t_path or not os.path.isfile(t_path):
+        return None
+    try:
+        size = os.path.getsize(t_path)
+        read_size = min(size, 131072)  # Read at most trailing 128KB
+        with open(t_path, 'rb') as f:
+            if size > read_size:
+                f.seek(size - read_size)
+            chunk = f.read(read_size)
+        import re
+        lines = chunk.decode('utf-8', errors='replace').splitlines()
+        for line in reversed(lines):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+                if isinstance(entry, dict) and (entry.get('type') == 'USER_INPUT' or entry.get('source') == 'USER_EXPLICIT'):
+                    content = entry.get('content')
+                    if isinstance(content, str) and content.strip():
+                        text = content.strip()
+                        m = re.search(r'<USER_REQUEST>\\s*(.*?)\\s*</USER_REQUEST>', text, re.DOTALL)
+                        return m.group(1).strip() if m else text
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return None
+
 def main():
     agent = ''
     args = sys.argv[1:]
@@ -3572,10 +3693,13 @@ def main():
 
     # --ask mode: dedicated hook for AskUserQuestion via PreToolUse (Claude Code 2.1.85+)
     if '--ask' in sys.argv[1:]:
+        normalize_tool_fields(payload)
         tool = payload.get('tool_name', '')
-        if tool != 'AskUserQuestion':
+        if tool not in ('AskUserQuestion', 'ask_question'):
             return  # Not an AskUserQuestion invocation — exit cleanly (no output)
         payload['coucou_kind'] = 'ask_user_question'
+        if agent:
+            payload.setdefault('coucou_agent', agent)
         env = os.environ
         payload.setdefault('term_program', env.get('TERM_PROGRAM', ''))
         payload.setdefault('iterm_session_id', env.get('ITERM_SESSION_ID', ''))
@@ -3611,12 +3735,23 @@ def main():
                 if decision == 'answer':
                     answers = resp_obj.get('answers', {})
                     questions = payload.get('tool_input', {}).get('questions', [])
-                    out = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'allow', 'updatedInput': {'questions': questions, 'answers': answers}}}
+                    out = {
+                        'decision': 'allow',
+                        'hookSpecificOutput': {
+                            'hookEventName': 'PreToolUse',
+                            'permissionDecision': 'allow',
+                            'updatedInput': {'questions': questions, 'answers': answers}
+                        },
+                        'updatedInput': {'questions': questions, 'answers': answers}
+                    }
                     print(json.dumps(out), flush=True)
                     sys.exit(0)
-                # 'ask' or unknown: fall through → no output → Claude Code asks in terminal
+                # 'ask' or unknown: fall through
         except Exception:
             pass
+        if agent == 'antigravity' or payload.get('coucou_agent') == 'antigravity':
+            print('{"decision":"ask"}', flush=True)
+            sys.exit(0)
         return
 
     # Parse --agent <name> and optional positional event from argv.
@@ -3664,6 +3799,22 @@ def main():
         pass
 
     event = payload.get('hook_event_name', '')
+    try:
+        inv_ok = int(payload.get('invocationNum', 1)) <= 1
+    except Exception:
+        inv_ok = True
+    if event == 'UserPromptSubmit' and not payload.get('prompt') and inv_ok:
+        t_path = payload.get('transcriptPath') or payload.get('transcript_path')
+        if t_path:
+            t_path = os.path.expanduser(t_path)
+        if (not t_path or not os.path.isfile(t_path)) and payload.get('session_id'):
+            sid = payload['session_id']
+            cand = os.path.expanduser(f'~/.gemini/antigravity/brain/{sid}/.system_generated/logs/transcript.jsonl')
+            if os.path.isfile(cand):
+                t_path = cand
+        prompt = extract_last_user_prompt(t_path)
+        if prompt:
+            payload['prompt'] = prompt
     # socket_path is already defined above
 
     if event == 'PermissionRequest':
@@ -3744,7 +3895,10 @@ def main():
     # Antigravity needs a decision on PreToolUse ({} reads as a denial). "ask" keeps its own
     # permission prompt (and the user's Always Allow); Coucou never allows a tool by itself.
     if agent == 'antigravity' and event == 'PreToolUse':
+        if payload.get('tool_name') == 'ask_question':
+            return  # handled by --ask hook, do not emit conflicting ask
         print('{"decision":"ask"}', flush=True)
+        sys.exit(0)
     elif agent in ('gemini', 'antigravity', 'muse', 'copilot'):
         print('{}', flush=True)
 
@@ -3819,7 +3973,48 @@ def normalize_tool_fields(payload):
     if not payload.get('cwd') and payload.get('workdir'):
         payload['cwd'] = payload['workdir']
 
+def extract_last_user_prompt(t_path):
+    if not t_path or not os.path.isfile(t_path):
+        return None
+    try:
+        size = os.path.getsize(t_path)
+        read_size = min(size, 131072)  # Read at most trailing 128KB
+        with open(t_path, 'rb') as f:
+            if size > read_size:
+                f.seek(size - read_size)
+            chunk = f.read(read_size)
+        import re
+        lines = chunk.decode('utf-8', errors='replace').splitlines()
+        for line in reversed(lines):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+                if isinstance(entry, dict) and (entry.get('type') == 'USER_INPUT' or entry.get('source') == 'USER_EXPLICIT'):
+                    content = entry.get('content')
+                    if isinstance(content, str) and content.strip():
+                        text = content.strip()
+                        m = re.search(r'<USER_REQUEST>\\s*(.*?)\\s*</USER_REQUEST>', text, re.DOTALL)
+                        return m.group(1).strip() if m else text
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return None
+
 def main():
+    agent = ''
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] == '--agent' and i + 1 < len(args):
+            agent = args[i + 1]
+            break
+        i += 1
+    if not agent and os.environ.get('CLAUDE_CODE_ENTRYPOINT') == 'claude-desktop':
+        agent = 'claude-desktop'
+
     raw = b''
     payload = {}
     try:
@@ -3871,10 +4066,13 @@ def main():
 
     # --ask mode: dedicated hook for AskUserQuestion via PreToolUse (Claude Code 2.1.85+)
     if '--ask' in sys.argv[1:]:
+        normalize_tool_fields(payload)
         tool = payload.get('tool_name', '')
-        if tool != 'AskUserQuestion':
+        if tool not in ('AskUserQuestion', 'ask_question'):
             return  # Not an AskUserQuestion invocation — exit cleanly (no output)
         payload['coucou_kind'] = 'ask_user_question'
+        if agent:
+            payload.setdefault('coucou_agent', agent)
         env = os.environ
         payload.setdefault('term_program', env.get('TERM_PROGRAM', ''))
         payload.setdefault('iterm_session_id', env.get('ITERM_SESSION_ID', ''))
@@ -3910,13 +4108,25 @@ def main():
                 if decision == 'answer':
                     answers = resp_obj.get('answers', {})
                     questions = payload.get('tool_input', {}).get('questions', [])
-                    out = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'allow', 'updatedInput': {'questions': questions, 'answers': answers}}}
+                    out = {
+                        'decision': 'allow',
+                        'hookSpecificOutput': {
+                            'hookEventName': 'PreToolUse',
+                            'permissionDecision': 'allow',
+                            'updatedInput': {'questions': questions, 'answers': answers}
+                        },
+                        'updatedInput': {'questions': questions, 'answers': answers}
+                    }
                     sys.stdout.write(json.dumps(out) + '\\n')
                     sys.stdout.flush()
                     sys.exit(0)
-                # 'ask' or unknown: fall through → no output → Claude Code asks in terminal
+                # 'ask' or unknown: fall through
         except Exception:
             pass
+        if agent == 'antigravity' or payload.get('coucou_agent') == 'antigravity':
+            sys.stdout.write('{"decision":"ask"}\\n')
+            sys.stdout.flush()
+            sys.exit(0)
         return
 
     # Parse --agent <name> and optional positional event from argv.
@@ -3963,6 +4173,22 @@ def main():
         pass
 
     event = payload.get('hook_event_name', '')
+    try:
+        inv_ok = int(payload.get('invocationNum', 1)) <= 1
+    except Exception:
+        inv_ok = True
+    if event == 'UserPromptSubmit' and not payload.get('prompt') and inv_ok:
+        t_path = payload.get('transcriptPath') or payload.get('transcript_path')
+        if t_path:
+            t_path = os.path.expanduser(t_path)
+        if (not t_path or not os.path.isfile(t_path)) and payload.get('session_id'):
+            sid = payload['session_id']
+            cand = os.path.expanduser(f'~/.gemini/antigravity/brain/{sid}/.system_generated/logs/transcript.jsonl')
+            if os.path.isfile(cand):
+                t_path = cand
+        prompt = extract_last_user_prompt(t_path)
+        if prompt:
+            payload['prompt'] = prompt
     # socket_path is already defined above
 
     if event == 'PermissionRequest':
@@ -4047,8 +4273,11 @@ def main():
     # Antigravity needs a decision on PreToolUse ({} reads as a denial). "ask" keeps its own
     # permission prompt (and the user's Always Allow); Coucou never allows a tool by itself.
     if agent == 'antigravity' and event == 'PreToolUse':
+        if payload.get('tool_name') == 'ask_question':
+            return  # handled by --ask hook, do not emit conflicting ask
         sys.stdout.write('{"decision":"ask"}\\n')
         sys.stdout.flush()
+        sys.exit(0)
     elif agent in ('gemini', 'antigravity', 'muse', 'copilot'):
         sys.stdout.write('{}\\n')
         sys.stdout.flush()

@@ -87,6 +87,73 @@ enum AskQuestionTests {
         ]]
         checkTrue("empty option label → nil",         AskQuestion.parse(toolInput: emptyLabel) == nil)
 
+        // ── Antigravity format: options as [String], is_multi_select ────────────
+        let agyInput: [String: Any] = [
+            "questions": [
+                [
+                    "question": "Which database engine would you like to use?",
+                    "options": ["PostgreSQL", "SQLite", "MySQL"],
+                    "is_multi_select": false
+                ]
+            ]
+        ]
+        let agyParsed = AskQuestion.parse(toolInput: agyInput)
+        checkTrue("Antigravity question parses", agyParsed != nil)
+        check("Antigravity question text", agyParsed?.questions.first?.question ?? "", "Which database engine would you like to use?")
+        check("Antigravity options count", "\(agyParsed?.questions.first?.options.count ?? 0)", "3")
+        check("Antigravity option 1 label", agyParsed?.questions.first?.options[0].label ?? "", "PostgreSQL")
+        check("Antigravity option 1 desc empty", agyParsed?.questions.first?.options[0].description ?? "", "")
+        checkTrue("Antigravity is_multi_select false", agyParsed?.questions.first?.multiSelect == false)
+
+        let agyMultiInput: [String: Any] = [
+            "questions": [
+                [
+                    "question": "Select target platforms",
+                    "options": ["macOS", "iOS", "watchOS"],
+                    "is_multi_select": true
+                ]
+            ]
+        ]
+        let agyMultiParsed = AskQuestion.parse(toolInput: agyMultiInput)
+        checkTrue("Antigravity multi-select parses", agyMultiParsed?.questions.first?.multiSelect == true)
+
+        // Antigravity edge cases:
+        // empty string option → nil
+        let agyEmptyOpt: [String: Any] = [
+            "questions": [
+                [
+                    "question": "Choose",
+                    "options": ["A", ""],
+                    "is_multi_select": false
+                ]
+            ]
+        ]
+        checkTrue("Antigravity empty option string → nil", AskQuestion.parse(toolInput: agyEmptyOpt) == nil)
+
+        // 1 option → nil
+        let agyOneOpt: [String: Any] = [
+            "questions": [
+                [
+                    "question": "Choose",
+                    "options": ["OnlyOne"],
+                    "is_multi_select": false
+                ]
+            ]
+        ]
+        checkTrue("Antigravity 1 option → nil", AskQuestion.parse(toolInput: agyOneOpt) == nil)
+
+        // 5 options → nil
+        let agyFiveOpts: [String: Any] = [
+            "questions": [
+                [
+                    "question": "Choose",
+                    "options": ["A", "B", "C", "D", "E"],
+                    "is_multi_select": false
+                ]
+            ]
+        ]
+        checkTrue("Antigravity 5 options → nil", AskQuestion.parse(toolInput: agyFiveOpts) == nil)
+
         // ── buildAnswers ───────────────────────────────────────────────────────
         print("AskQuestion.buildAnswers")
 

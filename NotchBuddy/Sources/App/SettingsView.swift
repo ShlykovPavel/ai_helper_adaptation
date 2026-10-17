@@ -1331,6 +1331,15 @@ struct SettingsView: View {
                     get: { state.showCodexPlanInNotch },
                     set: { state.showCodexPlanInNotch = $0 }
                 ))
+                Divider()
+                Text(String(localized: "settings.plan.antigravity.description", defaultValue: "Shows your Antigravity (Gemini and 3rd-party models) quota in the notch header. Coucou queries the local Language Server process when running; nothing is installed."))
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Toggle(String(localized: "settings.plan.antigravity", defaultValue: "Show Antigravity plan in the notch"), isOn: Binding(
+                    get: { state.showAntigravityPlanInNotch },
+                    set: { state.showAntigravityPlanInNotch = $0 }
+                ))
             }
             .padding(6)
         }

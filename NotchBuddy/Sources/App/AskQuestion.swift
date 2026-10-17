@@ -2,12 +2,12 @@ import Foundation
 
 // MARK: - AskUserQuestion model (Foundation-only, testable)
 
-struct AskQuestionOption: Equatable {
+struct AskQuestionOption: Equatable, Sendable {
     var label: String
     var description: String
 }
 
-struct AskQuestionItem: Equatable {
+struct AskQuestionItem: Equatable, Sendable {
     var question: String    // full question text
     var header: String      // ≤12 chars; used as section label
     var options: [AskQuestionOption]   // 2–4 choices
@@ -24,8 +24,27 @@ extension AskQuestionItem {
     var hasDescriptions: Bool { options.contains { !$0.description.isEmpty } }
 }
 
-struct AskQuestion: Equatable {
+struct AskQuestion: Equatable, Sendable {
     var questions: [AskQuestionItem]   // 1–4 questions
+    var id: UUID = UUID()
+    var pillId: String = ""
+    var projectName: String = ""
+    var queueIndex: Int = 1
+    var queueCount: Int = 1
+
+    init(questions: [AskQuestionItem],
+         id: UUID = UUID(),
+         pillId: String = "",
+         projectName: String = "",
+         queueIndex: Int = 1,
+         queueCount: Int = 1) {
+        self.questions = questions
+        self.id = id
+        self.pillId = pillId
+        self.projectName = projectName
+        self.queueIndex = queueIndex
+        self.queueCount = queueCount
+    }
 
     /// Island height that fits the tallest question without truncation (rough estimate, text wraps at ~500 pt).
     var estimatedIslandHeight: CGFloat {
@@ -56,18 +75,31 @@ struct AskQuestion: Equatable {
               !rawQs.isEmpty, rawQs.count <= 4 else { return nil }
         var items: [AskQuestionItem] = []
         for raw in rawQs {
-            guard let question = raw["question"] as? String, !question.isEmpty,
-                  let rawOpts = raw["options"] as? [[String: Any]],
-                  rawOpts.count >= 2, rawOpts.count <= 4 else { return nil }
+            guard let question = raw["question"] as? String, !question.isEmpty else { return nil }
+
             var opts: [AskQuestionOption] = []
-            for opt in rawOpts {
-                guard let label = opt["label"] as? String, !label.isEmpty else { return nil }
-                let desc = opt["description"] as? String ?? ""
-                opts.append(AskQuestionOption(label: label, description: desc))
+            if let dictOpts = raw["options"] as? [[String: Any]] {
+                // Claude Code format: [{"label": "...", "description": "..."}]
+                guard dictOpts.count >= 2, dictOpts.count <= 4 else { return nil }
+                for opt in dictOpts {
+                    guard let label = opt["label"] as? String, !label.isEmpty else { return nil }
+                    let desc = opt["description"] as? String ?? ""
+                    opts.append(AskQuestionOption(label: label, description: desc))
+                }
+            } else if let stringOpts = raw["options"] as? [String] {
+                // Antigravity format: ["Option 1", "Option 2", ...]
+                guard stringOpts.count >= 2, stringOpts.count <= 4 else { return nil }
+                for label in stringOpts {
+                    guard !label.isEmpty else { return nil }
+                    opts.append(AskQuestionOption(label: label, description: ""))
+                }
+            } else {
+                return nil
             }
+
             let rawHeader = raw["header"] as? String ?? ""
             let header = String(rawHeader.prefix(12))
-            let multi = raw["multiSelect"] as? Bool ?? false
+            let multi = (raw["multiSelect"] as? Bool) ?? (raw["is_multi_select"] as? Bool) ?? false
             items.append(AskQuestionItem(question: question, header: header, options: opts, multiSelect: multi))
         }
         return AskQuestion(questions: items)
