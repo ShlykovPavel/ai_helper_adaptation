@@ -163,6 +163,15 @@ export interface Settings {
     onDesktop: boolean;
     spot: { x: number; y: number; space: string } | null;
   };
+  telegramEnabled?: boolean;
+  telegramNotifyFinished?: boolean;
+  telegramNotifyQuestions?: boolean;
+  telegramNotifyApprovals?: boolean;
+  telegramPairedChatId?: number | null;
+  telegramPairedUserId?: number | null;
+  telegramPairedBotUsername?: string | null;
+  telegramPairingNonce?: string | null;
+  telegramPairingExpiresAt?: number | null;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -191,6 +200,15 @@ export const DEFAULT_SETTINGS: Settings = {
   mochiOutfit: DEFAULT_OUTFIT,
   pillColors: {},
   language: "",
+  telegramEnabled: false,
+  telegramNotifyFinished: true,
+  telegramNotifyQuestions: true,
+  telegramNotifyApprovals: true,
+  telegramPairedChatId: null,
+  telegramPairedUserId: null,
+  telegramPairedBotUsername: null,
+  telegramPairingNonce: null,
+  telegramPairingExpiresAt: null,
 };
 
 type Listener = () => void;
