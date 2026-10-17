@@ -540,8 +540,8 @@ struct IslandHeader: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Left: tab capsules
-            HStack(spacing: 5) {
+            // Left: tab capsules + toast chip (outside notch)
+            HStack(spacing: 6) {
                 TabButton(icon: "house.fill", view: .overview, state: state)
                 TabButton(icon: "bubble.left.fill", view: .prompt, state: state, preAction: {
                     #if !APPSTORE
@@ -551,16 +551,15 @@ struct IslandHeader: View {
                     #endif
                 })
                 TabButton(icon: "plus", view: .upload, state: state)
+
+                if let toast = state.agentToast {
+                    AgentToastChip(toast: toast, state: state)
+                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                }
             }
             .padding(.leading, 14)
 
             Spacer()
-
-            if let toast = state.agentToast {
-                AgentToastChip(toast: toast, state: state)
-                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
-                Spacer()
-            }
 
             // Right: plan pill (GitHub build, home view only) + action icons
             HStack(spacing: 8) {
@@ -697,6 +696,10 @@ struct AgentToastChip: View {
 
     var body: some View {
         Button(action: {
+            guard state.pendingApproval == nil && state.pendingQuestion == nil else {
+                state.dismissAgentToast()
+                return
+            }
             state.setFocus(toast.pillId)
             state.dismissAgentToast()
             HookServer.shared.expandIfNeeded(to: .finished)

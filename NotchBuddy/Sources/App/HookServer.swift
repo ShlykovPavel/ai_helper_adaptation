@@ -685,9 +685,12 @@ final class HookServer: @unchecked Sendable {
                 guard self.sessions.workingCount(pill: agentId) == 0 else { return }
                 if isExternalAgent {
                     AppState.shared.removeTask(id: agentId)
+                    if AppState.shared.agentToast?.pillId == agentId {
+                        AppState.shared.dismissAgentToast()
+                    }
                 } else {
                     AppState.shared.updateTask(id: agentId, state: .idle)
-                    if focused {
+                    if AppState.shared.focusId == agentId {
                         self.clearPillBadge(id: agentId)
                     }
                 }
@@ -791,7 +794,7 @@ final class HookServer: @unchecked Sendable {
             // Approval and question always win; other alerts are blocked while a card is showing
             if view == .approval || view == .question {
                 state.view = view
-            } else if isAlert && state.pendingApproval == nil {
+            } else if isAlert && state.pendingApproval == nil && state.pendingQuestion == nil {
                 state.view = view
             }
         } else if isAlert {

@@ -451,15 +451,19 @@ final class AppState: ObservableObject {
     private var toastDismissTimer: DispatchWorkItem?
 
     func showAgentToast(pillId: String, message: String, colorHex: String) {
-        agentToast = AgentToast(pillId: pillId, message: message, colorHex: colorHex)
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            agentToast = AgentToast(pillId: pillId, message: message, colorHex: colorHex)
+        }
         toastDismissTimer?.cancel()
         let timer = DispatchWorkItem { [weak self] in
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                self?.agentToast = nil
+            MainActor.assumeIsolated {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    self?.agentToast = nil
+                }
             }
         }
         toastDismissTimer = timer
-        DispatchQueue.main.asyncAfter(deadline: .now() + 6.0, execute: timer)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0, execute: timer)
     }
 
     func dismissAgentToast() {
@@ -653,6 +657,9 @@ final class AppState: ObservableObject {
     }
 
     func removeTask(id: String) {
+        if agentToast?.pillId == id {
+            dismissAgentToast()
+        }
         // mainPillId: always reset, never remove (the active workspace tool)
         // activeIntegrations: also reset (user declared it active, keep it as idle)
         let isProtected = id == mainPillId
