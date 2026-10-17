@@ -675,6 +675,10 @@ final class HookServer: @unchecked Sendable {
                 expandIfNeeded(to: .finished)
             } else {
                 setPillBadge(id: agentId, badge: .finished)
+                let def = PillCatalog.definition(for: agentId)
+                let pillName = def?.sessionSubtitle ?? def?.name ?? "Agent"
+                let pillColor = def?.color ?? "#22C55E"
+                AppState.shared.showAgentToast(pillId: agentId, message: "\(pillName): Done", colorHex: pillColor)
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.2) {
                 // A session (this one or a sibling) may have started a new turn meanwhile.
@@ -776,7 +780,7 @@ final class HookServer: @unchecked Sendable {
     // MARK: - Helpers
 
     @MainActor
-    private func expandIfNeeded(to view: IslandView) {
+    func expandIfNeeded(to view: IslandView) {
         let state = AppState.shared
         let isAlert: Bool
         switch view {

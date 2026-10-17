@@ -446,6 +446,30 @@ final class AppState: ObservableObject {
         didSet { QuestionLayout.height = pendingQuestion?.estimatedIslandHeight }
     }
 
+    // Background agent completion toast
+    @Published var agentToast: AgentToast? = nil
+    private var toastDismissTimer: DispatchWorkItem?
+
+    func showAgentToast(pillId: String, message: String, colorHex: String) {
+        agentToast = AgentToast(pillId: pillId, message: message, colorHex: colorHex)
+        toastDismissTimer?.cancel()
+        let timer = DispatchWorkItem { [weak self] in
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                self?.agentToast = nil
+            }
+        }
+        toastDismissTimer = timer
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6.0, execute: timer)
+    }
+
+    func dismissAgentToast() {
+        toastDismissTimer?.cancel()
+        toastDismissTimer = nil
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            agentToast = nil
+        }
+    }
+
     // Per-pill flat list of FileDiffs, in order of reception.
     // Not @Published — steps[] changes already trigger redraws.
     var sessionDiffs: [String: [FileDiff]] = [:]

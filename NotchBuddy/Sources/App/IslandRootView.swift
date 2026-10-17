@@ -556,6 +556,12 @@ struct IslandHeader: View {
 
             Spacer()
 
+            if let toast = state.agentToast {
+                AgentToastChip(toast: toast, state: state)
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                Spacer()
+            }
+
             // Right: plan pill (GitHub build, home view only) + action icons
             HStack(spacing: 8) {
                 #if !APPSTORE
@@ -679,6 +685,45 @@ struct TabButton: View {
         .buttonStyle(.plain)
         .disabled(isLocked)
         .onHover { isHovered = $0 }
+    }
+}
+
+// MARK: - Agent Toast Chip (completion alerts)
+
+struct AgentToastChip: View {
+    let toast: AgentToast
+    @ObservedObject var state: AppState
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: {
+            state.setFocus(toast.pillId)
+            state.dismissAgentToast()
+            HookServer.shared.expandIfNeeded(to: .finished)
+        }) {
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(Color(hex: toast.colorHex))
+                Text(toast.message)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 9)
+            .padding(.vertical, 4)
+            .background(
+                Capsule()
+                    .fill(Color(hex: toast.colorHex).opacity(isHovered ? 0.28 : 0.16))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(Color(hex: toast.colorHex).opacity(isHovered ? 0.6 : 0.35), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
+        .help(String(localized: "Switch to completed agent"))
     }
 }
 
