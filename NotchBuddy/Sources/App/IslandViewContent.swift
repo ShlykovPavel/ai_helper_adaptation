@@ -720,13 +720,12 @@ struct QuestionView: View {
                 let curOtherText = qi < otherTexts.count ? otherTexts[qi] : ""
                 let canProceed = !curSel.isEmpty || (curOther && !curOtherText.isEmpty)
                 let askerId = q.pillId.isEmpty ? (state.focusTask?.id ?? "integration_claude") : q.pillId
-                let askerName = PillCatalog.definition(for: askerId)?.name ?? "Agent"
-                let askerTask = state.tasks.first(where: { $0.id == askerId }) ?? state.focusTask
+                let askerName = PillCatalog.definition(for: askerId)?.sessionSubtitle ?? "Agent"
 
                 VStack(alignment: .leading, spacing: 4) {
                     // Header row: agent name + question counter + "Reply in terminal" link
                     HStack(spacing: 6) {
-                        AgentWho(task: askerTask, label: "\(askerName) is asking")
+                        AgentWho(task: nil, label: "\(askerName) is asking")
                         if q.queueCount > 1 {
                             Text(verbatim: "\(q.queueIndex)/\(q.queueCount)")
                                 .font(.system(size: 11, weight: .semibold))
@@ -872,11 +871,6 @@ struct QuestionView: View {
         }
         .onAppear { resetQuestionState() }
         .onChange(of: state.pendingQuestion) { _, _ in resetQuestionState() }
-        .onDisappear {
-            if state.view != .question {
-                HookServer.shared.releaseQuestionFD(for: shownId)
-            }
-        }
     }
 
     private func resetQuestionState() {

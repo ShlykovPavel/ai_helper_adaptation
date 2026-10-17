@@ -42,7 +42,16 @@ enum QuestionQueueTests {
         let q3 = entry(3, session: "s3", pill: "agent_antigravity")
         _ = q.enqueue(q3)
         let resolved = q.resolved(byEvent: "Stop", sessionId: "s3", pillId: "agent_antigravity")
-        check("resolved contains q3", resolved == [q3])
+        check("resolved contains q3 on Stop", resolved == [q3])
+
+        let resolvedPostTool = q.resolved(byEvent: "PostToolUse", sessionId: "s3", pillId: "agent_antigravity")
+        check("resolved contains q3 on PostToolUse", resolvedPostTool == [q3])
+
+        let resolvedPostToolFailure = q.resolved(byEvent: "PostToolUseFailure", sessionId: "s3", pillId: "agent_antigravity")
+        check("resolved contains q3 on PostToolUseFailure", resolvedPostToolFailure == [q3])
+
+        let resolvedUnrelated = q.resolved(byEvent: "Notification", sessionId: "s3", pillId: "agent_antigravity")
+        check("resolved empty on Notification", resolvedUnrelated.isEmpty)
 
         if failures > 0 { exit(1) }
     }

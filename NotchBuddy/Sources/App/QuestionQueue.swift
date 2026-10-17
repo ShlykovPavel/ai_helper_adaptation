@@ -52,7 +52,7 @@ struct QuestionQueue: Sendable {
 
     func resolved(byEvent name: String, sessionId: String, pillId: String) -> [QueuedQuestion] {
         switch name {
-        case "Stop", "StopFailure", "UserPromptSubmit", "SessionEnd", "Interrupt":
+        case "Stop", "StopFailure", "UserPromptSubmit", "SessionEnd", "Interrupt", "PostToolUse", "PostToolUseFailure":
             return entries.filter { $0.pillId == pillId && $0.sessionId == sessionId }
         default:
             return []

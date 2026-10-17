@@ -155,6 +155,10 @@ final class HookServer: @unchecked Sendable {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) { state.focusId = prev }
             }
         }
+        if questions.head != nil {
+            showQuestionHead()
+            return
+        }
         if let note {
             state.noteMessage = note
             state.view = .note
@@ -233,6 +237,10 @@ final class HookServer: @unchecked Sendable {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) { state.focusId = prev }
             }
         }
+        if approvals.head != nil {
+            showApprovalHead()
+            return
+        }
         if let note, !note.isEmpty {
             state.noteMessage = note
             state.view = .note
@@ -259,7 +267,11 @@ final class HookServer: @unchecked Sendable {
             let s = AppState.shared
             s.pendingQuestion = nil
             s.isPinned = false
-            s.view = s.tasks.isEmpty ? .empty : .overview
+            if approvals.head != nil {
+                showApprovalHead()
+            } else {
+                s.view = s.tasks.isEmpty ? .empty : .overview
+            }
             return
         }
         if let id, id != head.id {
@@ -278,14 +290,6 @@ final class HookServer: @unchecked Sendable {
         removeQuestion(id: head.id, answer: jsonStr)
     }
 
-    /// Called by QuestionView.onDisappear — card left screen without an explicit answer.
-    /// Sends "ask" immediately to unblock nb-hook; does NOT navigate (view already changed).
-    @MainActor
-    func releaseQuestionFD(for id: UUID? = nil) {
-        guard let targetId = id ?? questions.head?.id else { return }
-        removeQuestion(id: targetId, answer: #"{"permissionDecision":"ask"}"#)
-    }
-
     /// Called by QuestionView "Reply in terminal" button.
     @MainActor
     func sendQuestionAsk(for id: UUID? = nil) {
@@ -293,7 +297,11 @@ final class HookServer: @unchecked Sendable {
             let s = AppState.shared
             s.pendingQuestion = nil
             s.isPinned = false
-            s.view = s.tasks.isEmpty ? .empty : .overview
+            if approvals.head != nil {
+                showApprovalHead()
+            } else {
+                s.view = s.tasks.isEmpty ? .empty : .overview
+            }
             return
         }
         removeQuestion(id: targetId, answer: #"{"permissionDecision":"ask"}"#)
@@ -549,10 +557,13 @@ final class HookServer: @unchecked Sendable {
             }
         }
         if !questions.isEmpty {
-            for entry in questions.resolved(byEvent: name, sessionId: sessionId, pillId: agentId) {
+            let effectiveSessionId = (sessionId == "unknown" || sessionId.isEmpty)
+                ? "\(agentId)+\(cwd)"
+                : sessionId
+            for entry in questions.resolved(byEvent: name, sessionId: effectiveSessionId, pillId: agentId) {
                 removeQuestion(id: entry.id, note: handledNote(pill: entry.pillId))
             }
-            if questions.entries.contains(where: { $0.pillId == agentId && $0.sessionId == sessionId }) {
+            if questions.entries.contains(where: { $0.pillId == agentId && $0.sessionId == effectiveSessionId }) {
                 return
             }
         }
@@ -960,11 +971,15 @@ final class HookServer: @unchecked Sendable {
             return
         }
         guard let head = approvals.head else {
-            // A card with nothing behind it any more: just close it.
+            // A card with nothing behind it any more: check if questions waiting or close it.
             let s = AppState.shared
             s.pendingApproval = nil
             s.isPinned = false
-            s.view = s.tasks.isEmpty ? .empty : .overview
+            if questions.head != nil {
+                showQuestionHead()
+            } else {
+                s.view = s.tasks.isEmpty ? .empty : .overview
+            }
             return
         }
         if let id, id != head.id {
