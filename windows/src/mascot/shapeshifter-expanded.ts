@@ -1,5 +1,5 @@
 import type { MascotActionState, MascotShape, ProviderCoreId } from "./types";
-import { getProviderBadgeColor } from "./shapeshifter-compact.ts";
+import { getProviderBadgeColor } from "./shapeshifter-compact";
 
 export interface ExpandedDrawOptions {
   ctx: CanvasRenderingContext2D;
