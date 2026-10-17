@@ -6,7 +6,7 @@
 
 **Mochi doesn't get a notch on a PC — so it lives at the top of your screen instead.**
 
-Approve Claude Code permissions, watch your session work, drop a file, chat with Claude, keep an eye on your services — without leaving what you're doing.
+Approve Claude Code permissions, watch your session work, drop a file, chat with Claude, keep an eye on your services — without leaving what you're doing. And with the Telegram bot, answer questions and approve permissions right from your phone.
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%2F11-0078D4?logo=windows)
 ![Tauri 2](https://img.shields.io/badge/Tauri-2-FFC131?logo=tauri&logoColor=black)
@@ -302,6 +302,16 @@ someone requests your review. Pull requests are checked every 5 minutes, every
 minute while a CI is running, and as soon as you open the card on data older
 than a minute; contributions every 30 minutes. Nothing is fetched while the pill
 is off or Coucou is paused.
+
+## Telegram Bot
+
+Coucou connects directly to your own personal Telegram bot so you can step away from your PC and receive turn completion notifications, answer questions (single-choice, multi-choice, and text fallback), and approve or deny permission requests directly from your phone on Telegram.
+
+- **Direct & private**: Coucou connects directly from your PC to `https://api.telegram.org` over HTTPS using long polling (`getUpdates`). No cloud proxy, no relay server, and no incoming webhooks or ports to open.
+- **Secure token storage**: The bot token is stored securely in Windows Credential Manager (or Secret Service on Linux via the `keyring` crate), never in `settings.json` or logs.
+- **Independent notifications**: Toggles for completions, questions, and approvals work in the background without taking up one of your four active pill slots.
+
+Configure it in **Settings… → Integrations → Telegram**. For step-by-step setup with `@BotFather`, pairing instructions, and troubleshooting (401, 409, 429), see [`docs/telegram.md`](../docs/telegram.md).
 
 ## Build it yourself
 

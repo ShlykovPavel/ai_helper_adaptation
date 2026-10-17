@@ -74,7 +74,7 @@ Flow dictation and the Notetaker are on the Mac for now; Windows and Linux are n
 - 📎 **Drop a file on the notch** — Mochi turns into a box and swallows it, then ask a question about it or send it by email *(email: macOS, Mail.app)*.
 - 🖥️ **Mochi on the desktop** — drag Mochi out of the island to set him loose on your desktop: he floats as a 120 pt companion, follows your cursor, wears his outfit, reacts to alerts by flying home and flying back, and comes back where you left him on next launch.
 - 🪟 **Drag Mochi onto any window** — attach that window as context for Claude *(macOS)*.
-- 🔌 **Integrations** — Stripe payments, n8n workflows, GitHub (open PRs, reviews requested, CI status), Vercel deployments, Resend emails, Notion, Cal.com. Each one gets its own little colored Mochi.
+- 🔌 **Integrations** — Telegram bot notifications & approvals, Stripe payments, n8n workflows, GitHub (open PRs, reviews requested, CI status), Vercel deployments, Resend emails, Notion, Cal.com. Each one gets its own little colored Mochi.
 - 🎵 **Apple Music pill** *(macOS, GitHub build)* — add the Apple Music pill in Settings → Active pills to see what's playing and control playback from the notch; Mochi dances while it plays.
 - 🎧 **Spotify pill** *(macOS, GitHub build)* — add the Spotify pill in Settings → Active pills: album cover, title and artist, a progress bar you drag to seek, play/pause, previous/next, shuffle, repeat and volume, right from the notch; Mochi dances while it plays.
 - 👗 **Dress Mochi up** — right-click him for the wardrobe. He also dresses up for the seasons on his own.
@@ -87,6 +87,7 @@ Flow dictation and the Notetaker are on the Mac for now; Windows and Linux are n
 - 🖥️ **Any Mac, notch or not** — on an iMac, a Mac mini, or a MacBook with its lid closed on an external display, Mochi sits in a small bar at the top of the screen. With several displays, pick his screen in Settings → General, or let him follow your mouse *(macOS)*.
 - 📱 **Coucou on iPhone** — your sessions, approvals and services in your pocket, with Live Activities, widgets and Siri. See [Coucou on iPhone](#coucou-on-iphone).
 - 🤖 **Coucou for Android** — your agents, approvals with your fingerprint, questions, chat and home-screen widgets on an Android phone, linked to Coucou on Windows or Linux over your Wi-Fi. By [@Rhytam23](https://github.com/Rhytam23). See [Coucou for Android](#coucou-for-android).
+- ✈️ **Coucou Telegram Bot** — your own Telegram bot sends you completion notifications, questions with interactive buttons (single, multi-choice, text) and permission approvals (Allow / Deny) directly to your phone, across macOS, Windows and Linux. Direct local connection to Telegram, zero cloud middleman, tokens stored in your OS keystore. See [docs/telegram.md](docs/telegram.md).
 - 📅 **Weekly recap** *(macOS)* — every Monday morning Coucou shows a summary of the past week: time coding, sessions, files, lines changed, commands, permissions, top agent and project, busiest day and longest session. Share it as a 1080 × 1920 image with Mochi — project names optional. All local, no sync.
 - 🌍 **10 languages** — English, 中文, हिन्दी, Español, العربية, Français, বাংলা, Português, Русский, Bahasa Indonesia. Pick one in Settings → General → Language; community translations welcome.
 - 🔒 **Private by design** — no telemetry, no account. Keys live in your macOS Keychain, Windows Credential Manager or Linux Secret Service (GNOME Keyring, KWallet). The app only talks to the services you plug in.
@@ -141,6 +142,17 @@ The Mac app does the work; the iPhone app keeps you in the loop when you step aw
 <td><img src="docs/media/dizzy.png" alt="Too many hits"></td>
 </tr>
 </table>
+
+## Coucou Telegram Bot
+
+Connect your own personal Telegram bot to Coucou to stay in control of your AI coding agents from anywhere on your phone, without needing an app store build, local network pairing, or shared Wi-Fi.
+
+- 🔔 **Turn completion alerts** — get notified when an agent finishes its turn, with the agent name, project directory, and summary of the final answer.
+- ❓ **Answer questions** — single-select and multi-select prompts with interactive inline buttons, plus a text fallback mode to type custom answers.
+- 🛡️ **Approve permissions** — Allow or Deny tool execution requests right from your Telegram chat.
+- 🔒 **Direct and private** — Coucou connects directly from your computer to Telegram via HTTPS long polling (`getUpdates`). No relay servers, no cloud proxies, and your bot token is stored exclusively in your OS keystore (macOS Keychain, Windows Credential Manager, Linux Secret Service).
+
+Available on **macOS**, **Windows**, and **Linux**. Full setup guide and troubleshooting: [`docs/telegram.md`](docs/telegram.md).
 
 ## Versions
 

@@ -334,4 +334,29 @@ Réglages → Chat → Local models → **Disconnect**. Efface l'URL sauvegardé
 
 Aucune permission Accessibilité nécessaire.
 
+---
+
+## 8. Telegram Bot (notifications et contrôle distant)
+
+**Plateformes** : macOS, Windows, Linux  
+**Catégorie** : Integrations  
+**Guide complet** : [`docs/telegram.md`](telegram.md)
+
+L'intégration Telegram permet de piloter et surveiller vos sessions d'agents IA (Claude Code, Codex, etc.) depuis votre téléphone via votre propre bot Telegram dédié, sans dépendre d'un serveur tiers ni ouvrir de webhook public.
+
+### Fonctionnalités principales
+- **Notifications de fin de tâche (`Stop`)** : réception du statut de fin de session, nom de l'agent, projet et résumé de la dernière réponse. Déduplication automatique pour éviter les alertes redondantes.
+- **Réponses aux questions (`AskUserQuestion`)** : boutons inline pour les questions à choix unique et à choix multiple avec confirmation (« Envoyer »), ainsi qu'une option « Répondre par texte ».
+- **Approbations de permissions (`PermissionRequest`)** : boutons interactifs « Autoriser » (`Allow`) et « Refuser » (`Deny`) directement dans le chat Telegram.
+- **Toggles de notifications indépendants** : réglages séparés pour les fins de tâche, questions et autorisations, sans consommer l'un des 4 slots d'intégration actifs de l'îlot.
+
+### Sécurité et respect de la vie privée
+- **Connexion directe** : Coucou se connecte directement depuis votre ordinateur à `https://api.telegram.org` en HTTPS via long polling (`getUpdates`). Aucun serveur intermédiaire, proxy ou relais cloud.
+- **Stockage sécurisé** : le jeton du bot est conservé exclusivement dans le trousseau sécurisé de l'OS (Trousseau macOS, Windows Credential Manager, Linux Secret Service). Il n'est jamais consigné dans les logs, ni stocké dans `settings.json`.
+- **Identifiants d'action éphémères** : les boutons interactifs utilisent des identifiants aléatoires opaques de 16 octets avec une durée de validité (TTL) de 120 secondes. Aucune commande ni chemin n'est exposé dans les données de callback.
+- **Appairage privé** : restriction stricte aux discussions privées en tête-à-tête avec vérification par nonce à usage unique valable 10 minutes.
+
+Pour la configuration pas à pas, la création du bot avec `@BotFather` et le dépannage (erreurs 401, 409, 429), consultez le guide détaillé : [`docs/telegram.md`](telegram.md).
+
+
 
