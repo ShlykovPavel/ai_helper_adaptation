@@ -574,6 +574,27 @@ final class AppState: ObservableObject {
         }
     }
 
+    // Antigravity plan gauge (from local LanguageServerService RPC)
+    @Published var showAntigravityPlanInNotch: Bool = true {
+        didSet { UserDefaults.standard.set(showAntigravityPlanInNotch, forKey: "showAntigravityPlanInNotch") }
+    }
+    @Published var antigravityPlanUsage: AntigravityPlanUsage? = nil
+    @Published var planDetailIsAntigravity: Bool = false
+
+    private static var lastAgyAttempt: Date = .distantPast
+    private static var agyFetchInFlight = false
+
+    func refreshAntigravityPlanUsage() {
+        if let u = antigravityPlanUsage, Date().timeIntervalSince(u.updatedAt) < 60 { return }
+        guard !Self.agyFetchInFlight, Date().timeIntervalSince(Self.lastAgyAttempt) > 60 else { return }
+        Self.agyFetchInFlight = true
+        Self.lastAgyAttempt = Date()
+        Task {
+            if let u = await AntigravityPlanGauge.fetch() { antigravityPlanUsage = u }
+            Self.agyFetchInFlight = false
+        }
+    }
+
     func refreshPlanRelayState() {
         planRelayInstalled = HookServer.statusLineInstalled()
     }
@@ -626,6 +647,7 @@ final class AppState: ObservableObject {
         #if !APPSTORE
         if let v = ud.object(forKey: "showPlanInNotch") as? Bool { showPlanInNotch = v }
         if let v = ud.object(forKey: "showCodexPlanInNotch") as? Bool { showCodexPlanInNotch = v }
+        if let v = ud.object(forKey: "showAntigravityPlanInNotch") as? Bool { showAntigravityPlanInNotch = v }
         planRelayInstalled = HookServer.statusLineInstalled()
         #endif
 

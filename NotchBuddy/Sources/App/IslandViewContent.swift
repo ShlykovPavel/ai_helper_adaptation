@@ -422,7 +422,9 @@ struct OverviewView: View {
                 if state.showingPlanDetail {
                     CardBackground(wash: nil)
                     Group {
-                        if state.planDetailIsCodex {
+                        if state.planDetailIsAntigravity {
+                            AntigravityPlanCardView(usage: state.antigravityPlanUsage)
+                        } else if state.planDetailIsCodex {
                             CodexPlanCardView(usage: state.codexPlanUsage)
                         } else {
                             // Claude and Codex both on: the header shows only the Claude pill,
@@ -434,6 +436,7 @@ struct OverviewView: View {
                                                codexUsage: state.codexPlanUsage,
                                                onCodex: {
                                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                                       state.planDetailIsAntigravity = false
                                                        state.planDetailIsCodex = true
                                                    }
                                                    state.refreshCodexPlanUsage()

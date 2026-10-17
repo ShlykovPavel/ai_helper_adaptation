@@ -570,6 +570,8 @@ struct IslandHeader: View {
                     ClaudePlanHeaderPill(state: state)
                 } else if state.view == .overview && state.showCodexPlanInNotch {
                     ClaudePlanHeaderPill(state: state, codex: true)
+                } else if state.view == .overview && state.showAntigravityPlanInNotch {
+                    ClaudePlanHeaderPill(state: state, antigravity: true)
                 }
                 #endif
                 HStack(spacing: 14) {
@@ -736,31 +738,43 @@ struct AgentToastChip: View {
 struct ClaudePlanHeaderPill: View {
     @ObservedObject var state: AppState
     var codex: Bool = false
+    var antigravity: Bool = false
     @State private var isHovered = false
 
     private var effectiveColor: String {
+        if antigravity { return AntigravityPlanGauge.color(state.antigravityPlanUsage) }
         if codex { return CodexPlanGauge.color(state.codexPlanUsage) }
         return ClaudePlanGauge.color(for: (state.demoPlanUsageOverride ?? state.claudePlanUsage).flatMap { ClaudePlanGauge.dominantPct($0) })
     }
 
     private var label: String {
+        if antigravity { return AntigravityPlanGauge.pillLabel(state.antigravityPlanUsage) }
         if codex { return CodexPlanGauge.pillLabel(state.codexPlanUsage) }
         guard let usage = state.demoPlanUsageOverride ?? state.claudePlanUsage,
               let pct = ClaudePlanGauge.dominantPct(usage) else { return "Claude —" }
         return "Claude \(Int(pct.rounded()))%"
     }
 
-    private var isOpen: Bool { state.showingPlanDetail && state.planDetailIsCodex == codex }
+    private var isOpen: Bool {
+        if antigravity { return state.showingPlanDetail && state.planDetailIsAntigravity }
+        if codex { return state.showingPlanDetail && state.planDetailIsCodex }
+        return state.showingPlanDetail && !state.planDetailIsCodex && !state.planDetailIsAntigravity
+    }
     private var isActive: Bool { isOpen || isHovered }
 
     var body: some View {
         Button(action: {
             withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
                 let open = isOpen
+                state.planDetailIsAntigravity = antigravity
                 state.planDetailIsCodex = codex
                 state.showingPlanDetail = !open
             }
-            if codex { state.refreshCodexPlanUsage() }
+            if antigravity {
+                state.refreshAntigravityPlanUsage()
+            } else if codex {
+                state.refreshCodexPlanUsage()
+            }
         }) {
             HStack(spacing: 4) {
                 Circle()
@@ -791,7 +805,13 @@ struct ClaudePlanHeaderPill: View {
         .onHover { h in
             withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) { isHovered = h }
         }
-        .onAppear { if codex { state.refreshCodexPlanUsage() } }
+        .onAppear {
+            if antigravity {
+                state.refreshAntigravityPlanUsage()
+            } else if codex {
+                state.refreshCodexPlanUsage()
+            }
+        }
     }
 }
 #endif
