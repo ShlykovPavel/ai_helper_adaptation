@@ -267,6 +267,29 @@ enum DiffEngine {
         }
         return ""
     }
+
+    // MARK: - Antigravity Tool Diff Helper
+
+    static func fromAntigravityTool(tool: String, input: [String: Any]) -> FileDiff? {
+        switch tool {
+        case "write_to_file":
+            guard let path = (input["TargetFile"] as? String) ?? (input["file_path"] as? String),
+                  let content = (input["CodeContent"] as? String) ?? (input["content"] as? String), !content.isEmpty else { return nil }
+            let d = DiffEngine.fromNew(content: content, path: path)
+            return (d.added > 0 || d.removed > 0) ? d : nil
+
+        case "replace_file_content":
+            guard let path = (input["TargetFile"] as? String) ?? (input["file_path"] as? String),
+                  let old = (input["TargetContent"] as? String) ?? (input["old_string"] as? String),
+                  let new = (input["ReplacementContent"] as? String) ?? (input["new_string"] as? String),
+                  !old.isEmpty || !new.isEmpty else { return nil }
+            let d = DiffEngine.fromEdit(old: old, new: new, path: path)
+            return (d.added > 0 || d.removed > 0) ? d : nil
+
+        default:
+            return nil
+        }
+    }
 }
 
 // MARK: - String diff step encoding

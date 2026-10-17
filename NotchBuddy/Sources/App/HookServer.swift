@@ -1206,6 +1206,10 @@ final class HookServer: @unchecked Sendable {
     // MARK: - Localized step labels
 
     private func localizedStep(tool: String, input: [String: Any]) -> String {
+        if let agy = AntigravityStepFormatter.formatStep(tool: tool, input: input) {
+            return agy
+        }
+
         let labels: [String: String] = [
             "Bash":         String(localized: "step.runs",       defaultValue: "Runs"),
             "Read":         String(localized: "step.reads",      defaultValue: "Reads"),
@@ -1283,6 +1287,10 @@ final class HookServer: @unchecked Sendable {
 
     @MainActor
     private func buildFileDiff(tool: String, input: [String: Any], pillId: String) -> FileDiff? {
+        if let agyDiff = DiffEngine.fromAntigravityTool(tool: tool, input: input) {
+            return agyDiff
+        }
+
         switch tool {
         case "Edit":
             guard let old = input["old_string"] as? String,
@@ -1316,6 +1324,16 @@ final class HookServer: @unchecked Sendable {
         default:
             return nil
         }
+    }
+
+    // MARK: - Antigravity testing helpers
+
+    static func formatStepForAntigravity(tool: String, input: [String: Any]) -> String {
+        AntigravityStepFormatter.formatStep(tool: tool, input: input) ?? tool
+    }
+
+    static func buildFileDiffForTesting(tool: String, input: [String: Any]) -> FileDiff? {
+        DiffEngine.fromAntigravityTool(tool: tool, input: input)
     }
 
     /// Collapses whitespace so a multi-line command stays one ticker row.

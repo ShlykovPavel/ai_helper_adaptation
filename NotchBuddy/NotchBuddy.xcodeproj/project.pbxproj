@@ -234,6 +234,7 @@
 		CEB82B1014FCDF5752285EF0 /* ShapeshifterCompactRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5614936FC62D34C00B99488F /* ShapeshifterCompactRenderer.swift */; };
 		CF08E2473209BA3F31D5A511 /* SpriteSheetAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40C388C4AD861CB70DEE8421 /* SpriteSheetAnimator.swift */; };
 		D00A95A24714141AB82621BE /* FlowStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7124E98A85D75D3378F0AC8 /* FlowStore.swift */; };
+		D05B5B00CA96C960630CBF96 /* AntigravityStepFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B12E2BF3A4EF80A88BB6699 /* AntigravityStepFormatter.swift */; };
 		D19FA3394EE99B34184684ED /* MochiWardrobe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A7807ADD0963FF260D1FAD /* MochiWardrobe.swift */; };
 		D1C243401794E8BB087D8B10 /* FlowText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 324FEF6CF23F9D4A95799431 /* FlowText.swift */; };
 		D20B2B175A5C1D9B410B51C0 /* PillCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C64C4C5D705CE486221B74 /* PillCatalog.swift */; };
@@ -379,6 +380,7 @@
 		559B19F270E63EF3B6F17D5F /* ShapeshifterExpandedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeshifterExpandedView.swift; sourceTree = "<group>"; };
 		5614936FC62D34C00B99488F /* ShapeshifterCompactRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeshifterCompactRenderer.swift; sourceTree = "<group>"; };
 		56A2317343D062ACCAF4E5BD /* DictationTranscript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationTranscript.swift; sourceTree = "<group>"; };
+		5B12E2BF3A4EF80A88BB6699 /* AntigravityStepFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AntigravityStepFormatter.swift; sourceTree = "<group>"; };
 		5C3E2269A202B640E7F3B5E0 /* CoucouWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = CoucouWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5C406C508A86E215B3CBE3FC /* CoucouControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoucouControl.swift; sourceTree = "<group>"; };
 		60401D1023D17C3FD30D7113 /* PhoneAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = PhoneAssets.xcassets; sourceTree = "<group>"; };
@@ -544,6 +546,7 @@
 			isa = PBXGroup;
 			children = (
 				A2F8CCE2F7EE15F190FB35F6 /* AgentToast.swift */,
+				5B12E2BF3A4EF80A88BB6699 /* AntigravityStepFormatter.swift */,
 				192844E7299DEED5C2372067 /* AppDelegate.swift */,
 				9F6D7015D6A77AA59323C0E7 /* AppLog.swift */,
 				1BAE224C1C435C9FFD05BF65 /* ApprovalQueue.swift */,
@@ -1018,6 +1021,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B8165B2B3689C72A7B6C0215 /* AgentToast.swift in Sources */,
+				D05B5B00CA96C960630CBF96 /* AntigravityStepFormatter.swift in Sources */,
 				C940B651C6CA952D99388E04 /* AppDelegate.swift in Sources */,
 				4B6AC00F22EC75E90E0157D5 /* AppLog.swift in Sources */,
 				1F11EC4E6F604C612A1ADAD1 /* AppState.swift in Sources */,
