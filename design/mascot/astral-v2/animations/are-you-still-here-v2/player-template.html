@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Astral · «Ты ещё тут?» · сравнение v1 / v2</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101620;color:#e8edf8;font:15px/1.5 system-ui,sans-serif;padding:28px}main{max-width:1080px;margin:auto}h1{font-size:26px;margin:0 0 8px}h2{font-size:20px;margin:0}p{margin:10px 0}.note{color:#bdc8da}a{color:#acd6ff}.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:16px 0}button,select{font:inherit;color:inherit;border:1px solid #586780;border-radius:8px;background:#243044;padding:7px 10px;cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #acd6ff}.compare{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{border:1px solid #465168;border-radius:16px;overflow:hidden}.caption{padding:16px}.stage{min-height:380px;display:flex;align-items:center;justify-content:center;background:var(--back);color:var(--ink);transition:none}.stage canvas{width:280px;height:280px}.small{display:flex;align-items:end;justify-content:center;gap:32px;min-height:112px;padding:12px;background:var(--back);color:var(--ink)}.mini{text-align:center;font-size:12px}.mini canvas{display:block;margin:0 auto 8px;width:var(--size);height:var(--size)}[data-bg=dark]{--back:#070a10;--ink:#ecf1ff}[data-bg=light]{--back:#edf0f5;--ink:#233047}[data-bg=color]{--back:#294c60;--ink:#fff}[data-bg=checker] .stage,[data-bg=checker] .small{background:repeating-conic-gradient(#d5dbe2 0% 25%,#f5f6f8 0% 50%) 0 0/20px 20px;color:#253149}canvas{display:block}input[type=range]{width:100%;margin:12px 0}output{font-variant-numeric:tabular-nums}details{margin:18px 0}img.sheet{display:block;max-width:100%;height:auto;background:#101620}.error{color:#ffa8a8}table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}th,td{padding:8px;text-align:left;border-bottom:1px solid #3d485d}@media(max-width:650px){body{padding:16px}.compare{grid-template-columns:1fr}.stage{min-height:310px}}
+</style>
+<main data-bg="dark" id="main">
+<h1>«Ты ещё тут?» · v1 / v2</h1>
+<p class="note">V2: <strong>48 реальных рисунков · 4 с · 12 новых поз/с</strong>, по два такта при 24 fps. V1: 32 рисунка · 8 новых поз/с. Кадры показываются напрямую, без смешивания и деформации. Дизайн-проба; в приложение не подключена.</p>
+<div class="controls"><button id="play" type="button">Пауза</button><button id="prev" type="button">← Такт</button><button id="next" type="button">Такт →</button><button id="prevDrawing" type="button">← Рисунок v2</button><button id="nextDrawing" type="button">Рисунок v2 →</button><label>Скорость <select id="speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label><label>Фон <select id="background"><option value="dark">Тёмный</option><option value="light">Светлый</option><option value="color">Цветной</option><option value="checker">Прозрачность</option></select></label></div>
+<output id="status" aria-live="off"></output><input id="seek" aria-label="Такт 0–95" type="range" min="0" max="95" step="1" value="0">
+<div class="compare">
+<section class="card" data-version="v1"><div class="caption"><h2>V1 · 32 рисунка</h2><p class="note">Исходная версия сохранена. В последнем такте повторён рисунок 0.</p><output class="frame-status"></output></div><div class="stage"><canvas width="384" height="384" aria-label="V1, крупно"></canvas></div><div class="small"><div class="mini" style="--size:26px"><canvas width="384" height="384" aria-label="V1 26 px"></canvas>26 px</div><div class="mini" style="--size:64px"><canvas width="384" height="384" aria-label="V1 64 px"></canvas>64 px</div></div></section>
+<section class="card" data-version="v2"><div class="caption"><h2>V2 · 48 рисунков</h2><p class="note">Каждый рисунок — ровно два такта. Стык между настоящими рисунками 47 и 0.</p><output class="frame-status"></output></div><div class="stage"><canvas width="384" height="384" aria-label="V2, крупно"></canvas></div><div class="small"><div class="mini" style="--size:26px"><canvas width="384" height="384" aria-label="V2 26 px"></canvas>26 px</div><div class="mini" style="--size:64px"><canvas width="384" height="384" aria-label="V2 64 px"></canvas>64 px</div></div></section>
+</div>
+<p class="note">Обе версии синхронизированы по времени; соответствующие действия могут приходиться на разные такты. Бесшовность v2 не заявлена: сверяйте стык и переходы между листами на обычной скорости.</p>
+<p><a href="report.md">Отчёт и ограничения</a> · <a href="comparison.json">Все измерения переходов</a> · <a href="verification.json">Проверки</a> · <a href="preview.webp">Прозрачный WebP</a> · <a href="preview-light.gif">GIF</a> · <a href="atlas.png">Атлас</a> · <a href="atlas.json">Метаданные</a></p>
+<details><summary>Третий лист: моргание, сжатие, возврат</summary><img class="sheet" src="part-3-dark.jpg" alt="16 заключительных рисунков v2 на тёмном фоне"></details>
+<p id="error" class="error" role="alert"></p>
+</main>
+<script>
+'use strict';
+const metas={v1:__V1_METADATA__,v2:__V2_METADATA__};
+const play=document.getElementById('play'),seek=document.getElementById('seek'),status=document.getElementById('status'),speed=document.getElementById('speed');
+const images={},cards={};let tick=0,running=!matchMedia('(prefers-reduced-motion: reduce)').matches,lastTime=0,carry=0,raf=0,loaded=0;
+for(const version of ['v1','v2']){cards[version]=document.querySelector(`[data-version="${version}"]`);images[version]=new Image();images[version].onload=()=>{loaded++;if(loaded===2){paint();label();start()}};images[version].onerror=()=>{pause();document.getElementById('error').textContent=`Не удалось загрузить атлас ${version}. Сохраните папки v1 и v2 рядом.`}}
+function paint(){for(const version of ['v1','v2']){const meta=metas[version],frame=meta.frames[meta.ticks[tick]],r=frame.atlasRect;for(const canvas of cards[version].querySelectorAll('canvas')){const ctx=canvas.getContext('2d');ctx.clearRect(0,0,384,384);ctx.drawImage(images[version],r[0],r[1],r[2],r[3],0,0,384,384)}cards[version].querySelector('.frame-status').textContent=`Рисунок ${frame.id} / ${meta.uniqueDrawings-1}`;}seek.value=tick;status.textContent=`${(tick/24).toFixed(3)} с · такт ${tick} / 95`;}
+function label(){play.textContent=running?'Пауза':'Воспроизвести';play.setAttribute('aria-pressed',String(running))}
+function step(now){if(!running||document.hidden){raf=0;return}if(lastTime)carry+=(now-lastTime)*Number(speed.value);lastTime=now;const count=Math.floor(carry/(1000/24));if(count){carry-=count*(1000/24);tick=(tick+count)%96;paint()}raf=requestAnimationFrame(step)}
+function start(){lastTime=0;if(running&&loaded===2&&!document.hidden&&!raf)raf=requestAnimationFrame(step)}
+function pause(){running=false;cancelAnimationFrame(raf);raf=0;lastTime=0;carry=0;label()}
+function move(delta,drawings=false){pause();tick=(drawings?Math.floor(tick/2)*2+delta:tick+delta);tick=(tick+96)%96;if(loaded===2)paint()}
+play.onclick=()=>{running=!running;label();if(running)start();else{cancelAnimationFrame(raf);raf=0;lastTime=0;carry=0}};
+document.getElementById('prev').onclick=()=>move(-1);document.getElementById('next').onclick=()=>move(1);document.getElementById('prevDrawing').onclick=()=>move(-2,true);document.getElementById('nextDrawing').onclick=()=>move(2,true);
+seek.oninput=()=>{pause();tick=Number(seek.value);if(loaded===2)paint()};
+document.getElementById('background').onchange=e=>document.getElementById('main').dataset.bg=e.target.value;
+document.addEventListener('visibilitychange',()=>{cancelAnimationFrame(raf);raf=0;lastTime=0;carry=0;start()});
+images.v1.src='../are-you-still-here/atlas.png';images.v2.src='atlas.png';label();
+</script></html>

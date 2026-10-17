@@ -1,0 +1,2580 @@
+{
+  "v1": {
+    "alphaThreshold": 32,
+    "percentageDenominator": "preceding drawing dimension",
+    "includesLoopSeamInMaxima": true,
+    "seam": {
+      "from": 31,
+      "to": 0,
+      "widthPx": [
+        288,
+        264
+      ],
+      "heightPx": [
+        292,
+        281
+      ],
+      "widthChangePct": 8.333333333333332,
+      "heightChangePct": 3.767123287671233,
+      "centroidDistancePx": 0.3809035113968889,
+      "silhouetteIoUAlpha32": 0.8933752104649657
+    },
+    "maxAdjacentWidth": {
+      "from": 31,
+      "to": 0,
+      "widthPx": [
+        288,
+        264
+      ],
+      "heightPx": [
+        292,
+        281
+      ],
+      "widthChangePct": 8.333333333333332,
+      "heightChangePct": 3.767123287671233,
+      "centroidDistancePx": 0.3809035113968889,
+      "silhouetteIoUAlpha32": 0.8933752104649657
+    },
+    "maxAdjacentHeight": {
+      "from": 23,
+      "to": 24,
+      "widthPx": [
+        278,
+        282
+      ],
+      "heightPx": [
+        291,
+        268
+      ],
+      "widthChangePct": 1.4388489208633095,
+      "heightChangePct": 7.903780068728522,
+      "centroidDistancePx": 0.5103549961027968,
+      "silhouetteIoUAlpha32": 0.9129884827907596
+    },
+    "maxAdjacentCentroid": {
+      "from": 15,
+      "to": 16,
+      "widthPx": [
+        273,
+        273
+      ],
+      "heightPx": [
+        293,
+        287
+      ],
+      "widthChangePct": 0.0,
+      "heightChangePct": 2.04778156996587,
+      "centroidDistancePx": 3.5232942503582327,
+      "silhouetteIoUAlpha32": 0.9545180521133365
+    },
+    "minAdjacentSilhouetteIoU": {
+      "from": 31,
+      "to": 0,
+      "widthPx": [
+        288,
+        264
+      ],
+      "heightPx": [
+        292,
+        281
+      ],
+      "widthChangePct": 8.333333333333332,
+      "heightChangePct": 3.767123287671233,
+      "centroidDistancePx": 0.3809035113968889,
+      "silhouetteIoUAlpha32": 0.8933752104649657
+    },
+    "measurements": [
+      {
+        "boundsAlpha32": [
+          60,
+          52,
+          324,
+          333
+        ],
+        "width": 264,
+        "height": 281,
+        "centroidAlphaPx": [
+          192.47840584017467,
+          197.821132287883
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          58,
+          50,
+          326,
+          332
+        ],
+        "width": 268,
+        "height": 282,
+        "centroidAlphaPx": [
+          191.59656085460108,
+          196.57237157553044
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          57,
+          46,
+          327,
+          334
+        ],
+        "width": 270,
+        "height": 288,
+        "centroidAlphaPx": [
+          191.92771782359947,
+          194.64197492150006
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          58,
+          44,
+          326,
+          333
+        ],
+        "width": 268,
+        "height": 289,
+        "centroidAlphaPx": [
+          192.30866635606853,
+          192.52993172950454
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          52,
+          44,
+          332,
+          329
+        ],
+        "width": 280,
+        "height": 285,
+        "centroidAlphaPx": [
+          192.5622165652296,
+          191.0880266748464
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          54,
+          40,
+          331,
+          327
+        ],
+        "width": 277,
+        "height": 287,
+        "centroidAlphaPx": [
+          192.30637558490537,
+          188.16574691248542
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          55,
+          41,
+          330,
+          325
+        ],
+        "width": 275,
+        "height": 284,
+        "centroidAlphaPx": [
+          192.5127040267718,
+          187.33907077372942
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          56,
+          39,
+          327,
+          326
+        ],
+        "width": 271,
+        "height": 287,
+        "centroidAlphaPx": [
+          191.24001562497938,
+          186.94543456418464
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          56,
+          37,
+          329,
+          326
+        ],
+        "width": 273,
+        "height": 289,
+        "centroidAlphaPx": [
+          192.14357293127534,
+          185.947056195795
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          55,
+          38,
+          330,
+          328
+        ],
+        "width": 275,
+        "height": 290,
+        "centroidAlphaPx": [
+          191.29300865684297,
+          187.11925985591702
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          60,
+          40,
+          324,
+          329
+        ],
+        "width": 264,
+        "height": 289,
+        "centroidAlphaPx": [
+          193.57850158186832,
+          187.88130300004963
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          61,
+          42,
+          323,
+          330
+        ],
+        "width": 262,
+        "height": 288,
+        "centroidAlphaPx": [
+          193.30197957163134,
+          189.46794769200892
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          60,
+          42,
+          323,
+          334
+        ],
+        "width": 263,
+        "height": 292,
+        "centroidAlphaPx": [
+          192.14652305519078,
+          191.0794316659311
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          60,
+          44,
+          324,
+          336
+        ],
+        "width": 264,
+        "height": 292,
+        "centroidAlphaPx": [
+          194.17557702413978,
+          192.1413087181395
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          56,
+          49,
+          328,
+          333
+        ],
+        "width": 272,
+        "height": 284,
+        "centroidAlphaPx": [
+          191.8831639692343,
+          194.55354441732817
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          55,
+          46,
+          328,
+          339
+        ],
+        "width": 273,
+        "height": 293,
+        "centroidAlphaPx": [
+          189.4065575347101,
+          197.0430428293141
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          56,
+          49,
+          329,
+          336
+        ],
+        "width": 273,
+        "height": 287,
+        "centroidAlphaPx": [
+          192.89057449515735,
+          197.56766478265115
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          54,
+          49,
+          330,
+          336
+        ],
+        "width": 276,
+        "height": 287,
+        "centroidAlphaPx": [
+          193.4115913376496,
+          198.06181421628398
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          55,
+          49,
+          328,
+          336
+        ],
+        "width": 273,
+        "height": 287,
+        "centroidAlphaPx": [
+          194.52434163951503,
+          196.95013871517665
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          56,
+          49,
+          329,
+          334
+        ],
+        "width": 273,
+        "height": 285,
+        "centroidAlphaPx": [
+          194.85563807646054,
+          195.99894014128014
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          52,
+          48,
+          332,
+          336
+        ],
+        "width": 280,
+        "height": 288,
+        "centroidAlphaPx": [
+          195.33030332678177,
+          197.07331015606204
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          52,
+          47,
+          331,
+          337
+        ],
+        "width": 279,
+        "height": 290,
+        "centroidAlphaPx": [
+          194.31953959010912,
+          197.7906672088968
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          52,
+          50,
+          332,
+          335
+        ],
+        "width": 280,
+        "height": 285,
+        "centroidAlphaPx": [
+          192.80887338943913,
+          197.11198552898773
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          53,
+          46,
+          331,
+          337
+        ],
+        "width": 278,
+        "height": 291,
+        "centroidAlphaPx": [
+          192.05150463110326,
+          195.97564839399377
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          51,
+          58,
+          333,
+          326
+        ],
+        "width": 282,
+        "height": 268,
+        "centroidAlphaPx": [
+          192.2697985261897,
+          196.43696173372618
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          49,
+          60,
+          335,
+          324
+        ],
+        "width": 286,
+        "height": 264,
+        "centroidAlphaPx": [
+          192.43815600041953,
+          196.33468363497244
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          49,
+          60,
+          334,
+          324
+        ],
+        "width": 285,
+        "height": 264,
+        "centroidAlphaPx": [
+          192.3481892308108,
+          196.25396114835186
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          53,
+          55,
+          331,
+          330
+        ],
+        "width": 278,
+        "height": 275,
+        "centroidAlphaPx": [
+          192.30572349706316,
+          198.28279318828965
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          49,
+          46,
+          335,
+          338
+        ],
+        "width": 286,
+        "height": 292,
+        "centroidAlphaPx": [
+          192.36871107151103,
+          197.301824862854
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          48,
+          46,
+          335,
+          338
+        ],
+        "width": 287,
+        "height": 292,
+        "centroidAlphaPx": [
+          193.35725499342706,
+          196.67736602347708
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          48,
+          46,
+          335,
+          339
+        ],
+        "width": 287,
+        "height": 293,
+        "centroidAlphaPx": [
+          191.38804931389572,
+          197.65900377691273
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          48,
+          46,
+          336,
+          338
+        ],
+        "width": 288,
+        "height": 292,
+        "centroidAlphaPx": [
+          192.4353925267244,
+          197.44266519570652
+        ]
+      }
+    ],
+    "allAdjacentPairs": [
+      {
+        "from": 0,
+        "to": 1,
+        "widthPx": [
+          264,
+          268
+        ],
+        "heightPx": [
+          281,
+          282
+        ],
+        "widthChangePct": 1.5151515151515151,
+        "heightChangePct": 0.3558718861209964,
+        "centroidDistancePx": 1.5287425863422976,
+        "silhouetteIoUAlpha32": 0.9757916659249898
+      },
+      {
+        "from": 1,
+        "to": 2,
+        "widthPx": [
+          268,
+          270
+        ],
+        "heightPx": [
+          282,
+          288
+        ],
+        "widthChangePct": 0.7462686567164178,
+        "heightChangePct": 2.127659574468085,
+        "centroidDistancePx": 1.9585954610403506,
+        "silhouetteIoUAlpha32": 0.970848954136155
+      },
+      {
+        "from": 2,
+        "to": 3,
+        "widthPx": [
+          270,
+          268
+        ],
+        "heightPx": [
+          288,
+          289
+        ],
+        "widthChangePct": 0.7407407407407408,
+        "heightChangePct": 0.3472222222222222,
+        "centroidDistancePx": 2.146124001367344,
+        "silhouetteIoUAlpha32": 0.9737845400489682
+      },
+      {
+        "from": 3,
+        "to": 4,
+        "widthPx": [
+          268,
+          280
+        ],
+        "heightPx": [
+          289,
+          285
+        ],
+        "widthChangePct": 4.477611940298507,
+        "heightChangePct": 1.384083044982699,
+        "centroidDistancePx": 1.4640279694098544,
+        "silhouetteIoUAlpha32": 0.9515083990401098
+      },
+      {
+        "from": 4,
+        "to": 5,
+        "widthPx": [
+          280,
+          277
+        ],
+        "heightPx": [
+          285,
+          287
+        ],
+        "widthChangePct": 1.0714285714285714,
+        "heightChangePct": 0.7017543859649122,
+        "centroidDistancePx": 2.9334576214286376,
+        "silhouetteIoUAlpha32": 0.9654996427477799
+      },
+      {
+        "from": 5,
+        "to": 6,
+        "widthPx": [
+          277,
+          275
+        ],
+        "heightPx": [
+          287,
+          284
+        ],
+        "widthChangePct": 0.7220216606498195,
+        "heightChangePct": 1.0452961672473868,
+        "centroidDistancePx": 0.8520357177440113,
+        "silhouetteIoUAlpha32": 0.980305403963021
+      },
+      {
+        "from": 6,
+        "to": 7,
+        "widthPx": [
+          275,
+          271
+        ],
+        "heightPx": [
+          284,
+          287
+        ],
+        "widthChangePct": 1.4545454545454546,
+        "heightChangePct": 1.056338028169014,
+        "centroidDistancePx": 1.3321731244555626,
+        "silhouetteIoUAlpha32": 0.9764827586206897
+      },
+      {
+        "from": 7,
+        "to": 8,
+        "widthPx": [
+          271,
+          273
+        ],
+        "heightPx": [
+          287,
+          289
+        ],
+        "widthChangePct": 0.7380073800738007,
+        "heightChangePct": 0.6968641114982579,
+        "centroidDistancePx": 1.3465419311069287,
+        "silhouetteIoUAlpha32": 0.9778583895143903
+      },
+      {
+        "from": 8,
+        "to": 9,
+        "widthPx": [
+          273,
+          275
+        ],
+        "heightPx": [
+          289,
+          290
+        ],
+        "widthChangePct": 0.7326007326007326,
+        "heightChangePct": 0.34602076124567477,
+        "centroidDistancePx": 1.4482820877661002,
+        "silhouetteIoUAlpha32": 0.9772248998710203
+      },
+      {
+        "from": 9,
+        "to": 10,
+        "widthPx": [
+          275,
+          264
+        ],
+        "heightPx": [
+          290,
+          289
+        ],
+        "widthChangePct": 4.0,
+        "heightChangePct": 0.3448275862068966,
+        "centroidDistancePx": 2.409188175269928,
+        "silhouetteIoUAlpha32": 0.9409133552234805
+      },
+      {
+        "from": 10,
+        "to": 11,
+        "widthPx": [
+          264,
+          262
+        ],
+        "heightPx": [
+          289,
+          288
+        ],
+        "widthChangePct": 0.7575757575757576,
+        "heightChangePct": 0.34602076124567477,
+        "centroidDistancePx": 1.610560710022477,
+        "silhouetteIoUAlpha32": 0.9714423840602231
+      },
+      {
+        "from": 11,
+        "to": 12,
+        "widthPx": [
+          262,
+          263
+        ],
+        "heightPx": [
+          288,
+          292
+        ],
+        "widthChangePct": 0.38167938931297707,
+        "heightChangePct": 1.3888888888888888,
+        "centroidDistancePx": 1.9829171338190081,
+        "silhouetteIoUAlpha32": 0.9742535250207354
+      },
+      {
+        "from": 12,
+        "to": 13,
+        "widthPx": [
+          263,
+          264
+        ],
+        "heightPx": [
+          292,
+          292
+        ],
+        "widthChangePct": 0.38022813688212925,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 2.2901185303198752,
+        "silhouetteIoUAlpha32": 0.9666359478462694
+      },
+      {
+        "from": 13,
+        "to": 14,
+        "widthPx": [
+          264,
+          272
+        ],
+        "heightPx": [
+          292,
+          284
+        ],
+        "widthChangePct": 3.0303030303030303,
+        "heightChangePct": 2.73972602739726,
+        "centroidDistancePx": 3.3277678228418215,
+        "silhouetteIoUAlpha32": 0.9449945556009256
+      },
+      {
+        "from": 14,
+        "to": 15,
+        "widthPx": [
+          272,
+          273
+        ],
+        "heightPx": [
+          284,
+          293
+        ],
+        "widthChangePct": 0.3676470588235294,
+        "heightChangePct": 3.169014084507042,
+        "centroidDistancePx": 3.5115782455766364,
+        "silhouetteIoUAlpha32": 0.9390961683575082
+      },
+      {
+        "from": 15,
+        "to": 16,
+        "widthPx": [
+          273,
+          273
+        ],
+        "heightPx": [
+          293,
+          287
+        ],
+        "widthChangePct": 0.0,
+        "heightChangePct": 2.04778156996587,
+        "centroidDistancePx": 3.5232942503582327,
+        "silhouetteIoUAlpha32": 0.9545180521133365
+      },
+      {
+        "from": 16,
+        "to": 17,
+        "widthPx": [
+          273,
+          276
+        ],
+        "heightPx": [
+          287,
+          287
+        ],
+        "widthChangePct": 1.098901098901099,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.7180823162564632,
+        "silhouetteIoUAlpha32": 0.9773619694745109
+      },
+      {
+        "from": 17,
+        "to": 18,
+        "widthPx": [
+          276,
+          273
+        ],
+        "heightPx": [
+          287,
+          287
+        ],
+        "widthChangePct": 1.0869565217391304,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 1.5729067531369456,
+        "silhouetteIoUAlpha32": 0.9766914085828854
+      },
+      {
+        "from": 18,
+        "to": 19,
+        "widthPx": [
+          273,
+          273
+        ],
+        "heightPx": [
+          287,
+          285
+        ],
+        "widthChangePct": 0.0,
+        "heightChangePct": 0.6968641114982579,
+        "centroidDistancePx": 1.0072418061793968,
+        "silhouetteIoUAlpha32": 0.9887803613103985
+      },
+      {
+        "from": 19,
+        "to": 20,
+        "widthPx": [
+          273,
+          280
+        ],
+        "heightPx": [
+          285,
+          288
+        ],
+        "widthChangePct": 2.564102564102564,
+        "heightChangePct": 1.0526315789473684,
+        "centroidDistancePx": 1.1745543957284246,
+        "silhouetteIoUAlpha32": 0.9674142680886305
+      },
+      {
+        "from": 20,
+        "to": 21,
+        "widthPx": [
+          280,
+          279
+        ],
+        "heightPx": [
+          288,
+          290
+        ],
+        "widthChangePct": 0.35714285714285715,
+        "heightChangePct": 0.6944444444444444,
+        "centroidDistancePx": 1.2394532958624307,
+        "silhouetteIoUAlpha32": 0.9811364850427351
+      },
+      {
+        "from": 21,
+        "to": 22,
+        "widthPx": [
+          279,
+          280
+        ],
+        "heightPx": [
+          290,
+          285
+        ],
+        "widthChangePct": 0.35842293906810035,
+        "heightChangePct": 1.7241379310344827,
+        "centroidDistancePx": 1.6561162979968773,
+        "silhouetteIoUAlpha32": 0.9656557240459923
+      },
+      {
+        "from": 22,
+        "to": 23,
+        "widthPx": [
+          280,
+          278
+        ],
+        "heightPx": [
+          285,
+          291
+        ],
+        "widthChangePct": 0.7142857142857143,
+        "heightChangePct": 2.1052631578947367,
+        "centroidDistancePx": 1.3656022555889082,
+        "silhouetteIoUAlpha32": 0.9717356421742328
+      },
+      {
+        "from": 23,
+        "to": 24,
+        "widthPx": [
+          278,
+          282
+        ],
+        "heightPx": [
+          291,
+          268
+        ],
+        "widthChangePct": 1.4388489208633095,
+        "heightChangePct": 7.903780068728522,
+        "centroidDistancePx": 0.5103549961027968,
+        "silhouetteIoUAlpha32": 0.9129884827907596
+      },
+      {
+        "from": 24,
+        "to": 25,
+        "widthPx": [
+          282,
+          286
+        ],
+        "heightPx": [
+          268,
+          264
+        ],
+        "widthChangePct": 1.4184397163120568,
+        "heightChangePct": 1.4925373134328357,
+        "centroidDistancePx": 0.19698997084553715,
+        "silhouetteIoUAlpha32": 0.9797015031956297
+      },
+      {
+        "from": 25,
+        "to": 26,
+        "widthPx": [
+          286,
+          285
+        ],
+        "heightPx": [
+          264,
+          264
+        ],
+        "widthChangePct": 0.34965034965034963,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.1208724099207094,
+        "silhouetteIoUAlpha32": 0.9861787595032262
+      },
+      {
+        "from": 26,
+        "to": 27,
+        "widthPx": [
+          285,
+          278
+        ],
+        "heightPx": [
+          264,
+          275
+        ],
+        "widthChangePct": 2.456140350877193,
+        "heightChangePct": 4.166666666666666,
+        "centroidDistancePx": 2.0292764190274397,
+        "silhouetteIoUAlpha32": 0.938960791447927
+      },
+      {
+        "from": 27,
+        "to": 28,
+        "widthPx": [
+          278,
+          286
+        ],
+        "heightPx": [
+          275,
+          292
+        ],
+        "widthChangePct": 2.877697841726619,
+        "heightChangePct": 6.181818181818182,
+        "centroidDistancePx": 0.9829884485805671,
+        "silhouetteIoUAlpha32": 0.9275437881873727
+      },
+      {
+        "from": 28,
+        "to": 29,
+        "widthPx": [
+          286,
+          287
+        ],
+        "heightPx": [
+          292,
+          292
+        ],
+        "widthChangePct": 0.34965034965034963,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 1.169259563840772,
+        "silhouetteIoUAlpha32": 0.9834106429583817
+      },
+      {
+        "from": 29,
+        "to": 30,
+        "widthPx": [
+          287,
+          287
+        ],
+        "heightPx": [
+          292,
+          293
+        ],
+        "widthChangePct": 0.0,
+        "heightChangePct": 0.3424657534246575,
+        "centroidDistancePx": 2.2003144519065185,
+        "silhouetteIoUAlpha32": 0.9749301843134126
+      },
+      {
+        "from": 30,
+        "to": 31,
+        "widthPx": [
+          287,
+          288
+        ],
+        "heightPx": [
+          293,
+          292
+        ],
+        "widthChangePct": 0.34843205574912894,
+        "heightChangePct": 0.3412969283276451,
+        "centroidDistancePx": 1.0694532187882795,
+        "silhouetteIoUAlpha32": 0.9846188391153026
+      },
+      {
+        "from": 31,
+        "to": 0,
+        "widthPx": [
+          288,
+          264
+        ],
+        "heightPx": [
+          292,
+          281
+        ],
+        "widthChangePct": 8.333333333333332,
+        "heightChangePct": 3.767123287671233,
+        "centroidDistancePx": 0.3809035113968889,
+        "silhouetteIoUAlpha32": 0.8933752104649657
+      }
+    ]
+  },
+  "v2": {
+    "alphaThreshold": 32,
+    "percentageDenominator": "preceding drawing dimension",
+    "includesLoopSeamInMaxima": true,
+    "seam": {
+      "from": 47,
+      "to": 0,
+      "widthPx": [
+        296,
+        260
+      ],
+      "heightPx": [
+        297,
+        283
+      ],
+      "widthChangePct": 12.162162162162163,
+      "heightChangePct": 4.713804713804714,
+      "centroidDistancePx": 1.1808049406749945,
+      "silhouetteIoUAlpha32": 0.8531426823673345
+    },
+    "maxAdjacentWidth": {
+      "from": 47,
+      "to": 0,
+      "widthPx": [
+        296,
+        260
+      ],
+      "heightPx": [
+        297,
+        283
+      ],
+      "widthChangePct": 12.162162162162163,
+      "heightChangePct": 4.713804713804714,
+      "centroidDistancePx": 1.1808049406749945,
+      "silhouetteIoUAlpha32": 0.8531426823673345
+    },
+    "maxAdjacentHeight": {
+      "from": 39,
+      "to": 40,
+      "widthPx": [
+        295,
+        294
+      ],
+      "heightPx": [
+        282,
+        296
+      ],
+      "widthChangePct": 0.3389830508474576,
+      "heightChangePct": 4.964539007092199,
+      "centroidDistancePx": 0.21634543067428794,
+      "silhouetteIoUAlpha32": 0.9514955158003474
+    },
+    "maxAdjacentCentroid": {
+      "from": 15,
+      "to": 16,
+      "widthPx": [
+        262,
+        271
+      ],
+      "heightPx": [
+        294,
+        290
+      ],
+      "widthChangePct": 3.435114503816794,
+      "heightChangePct": 1.3605442176870748,
+      "centroidDistancePx": 5.589092974944419,
+      "silhouetteIoUAlpha32": 0.9333918486991372
+    },
+    "minAdjacentSilhouetteIoU": {
+      "from": 47,
+      "to": 0,
+      "widthPx": [
+        296,
+        260
+      ],
+      "heightPx": [
+        297,
+        283
+      ],
+      "widthChangePct": 12.162162162162163,
+      "heightChangePct": 4.713804713804714,
+      "centroidDistancePx": 1.1808049406749945,
+      "silhouetteIoUAlpha32": 0.8531426823673345
+    },
+    "measurements": [
+      {
+        "boundsAlpha32": [
+          62,
+          50,
+          322,
+          333
+        ],
+        "width": 260,
+        "height": 283,
+        "centroidAlphaPx": [
+          191.63234035530522,
+          199.1737244266274
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          62,
+          46,
+          322,
+          337
+        ],
+        "width": 260,
+        "height": 291,
+        "centroidAlphaPx": [
+          191.45669484882185,
+          197.52994047677254
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          63,
+          50,
+          322,
+          333
+        ],
+        "width": 259,
+        "height": 283,
+        "centroidAlphaPx": [
+          191.19349588998284,
+          196.6827397382081
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          62,
+          51,
+          322,
+          332
+        ],
+        "width": 260,
+        "height": 281,
+        "centroidAlphaPx": [
+          190.62743448263646,
+          196.21832131775736
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          61,
+          49,
+          324,
+          333
+        ],
+        "width": 263,
+        "height": 284,
+        "centroidAlphaPx": [
+          192.23697042334328,
+          194.72592127127697
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          60,
+          49,
+          325,
+          332
+        ],
+        "width": 265,
+        "height": 283,
+        "centroidAlphaPx": [
+          192.1318350981206,
+          194.70579141213153
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          60,
+          49,
+          323,
+          330
+        ],
+        "width": 263,
+        "height": 281,
+        "centroidAlphaPx": [
+          191.12660438002914,
+          193.85526940492772
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          59,
+          44,
+          326,
+          334
+        ],
+        "width": 267,
+        "height": 290,
+        "centroidAlphaPx": [
+          191.22604165386898,
+          193.02820881215357
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          57,
+          44,
+          327,
+          332
+        ],
+        "width": 270,
+        "height": 288,
+        "centroidAlphaPx": [
+          192.04509284976533,
+          192.88933669600593
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          56,
+          42,
+          328,
+          332
+        ],
+        "width": 272,
+        "height": 290,
+        "centroidAlphaPx": [
+          192.13281467881143,
+          191.9945661651616
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          55,
+          42,
+          328,
+          331
+        ],
+        "width": 273,
+        "height": 289,
+        "centroidAlphaPx": [
+          191.54804593622816,
+          192.14564600924805
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          57,
+          40,
+          326,
+          332
+        ],
+        "width": 269,
+        "height": 292,
+        "centroidAlphaPx": [
+          190.05225995853155,
+          192.12083905453466
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          56,
+          40,
+          328,
+          331
+        ],
+        "width": 272,
+        "height": 291,
+        "centroidAlphaPx": [
+          191.09962856667596,
+          191.5840737676456
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          57,
+          38,
+          327,
+          331
+        ],
+        "width": 270,
+        "height": 293,
+        "centroidAlphaPx": [
+          186.72121969219958,
+          190.7924264446801
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          61,
+          38,
+          324,
+          331
+        ],
+        "width": 263,
+        "height": 293,
+        "centroidAlphaPx": [
+          183.5795583919745,
+          191.48798422011814
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          61,
+          37,
+          323,
+          331
+        ],
+        "width": 262,
+        "height": 294,
+        "centroidAlphaPx": [
+          182.74320124801932,
+          190.80928231394358
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          57,
+          39,
+          328,
+          329
+        ],
+        "width": 271,
+        "height": 290,
+        "centroidAlphaPx": [
+          188.29722691880073,
+          191.43438960943303
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          57,
+          39,
+          327,
+          330
+        ],
+        "width": 270,
+        "height": 291,
+        "centroidAlphaPx": [
+          187.73201806146776,
+          191.53999685586916
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          57,
+          39,
+          327,
+          330
+        ],
+        "width": 270,
+        "height": 291,
+        "centroidAlphaPx": [
+          187.76739820293076,
+          191.48364917754125
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          58,
+          39,
+          327,
+          330
+        ],
+        "width": 269,
+        "height": 291,
+        "centroidAlphaPx": [
+          187.9407063989677,
+          191.45092877795926
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          55,
+          39,
+          330,
+          331
+        ],
+        "width": 275,
+        "height": 292,
+        "centroidAlphaPx": [
+          189.1496428099236,
+          190.96465693578196
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          55,
+          40,
+          330,
+          332
+        ],
+        "width": 275,
+        "height": 292,
+        "centroidAlphaPx": [
+          190.19789799875883,
+          192.27090821920837
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          55,
+          40,
+          330,
+          332
+        ],
+        "width": 275,
+        "height": 292,
+        "centroidAlphaPx": [
+          190.31374021801295,
+          192.1143672930663
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          55,
+          41,
+          329,
+          334
+        ],
+        "width": 274,
+        "height": 293,
+        "centroidAlphaPx": [
+          190.45770007544112,
+          193.2414740428029
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          51,
+          43,
+          332,
+          333
+        ],
+        "width": 281,
+        "height": 290,
+        "centroidAlphaPx": [
+          186.46208179861776,
+          194.9983180708775
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          53,
+          44,
+          332,
+          334
+        ],
+        "width": 279,
+        "height": 290,
+        "centroidAlphaPx": [
+          188.01671856091167,
+          194.6706718751341
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          51,
+          45,
+          333,
+          335
+        ],
+        "width": 282,
+        "height": 290,
+        "centroidAlphaPx": [
+          190.64747763531523,
+          196.04656520538347
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          53,
+          44,
+          331,
+          336
+        ],
+        "width": 278,
+        "height": 292,
+        "centroidAlphaPx": [
+          194.96182833032117,
+          196.64102016513914
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          51,
+          43,
+          332,
+          339
+        ],
+        "width": 281,
+        "height": 296,
+        "centroidAlphaPx": [
+          192.61451393230033,
+          197.32306512612828
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          53,
+          43,
+          331,
+          339
+        ],
+        "width": 278,
+        "height": 296,
+        "centroidAlphaPx": [
+          192.63510792592254,
+          197.57591565073272
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          53,
+          44,
+          330,
+          339
+        ],
+        "width": 277,
+        "height": 295,
+        "centroidAlphaPx": [
+          190.49133316827158,
+          197.66407285817357
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          56,
+          45,
+          328,
+          339
+        ],
+        "width": 272,
+        "height": 294,
+        "centroidAlphaPx": [
+          190.42698485363414,
+          197.54453096499265
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          50,
+          45,
+          333,
+          338
+        ],
+        "width": 283,
+        "height": 293,
+        "centroidAlphaPx": [
+          190.323028278473,
+          198.6023156325622
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          50,
+          45,
+          335,
+          339
+        ],
+        "width": 285,
+        "height": 294,
+        "centroidAlphaPx": [
+          190.86470294806367,
+          198.07776505416874
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          48,
+          44,
+          335,
+          339
+        ],
+        "width": 287,
+        "height": 295,
+        "centroidAlphaPx": [
+          190.11116877371603,
+          197.808868491518
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          49,
+          44,
+          335,
+          339
+        ],
+        "width": 286,
+        "height": 295,
+        "centroidAlphaPx": [
+          191.1866795963902,
+          198.01826233087183
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          44,
+          50,
+          340,
+          334
+        ],
+        "width": 296,
+        "height": 284,
+        "centroidAlphaPx": [
+          190.95729425072378,
+          198.2138672678018
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          45,
+          51,
+          339,
+          333
+        ],
+        "width": 294,
+        "height": 282,
+        "centroidAlphaPx": [
+          191.6169344262101,
+          198.00793407836332
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          44,
+          51,
+          340,
+          333
+        ],
+        "width": 296,
+        "height": 282,
+        "centroidAlphaPx": [
+          191.71040832624274,
+          198.5838260146726
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          45,
+          51,
+          340,
+          333
+        ],
+        "width": 295,
+        "height": 282,
+        "centroidAlphaPx": [
+          191.37728902037938,
+          198.27520265142178
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          45,
+          44,
+          339,
+          340
+        ],
+        "width": 294,
+        "height": 296,
+        "centroidAlphaPx": [
+          191.43489870859807,
+          198.0666685554159
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          45,
+          44,
+          338,
+          340
+        ],
+        "width": 293,
+        "height": 296,
+        "centroidAlphaPx": [
+          190.57557993177102,
+          197.97184570596175
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          44,
+          44,
+          340,
+          340
+        ],
+        "width": 296,
+        "height": 296,
+        "centroidAlphaPx": [
+          190.9797800402395,
+          198.2635968446744
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          45,
+          44,
+          339,
+          340
+        ],
+        "width": 294,
+        "height": 296,
+        "centroidAlphaPx": [
+          191.18336045607387,
+          197.9031496739875
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          43,
+          43,
+          342,
+          341
+        ],
+        "width": 299,
+        "height": 298,
+        "centroidAlphaPx": [
+          191.3147850638829,
+          198.05112034664242
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          45,
+          44,
+          340,
+          341
+        ],
+        "width": 295,
+        "height": 297,
+        "centroidAlphaPx": [
+          191.32605382024974,
+          198.54496561418912
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          45,
+          43,
+          340,
+          341
+        ],
+        "width": 295,
+        "height": 298,
+        "centroidAlphaPx": [
+          191.6061921424863,
+          198.00678102690486
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          44,
+          44,
+          340,
+          341
+        ],
+        "width": 296,
+        "height": 297,
+        "centroidAlphaPx": [
+          190.80013413750652,
+          198.336029303698
+        ]
+      }
+    ],
+    "allAdjacentPairs": [
+      {
+        "from": 0,
+        "to": 1,
+        "widthPx": [
+          260,
+          260
+        ],
+        "heightPx": [
+          283,
+          291
+        ],
+        "widthChangePct": 0.0,
+        "heightChangePct": 2.8268551236749118,
+        "centroidDistancePx": 1.653141560105549,
+        "silhouetteIoUAlpha32": 0.9723915633102095
+      },
+      {
+        "from": 1,
+        "to": 2,
+        "widthPx": [
+          260,
+          259
+        ],
+        "heightPx": [
+          291,
+          283
+        ],
+        "widthChangePct": 0.38461538461538464,
+        "heightChangePct": 2.7491408934707904,
+        "centroidDistancePx": 0.8871430456009036,
+        "silhouetteIoUAlpha32": 0.9699360679124324
+      },
+      {
+        "from": 2,
+        "to": 3,
+        "widthPx": [
+          259,
+          260
+        ],
+        "heightPx": [
+          283,
+          281
+        ],
+        "widthChangePct": 0.3861003861003861,
+        "heightChangePct": 0.7067137809187279,
+        "centroidDistancePx": 0.7321953196660991,
+        "silhouetteIoUAlpha32": 0.978887660607818
+      },
+      {
+        "from": 3,
+        "to": 4,
+        "widthPx": [
+          260,
+          263
+        ],
+        "heightPx": [
+          281,
+          284
+        ],
+        "widthChangePct": 1.153846153846154,
+        "heightChangePct": 1.0676156583629894,
+        "centroidDistancePx": 2.1949632897070606,
+        "silhouetteIoUAlpha32": 0.9676222899122021
+      },
+      {
+        "from": 4,
+        "to": 5,
+        "widthPx": [
+          263,
+          265
+        ],
+        "heightPx": [
+          284,
+          283
+        ],
+        "widthChangePct": 0.7604562737642585,
+        "heightChangePct": 0.35211267605633806,
+        "centroidDistancePx": 0.10704507386560672,
+        "silhouetteIoUAlpha32": 0.9811041852181657
+      },
+      {
+        "from": 5,
+        "to": 6,
+        "widthPx": [
+          265,
+          263
+        ],
+        "heightPx": [
+          283,
+          281
+        ],
+        "widthChangePct": 0.7547169811320755,
+        "heightChangePct": 0.7067137809187279,
+        "centroidDistancePx": 1.3167674363123816,
+        "silhouetteIoUAlpha32": 0.9824624387441886
+      },
+      {
+        "from": 6,
+        "to": 7,
+        "widthPx": [
+          263,
+          267
+        ],
+        "heightPx": [
+          281,
+          290
+        ],
+        "widthChangePct": 1.520912547528517,
+        "heightChangePct": 3.202846975088968,
+        "centroidDistancePx": 0.8330168038813167,
+        "silhouetteIoUAlpha32": 0.9537303288544988
+      },
+      {
+        "from": 7,
+        "to": 8,
+        "widthPx": [
+          267,
+          270
+        ],
+        "heightPx": [
+          290,
+          288
+        ],
+        "widthChangePct": 1.1235955056179776,
+        "heightChangePct": 0.6896551724137931,
+        "centroidDistancePx": 0.830740829707174,
+        "silhouetteIoUAlpha32": 0.9815859867115369
+      },
+      {
+        "from": 8,
+        "to": 9,
+        "widthPx": [
+          270,
+          272
+        ],
+        "heightPx": [
+          288,
+          290
+        ],
+        "widthChangePct": 0.7407407407407408,
+        "heightChangePct": 0.6944444444444444,
+        "centroidDistancePx": 0.8990602995120274,
+        "silhouetteIoUAlpha32": 0.9757202483966202
+      },
+      {
+        "from": 9,
+        "to": 10,
+        "widthPx": [
+          272,
+          273
+        ],
+        "heightPx": [
+          290,
+          289
+        ],
+        "widthChangePct": 0.3676470588235294,
+        "heightChangePct": 0.3448275862068966,
+        "centroidDistancePx": 0.6039698681156236,
+        "silhouetteIoUAlpha32": 0.9881004624784796
+      },
+      {
+        "from": 10,
+        "to": 11,
+        "widthPx": [
+          273,
+          269
+        ],
+        "heightPx": [
+          289,
+          292
+        ],
+        "widthChangePct": 1.465201465201465,
+        "heightChangePct": 1.0380622837370241,
+        "centroidDistancePx": 1.4959916697882931,
+        "silhouetteIoUAlpha32": 0.9734482240368719
+      },
+      {
+        "from": 11,
+        "to": 12,
+        "widthPx": [
+          269,
+          272
+        ],
+        "heightPx": [
+          292,
+          291
+        ],
+        "widthChangePct": 1.1152416356877324,
+        "heightChangePct": 0.3424657534246575,
+        "centroidDistancePx": 1.176901854249301,
+        "silhouetteIoUAlpha32": 0.9783746602691005
+      },
+      {
+        "from": 12,
+        "to": 13,
+        "widthPx": [
+          272,
+          270
+        ],
+        "heightPx": [
+          291,
+          293
+        ],
+        "widthChangePct": 0.7352941176470588,
+        "heightChangePct": 0.6872852233676976,
+        "centroidDistancePx": 4.449401055878415,
+        "silhouetteIoUAlpha32": 0.952402216158108
+      },
+      {
+        "from": 13,
+        "to": 14,
+        "widthPx": [
+          270,
+          263
+        ],
+        "heightPx": [
+          293,
+          293
+        ],
+        "widthChangePct": 2.5925925925925926,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 3.2177377681073165,
+        "silhouetteIoUAlpha32": 0.95936134509628
+      },
+      {
+        "from": 14,
+        "to": 15,
+        "widthPx": [
+          263,
+          262
+        ],
+        "heightPx": [
+          293,
+          294
+        ],
+        "widthChangePct": 0.38022813688212925,
+        "heightChangePct": 0.3412969283276451,
+        "centroidDistancePx": 1.0770931016814853,
+        "silhouetteIoUAlpha32": 0.9841054894459773
+      },
+      {
+        "from": 15,
+        "to": 16,
+        "widthPx": [
+          262,
+          271
+        ],
+        "heightPx": [
+          294,
+          290
+        ],
+        "widthChangePct": 3.435114503816794,
+        "heightChangePct": 1.3605442176870748,
+        "centroidDistancePx": 5.589092974944419,
+        "silhouetteIoUAlpha32": 0.9333918486991372
+      },
+      {
+        "from": 16,
+        "to": 17,
+        "widthPx": [
+          271,
+          270
+        ],
+        "heightPx": [
+          290,
+          291
+        ],
+        "widthChangePct": 0.36900369003690037,
+        "heightChangePct": 0.3448275862068966,
+        "centroidDistancePx": 0.574990385056543,
+        "silhouetteIoUAlpha32": 0.9902680144354935
+      },
+      {
+        "from": 17,
+        "to": 18,
+        "widthPx": [
+          270,
+          270
+        ],
+        "heightPx": [
+          291,
+          291
+        ],
+        "widthChangePct": 0.0,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.06653431643060671,
+        "silhouetteIoUAlpha32": 0.9956649874918612
+      },
+      {
+        "from": 18,
+        "to": 19,
+        "widthPx": [
+          270,
+          269
+        ],
+        "heightPx": [
+          291,
+          291
+        ],
+        "widthChangePct": 0.3703703703703704,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.17636993894194142,
+        "silhouetteIoUAlpha32": 0.9944922015751274
+      },
+      {
+        "from": 19,
+        "to": 20,
+        "widthPx": [
+          269,
+          275
+        ],
+        "heightPx": [
+          291,
+          292
+        ],
+        "widthChangePct": 2.2304832713754648,
+        "heightChangePct": 0.3436426116838488,
+        "centroidDistancePx": 1.303068513252241,
+        "silhouetteIoUAlpha32": 0.971260888574984
+      },
+      {
+        "from": 20,
+        "to": 21,
+        "widthPx": [
+          275,
+          275
+        ],
+        "heightPx": [
+          292,
+          292
+        ],
+        "widthChangePct": 0.0,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 1.6748526372111487,
+        "silhouetteIoUAlpha32": 0.9843912068792452
+      },
+      {
+        "from": 21,
+        "to": 22,
+        "widthPx": [
+          275,
+          275
+        ],
+        "heightPx": [
+          292,
+          292
+        ],
+        "widthChangePct": 0.0,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.1947420892337783,
+        "silhouetteIoUAlpha32": 0.9926742996999313
+      },
+      {
+        "from": 22,
+        "to": 23,
+        "widthPx": [
+          275,
+          274
+        ],
+        "heightPx": [
+          292,
+          293
+        ],
+        "widthChangePct": 0.36363636363636365,
+        "heightChangePct": 0.3424657534246575,
+        "centroidDistancePx": 1.136263202718705,
+        "silhouetteIoUAlpha32": 0.9870377494187894
+      },
+      {
+        "from": 23,
+        "to": 24,
+        "widthPx": [
+          274,
+          281
+        ],
+        "heightPx": [
+          293,
+          290
+        ],
+        "widthChangePct": 2.5547445255474455,
+        "heightChangePct": 1.023890784982935,
+        "centroidDistancePx": 4.364798546676156,
+        "silhouetteIoUAlpha32": 0.941033741532048
+      },
+      {
+        "from": 24,
+        "to": 25,
+        "widthPx": [
+          281,
+          279
+        ],
+        "heightPx": [
+          290,
+          290
+        ],
+        "widthChangePct": 0.7117437722419928,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 1.588788057690771,
+        "silhouetteIoUAlpha32": 0.9744811047713553
+      },
+      {
+        "from": 25,
+        "to": 26,
+        "widthPx": [
+          279,
+          282
+        ],
+        "heightPx": [
+          290,
+          290
+        ],
+        "widthChangePct": 1.0752688172043012,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 2.9688340748147843,
+        "silhouetteIoUAlpha32": 0.9358006773101113
+      },
+      {
+        "from": 26,
+        "to": 27,
+        "widthPx": [
+          282,
+          278
+        ],
+        "heightPx": [
+          290,
+          292
+        ],
+        "widthChangePct": 1.4184397163120568,
+        "heightChangePct": 0.6896551724137931,
+        "centroidDistancePx": 4.355111780273425,
+        "silhouetteIoUAlpha32": 0.9247293049249039
+      },
+      {
+        "from": 27,
+        "to": 28,
+        "widthPx": [
+          278,
+          281
+        ],
+        "heightPx": [
+          292,
+          296
+        ],
+        "widthChangePct": 1.079136690647482,
+        "heightChangePct": 1.36986301369863,
+        "centroidDistancePx": 2.4443956741834234,
+        "silhouetteIoUAlpha32": 0.964790653635678
+      },
+      {
+        "from": 28,
+        "to": 29,
+        "widthPx": [
+          281,
+          278
+        ],
+        "heightPx": [
+          296,
+          296
+        ],
+        "widthChangePct": 1.0676156583629894,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.25368780097996924,
+        "silhouetteIoUAlpha32": 0.9797114080960682
+      },
+      {
+        "from": 29,
+        "to": 30,
+        "widthPx": [
+          278,
+          277
+        ],
+        "heightPx": [
+          296,
+          295
+        ],
+        "widthChangePct": 0.3597122302158274,
+        "heightChangePct": 0.33783783783783783,
+        "centroidDistancePx": 2.145586610874797,
+        "silhouetteIoUAlpha32": 0.9490362993896563
+      },
+      {
+        "from": 30,
+        "to": 31,
+        "widthPx": [
+          277,
+          272
+        ],
+        "heightPx": [
+          295,
+          294
+        ],
+        "widthChangePct": 1.8050541516245486,
+        "heightChangePct": 0.3389830508474576,
+        "centroidDistancePx": 0.1357607079458502,
+        "silhouetteIoUAlpha32": 0.9807638327031356
+      },
+      {
+        "from": 31,
+        "to": 32,
+        "widthPx": [
+          272,
+          283
+        ],
+        "heightPx": [
+          294,
+          293
+        ],
+        "widthChangePct": 4.044117647058823,
+        "heightChangePct": 0.3401360544217687,
+        "centroidDistancePx": 1.0628806953108545,
+        "silhouetteIoUAlpha32": 0.9574150652720343
+      },
+      {
+        "from": 32,
+        "to": 33,
+        "widthPx": [
+          283,
+          285
+        ],
+        "heightPx": [
+          293,
+          294
+        ],
+        "widthChangePct": 0.7067137809187279,
+        "heightChangePct": 0.3412969283276451,
+        "centroidDistancePx": 0.7540323315144256,
+        "silhouetteIoUAlpha32": 0.9792494410217639
+      },
+      {
+        "from": 33,
+        "to": 34,
+        "widthPx": [
+          285,
+          287
+        ],
+        "heightPx": [
+          294,
+          295
+        ],
+        "widthChangePct": 0.7017543859649122,
+        "heightChangePct": 0.3401360544217687,
+        "centroidDistancePx": 0.8000744423584264,
+        "silhouetteIoUAlpha32": 0.986639572466319
+      },
+      {
+        "from": 34,
+        "to": 35,
+        "widthPx": [
+          287,
+          286
+        ],
+        "heightPx": [
+          295,
+          295
+        ],
+        "widthChangePct": 0.34843205574912894,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 1.095704937311417,
+        "silhouetteIoUAlpha32": 0.9882520526897037
+      },
+      {
+        "from": 35,
+        "to": 36,
+        "widthPx": [
+          286,
+          296
+        ],
+        "heightPx": [
+          295,
+          284
+        ],
+        "widthChangePct": 3.4965034965034967,
+        "heightChangePct": 3.728813559322034,
+        "centroidDistancePx": 0.3014613211638906,
+        "silhouetteIoUAlpha32": 0.9490097056734791
+      },
+      {
+        "from": 36,
+        "to": 37,
+        "widthPx": [
+          296,
+          294
+        ],
+        "heightPx": [
+          284,
+          282
+        ],
+        "widthChangePct": 0.6756756756756757,
+        "heightChangePct": 0.7042253521126761,
+        "centroidDistancePx": 0.6910380884060724,
+        "silhouetteIoUAlpha32": 0.9842890299125184
+      },
+      {
+        "from": 37,
+        "to": 38,
+        "widthPx": [
+          294,
+          296
+        ],
+        "heightPx": [
+          282,
+          282
+        ],
+        "widthChangePct": 0.6802721088435374,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.5834285665729584,
+        "silhouetteIoUAlpha32": 0.9882172465565637
+      },
+      {
+        "from": 38,
+        "to": 39,
+        "widthPx": [
+          296,
+          295
+        ],
+        "heightPx": [
+          282,
+          282
+        ],
+        "widthChangePct": 0.33783783783783783,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.4541110572130382,
+        "silhouetteIoUAlpha32": 0.9878955503131863
+      },
+      {
+        "from": 39,
+        "to": 40,
+        "widthPx": [
+          295,
+          294
+        ],
+        "heightPx": [
+          282,
+          296
+        ],
+        "widthChangePct": 0.3389830508474576,
+        "heightChangePct": 4.964539007092199,
+        "centroidDistancePx": 0.21634543067428794,
+        "silhouetteIoUAlpha32": 0.9514955158003474
+      },
+      {
+        "from": 40,
+        "to": 41,
+        "widthPx": [
+          294,
+          293
+        ],
+        "heightPx": [
+          296,
+          296
+        ],
+        "widthChangePct": 0.3401360544217687,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.8645346337690268,
+        "silhouetteIoUAlpha32": 0.9880548476367673
+      },
+      {
+        "from": 41,
+        "to": 42,
+        "widthPx": [
+          293,
+          296
+        ],
+        "heightPx": [
+          296,
+          296
+        ],
+        "widthChangePct": 1.023890784982935,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.49849418715371985,
+        "silhouetteIoUAlpha32": 0.9847154118304264
+      },
+      {
+        "from": 42,
+        "to": 43,
+        "widthPx": [
+          296,
+          294
+        ],
+        "heightPx": [
+          296,
+          296
+        ],
+        "widthChangePct": 0.6756756756756757,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.4139651538082375,
+        "silhouetteIoUAlpha32": 0.9921875
+      },
+      {
+        "from": 43,
+        "to": 44,
+        "widthPx": [
+          294,
+          299
+        ],
+        "heightPx": [
+          296,
+          298
+        ],
+        "widthChangePct": 1.7006802721088436,
+        "heightChangePct": 0.6756756756756757,
+        "centroidDistancePx": 0.19790843211875783,
+        "silhouetteIoUAlpha32": 0.9750669876016168
+      },
+      {
+        "from": 44,
+        "to": 45,
+        "widthPx": [
+          299,
+          295
+        ],
+        "heightPx": [
+          298,
+          297
+        ],
+        "widthChangePct": 1.3377926421404682,
+        "heightChangePct": 0.33557046979865773,
+        "centroidDistancePx": 0.49397381828223447,
+        "silhouetteIoUAlpha32": 0.9835118291280934
+      },
+      {
+        "from": 45,
+        "to": 46,
+        "widthPx": [
+          295,
+          295
+        ],
+        "heightPx": [
+          297,
+          298
+        ],
+        "widthChangePct": 0.0,
+        "heightChangePct": 0.33670033670033667,
+        "centroidDistancePx": 0.6067290413156795,
+        "silhouetteIoUAlpha32": 0.9903756833721656
+      },
+      {
+        "from": 46,
+        "to": 47,
+        "widthPx": [
+          295,
+          296
+        ],
+        "heightPx": [
+          298,
+          297
+        ],
+        "widthChangePct": 0.3389830508474576,
+        "heightChangePct": 0.33557046979865773,
+        "centroidDistancePx": 0.8707088693491268,
+        "silhouetteIoUAlpha32": 0.9900926910803829
+      },
+      {
+        "from": 47,
+        "to": 0,
+        "widthPx": [
+          296,
+          260
+        ],
+        "heightPx": [
+          297,
+          283
+        ],
+        "widthChangePct": 12.162162162162163,
+        "heightChangePct": 4.713804713804714,
+        "centroidDistancePx": 1.1808049406749945,
+        "silhouetteIoUAlpha32": 0.8531426823673345
+      }
+    ]
+  }
+}

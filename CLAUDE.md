@@ -21,7 +21,7 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 Windows and Linux: `cd windows && npm install && npm run tauri dev`
 
 ## Rules
-- Swift 6, SwiftUI + AppKit. No third-party dependencies unless truly unavoidable. Original Mochi uses `Canvas` + `TimelineView`. The user explicitly selected PNG artwork, replaceable SVG logos and a future sprite workflow for Astral; follow `docs/MASCOT_DESIGN_SPEC.md` for that scope. Approved files exist, but their native integration and actual animation frames are not implemented yet. Do not add Rive/Lottie as an incidental dependency.
+- Swift 6, SwiftUI + AppKit. No third-party dependencies unless truly unavoidable. Original Mochi uses `Canvas` + `TimelineView`. The user explicitly selected PNG artwork, replaceable SVG logos and a future sprite workflow for Astral; follow `docs/MASCOT_DESIGN_SPEC.md` for that scope. Approved files and animation drafts exist; native integration is not implemented yet. Do not add Rive/Lottie as an incidental dependency.
 - Secrets live in the Keychain, never on disk or in git.
 - No telemetry. Network calls only to services the user configured.
 - Never block Claude Code: if the app doesn't answer, the hook exits immediately.

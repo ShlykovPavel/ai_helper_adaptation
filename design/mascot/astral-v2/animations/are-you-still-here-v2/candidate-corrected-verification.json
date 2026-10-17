@@ -1,0 +1,211 @@
+{
+  "status": "checks-passed-art-review-pending",
+  "uniqueDrawings": 48,
+  "displayTicks": 96,
+  "durationMs": 4000,
+  "displayFps": 24,
+  "nominalNewDrawingsPerSecond": 12,
+  "uniformHoldTicks": 2,
+  "transparentFrames": 48,
+  "maxBorderAlpha": 1,
+  "softAlphaFrames": 48,
+  "sourceVisibleBoundsUnclippedAlpha32": true,
+  "sourceReconstructionRGBA": true,
+  "atlasPixelsRGBA": true,
+  "insertedRepeatedEndpoint": false,
+  "generatedEndDiffBoundsRGBA": [
+    18,
+    0,
+    367,
+    384
+  ],
+  "previews": {
+    "preview.webp": {
+      "encodedFrames": 48,
+      "durationMs": 4000,
+      "minimumAlpha": 0
+    },
+    "preview-light.gif": {
+      "encodedFrames": 48,
+      "durationMs": 4000,
+      "minimumAlpha": 255
+    }
+  },
+  "comparison": {
+    "v1": {
+      "alphaThreshold": 32,
+      "percentageDenominator": "preceding drawing dimension",
+      "includesLoopSeamInMaxima": true,
+      "seam": {
+        "from": 31,
+        "to": 0,
+        "widthPx": [
+          288,
+          264
+        ],
+        "heightPx": [
+          292,
+          281
+        ],
+        "widthChangePct": 8.333333333333332,
+        "heightChangePct": 3.767123287671233,
+        "centroidDistancePx": 0.3809035113968889,
+        "silhouetteIoUAlpha32": 0.8933752104649657
+      },
+      "maxAdjacentWidth": {
+        "from": 31,
+        "to": 0,
+        "widthPx": [
+          288,
+          264
+        ],
+        "heightPx": [
+          292,
+          281
+        ],
+        "widthChangePct": 8.333333333333332,
+        "heightChangePct": 3.767123287671233,
+        "centroidDistancePx": 0.3809035113968889,
+        "silhouetteIoUAlpha32": 0.8933752104649657
+      },
+      "maxAdjacentHeight": {
+        "from": 23,
+        "to": 24,
+        "widthPx": [
+          278,
+          282
+        ],
+        "heightPx": [
+          291,
+          268
+        ],
+        "widthChangePct": 1.4388489208633095,
+        "heightChangePct": 7.903780068728522,
+        "centroidDistancePx": 0.5103549961027968,
+        "silhouetteIoUAlpha32": 0.9129884827907596
+      },
+      "maxAdjacentCentroid": {
+        "from": 15,
+        "to": 16,
+        "widthPx": [
+          273,
+          273
+        ],
+        "heightPx": [
+          293,
+          287
+        ],
+        "widthChangePct": 0.0,
+        "heightChangePct": 2.04778156996587,
+        "centroidDistancePx": 3.5232942503582327,
+        "silhouetteIoUAlpha32": 0.9545180521133365
+      },
+      "minAdjacentSilhouetteIoU": {
+        "from": 31,
+        "to": 0,
+        "widthPx": [
+          288,
+          264
+        ],
+        "heightPx": [
+          292,
+          281
+        ],
+        "widthChangePct": 8.333333333333332,
+        "heightChangePct": 3.767123287671233,
+        "centroidDistancePx": 0.3809035113968889,
+        "silhouetteIoUAlpha32": 0.8933752104649657
+      }
+    },
+    "v2": {
+      "alphaThreshold": 32,
+      "percentageDenominator": "preceding drawing dimension",
+      "includesLoopSeamInMaxima": true,
+      "seam": {
+        "from": 47,
+        "to": 0,
+        "widthPx": [
+          296,
+          260
+        ],
+        "heightPx": [
+          297,
+          283
+        ],
+        "widthChangePct": 12.162162162162163,
+        "heightChangePct": 4.713804713804714,
+        "centroidDistancePx": 1.1808049406749945,
+        "silhouetteIoUAlpha32": 0.8531426823673345
+      },
+      "maxAdjacentWidth": {
+        "from": 47,
+        "to": 0,
+        "widthPx": [
+          296,
+          260
+        ],
+        "heightPx": [
+          297,
+          283
+        ],
+        "widthChangePct": 12.162162162162163,
+        "heightChangePct": 4.713804713804714,
+        "centroidDistancePx": 1.1808049406749945,
+        "silhouetteIoUAlpha32": 0.8531426823673345
+      },
+      "maxAdjacentHeight": {
+        "from": 39,
+        "to": 40,
+        "widthPx": [
+          295,
+          294
+        ],
+        "heightPx": [
+          282,
+          296
+        ],
+        "widthChangePct": 0.3389830508474576,
+        "heightChangePct": 4.964539007092199,
+        "centroidDistancePx": 0.21634543067428794,
+        "silhouetteIoUAlpha32": 0.9514955158003474
+      },
+      "maxAdjacentCentroid": {
+        "from": 15,
+        "to": 16,
+        "widthPx": [
+          262,
+          271
+        ],
+        "heightPx": [
+          294,
+          290
+        ],
+        "widthChangePct": 3.435114503816794,
+        "heightChangePct": 1.3605442176870748,
+        "centroidDistancePx": 5.589092974944419,
+        "silhouetteIoUAlpha32": 0.9333918486991372
+      },
+      "minAdjacentSilhouetteIoU": {
+        "from": 47,
+        "to": 0,
+        "widthPx": [
+          296,
+          260
+        ],
+        "heightPx": [
+          297,
+          283
+        ],
+        "widthChangePct": 12.162162162162163,
+        "heightChangePct": 4.713804713804714,
+        "centroidDistancePx": 1.1808049406749945,
+        "silhouetteIoUAlpha32": 0.8531426823673345
+      }
+    }
+  },
+  "visualReview": {
+    "staticSheets": "part1/part2 accepted by parent; part3 pending",
+    "browser": "pending parent review",
+    "seamlessClaim": false
+  }
+}

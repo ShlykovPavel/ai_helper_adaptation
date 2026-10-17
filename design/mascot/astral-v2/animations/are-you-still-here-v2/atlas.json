@@ -1,0 +1,2597 @@
+{
+  "schema": 2,
+  "name": "Ты ещё тут? — v2",
+  "status": "draft-review-only",
+  "runtimeIntegrated": false,
+  "atlas": "atlas.png",
+  "frameSizePx": [
+    384,
+    384
+  ],
+  "atlasSizePx": [
+    1536,
+    4608
+  ],
+  "uniqueDrawings": 48,
+  "displayFps": 24,
+  "displayTicks": 96,
+  "durationMs": 4000,
+  "nominalNewDrawingsPerSecond": 12,
+  "timelineDistinctDrawings": 48,
+  "interpolatedDrawings": 0,
+  "ticks": [
+    0,
+    0,
+    1,
+    1,
+    2,
+    2,
+    3,
+    3,
+    4,
+    4,
+    5,
+    5,
+    6,
+    6,
+    7,
+    7,
+    8,
+    8,
+    9,
+    9,
+    10,
+    10,
+    11,
+    11,
+    12,
+    12,
+    13,
+    13,
+    14,
+    14,
+    15,
+    15,
+    16,
+    16,
+    17,
+    17,
+    18,
+    18,
+    19,
+    19,
+    20,
+    20,
+    21,
+    21,
+    22,
+    22,
+    23,
+    23,
+    24,
+    24,
+    25,
+    25,
+    26,
+    26,
+    27,
+    27,
+    28,
+    28,
+    29,
+    29,
+    30,
+    30,
+    31,
+    31,
+    32,
+    32,
+    33,
+    33,
+    34,
+    34,
+    35,
+    35,
+    36,
+    36,
+    37,
+    37,
+    38,
+    38,
+    39,
+    39,
+    40,
+    40,
+    41,
+    41,
+    42,
+    42,
+    43,
+    43,
+    44,
+    44,
+    45,
+    45,
+    46,
+    46,
+    47,
+    47
+  ],
+  "loopPolicy": "All 48 genuine drawings held exactly 2 ticks. No repeated start inserted; seam is 47→0.",
+  "normalizationPolicy": "Gutter slicing, same uniform cell resize, whole-drawing translation on smooth float path; no deformation, crossfade or interpolation.",
+  "sources": [
+    {
+      "file": "part-1-generated.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "sha256": "1125dccbb0d9d66e32200b72b943a3b4dcb448f1b97cf3d1ca1bfb989a585818",
+      "gridSplitsX": [
+        0,
+        317,
+        630,
+        945,
+        1254
+      ],
+      "gridSplitsY": [
+        0,
+        329,
+        634,
+        936,
+        1254
+      ]
+    },
+    {
+      "file": "part-2-generated.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "sha256": "49fa78b28b72a3ccc18a8ce97947597c0d6f2de4e7ba8d81438baaae3b0991ce",
+      "gridSplitsX": [
+        0,
+        327,
+        641,
+        953,
+        1254
+      ],
+      "gridSplitsY": [
+        0,
+        328,
+        632,
+        932,
+        1254
+      ]
+    },
+    {
+      "file": "part-3-generated.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "sha256": "1003211e4f136f93af51345b136ce205f47d04f0da0e8eb4c403f3c7c3793dff",
+      "gridSplitsX": [
+        0,
+        324,
+        637,
+        948,
+        1254
+      ],
+      "gridSplitsY": [
+        0,
+        334,
+        630,
+        933,
+        1254
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "id": 0,
+      "file": "frames/frame-000.png",
+      "sha256": "673079eaffe4fab2a1f42370255b2de6d848e875f7fe28c98b661d37267e382b",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        0,
+        0,
+        317,
+        329
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          -18,
+          -18,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -1,
+          -32
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        0,
+        0,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        62,
+        50,
+        322,
+        333
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 1,
+      "file": "frames/frame-001.png",
+      "sha256": "d374123694dab28c5b25df5ef3bf918d63a7ff92724119e4a03310083de32790",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        317,
+        0,
+        630,
+        329
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          295,
+          -18,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -2,
+          -22
+        ],
+        "targetAnchorPx": [
+          192.0,
+          191.92314112161293
+        ]
+      },
+      "atlasRect": [
+        384,
+        0,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        62,
+        46,
+        322,
+        337
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 2,
+      "file": "frames/frame-002.png",
+      "sha256": "40256253e700fbca3e7f16672e799b15ae5ccb9da8250f632186398483a95e62",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        630,
+        0,
+        945,
+        329
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          609,
+          -18,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          0,
+          -18
+        ],
+        "targetAnchorPx": [
+          192.0,
+          191.69551813004514
+        ]
+      },
+      "atlasRect": [
+        768,
+        0,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        63,
+        50,
+        322,
+        333
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 3,
+      "file": "frames/frame-003.png",
+      "sha256": "d353c8ef3d09bd30a267b3c3a9b35222a7295a9599ab2fac488cbe93bf32be98",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        945,
+        0,
+        1254,
+        329
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          922,
+          -18,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -1,
+          -17
+        ],
+        "targetAnchorPx": [
+          192.0,
+          191.3258784492102
+        ]
+      },
+      "atlasRect": [
+        1152,
+        0,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        62,
+        51,
+        322,
+        332
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 4,
+      "file": "frames/frame-004.png",
+      "sha256": "eb3e081435839f44f868afc3d9a07f54205101ffa89085ef27a261a7d1991c8e",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        0,
+        329,
+        317,
+        634
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          -18,
+          295,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -2,
+          -12
+        ],
+        "targetAnchorPx": [
+          192.0,
+          190.82842712474618
+        ]
+      },
+      "atlasRect": [
+        0,
+        384,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        61,
+        49,
+        324,
+        333
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 5,
+      "file": "frames/frame-005.png",
+      "sha256": "36177edcf041aa75a0b45d855b6691dbc1b72bfbef03aea61ed427bac4ff4070",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        317,
+        329,
+        630,
+        634
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          295,
+          295,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -2,
+          -9
+        ],
+        "targetAnchorPx": [
+          192.0,
+          190.2222809320784
+        ]
+      },
+      "atlasRect": [
+        384,
+        384,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        60,
+        49,
+        325,
+        332
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 6,
+      "file": "frames/frame-006.png",
+      "sha256": "7aaf3004895884e43f8a862493395c46389495903695ea3160f7c62a2f5fb0cc",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        630,
+        329,
+        945,
+        634
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          609,
+          295,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          0,
+          -3
+        ],
+        "targetAnchorPx": [
+          192.0,
+          189.53073372946037
+        ]
+      },
+      "atlasRect": [
+        768,
+        384,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        60,
+        49,
+        323,
+        330
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 7,
+      "file": "frames/frame-007.png",
+      "sha256": "b2b4af2bbf89c76cdc62702bf3a972e43b83b11e2889f16e0fe342ef8c4ecc74",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        945,
+        329,
+        1254,
+        634
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          922,
+          295,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          0,
+          -18
+        ],
+        "targetAnchorPx": [
+          192.0,
+          188.7803612880645
+        ]
+      },
+      "atlasRect": [
+        1152,
+        384,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        59,
+        44,
+        326,
+        334
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 8,
+      "file": "frames/frame-008.png",
+      "sha256": "259cfc46f4ce3fb084b6c2039d6f56a6d8a2a44c2877d561b77f534a232952c1",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        0,
+        634,
+        317,
+        936
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          -18,
+          609,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -3,
+          -4
+        ],
+        "targetAnchorPx": [
+          192.0,
+          188.0
+        ]
+      },
+      "atlasRect": [
+        0,
+        768,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        57,
+        44,
+        327,
+        332
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 9,
+      "file": "frames/frame-009.png",
+      "sha256": "6ede9af7a22aae374c311fc6fe8b09a221d6f32bc90a9bbdcb98969f990ab55b",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        317,
+        634,
+        630,
+        936
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          295,
+          609,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -3,
+          -6
+        ],
+        "targetAnchorPx": [
+          192.0,
+          187.2196387119355
+        ]
+      },
+      "atlasRect": [
+        384,
+        768,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        56,
+        42,
+        328,
+        332
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 10,
+      "file": "frames/frame-010.png",
+      "sha256": "50af0a00ec1acc3f81758ac93b4df4b91e9955cb8c0a930cc22649e584e8a99b",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        630,
+        634,
+        945,
+        936
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          609,
+          609,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          0,
+          -9
+        ],
+        "targetAnchorPx": [
+          192.0,
+          186.46926627053963
+        ]
+      },
+      "atlasRect": [
+        768,
+        768,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        55,
+        42,
+        328,
+        331
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 11,
+      "file": "frames/frame-011.png",
+      "sha256": "94e6e9a8c62840811d9e9e9591fdb3340f436c360ebca905126e8c23f7b7cf7b",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        945,
+        634,
+        1254,
+        936
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          922,
+          609,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -2,
+          -10
+        ],
+        "targetAnchorPx": [
+          192.0,
+          185.7777190679216
+        ]
+      },
+      "atlasRect": [
+        1152,
+        768,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        57,
+        40,
+        326,
+        332
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 12,
+      "file": "frames/frame-012.png",
+      "sha256": "9f4e26e317dbca3e9c9ab59b4f81018a87aa02aac3bf3d7dcf5c71896911b8b2",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        0,
+        936,
+        317,
+        1254
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          -18,
+          922,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -5,
+          7
+        ],
+        "targetAnchorPx": [
+          192.0,
+          185.17157287525382
+        ]
+      },
+      "atlasRect": [
+        0,
+        1152,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        56,
+        40,
+        328,
+        331
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 13,
+      "file": "frames/frame-013.png",
+      "sha256": "816d3ede533f5ec3faec92b4cd97453f7e091e11ed78963da9dac263e36f8014",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        317,
+        936,
+        630,
+        1254
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          295,
+          922,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -10,
+          6
+        ],
+        "targetAnchorPx": [
+          192.0,
+          184.6741215507898
+        ]
+      },
+      "atlasRect": [
+        384,
+        1152,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        57,
+        38,
+        327,
+        331
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 14,
+      "file": "frames/frame-014.png",
+      "sha256": "5c2c50e185116248c55a0600e98dbd6a15129043c6817319fd6dad4b772af673",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        630,
+        936,
+        945,
+        1254
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          609,
+          922,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -10,
+          5
+        ],
+        "targetAnchorPx": [
+          192.0,
+          184.30448186995486
+        ]
+      },
+      "atlasRect": [
+        768,
+        1152,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        61,
+        38,
+        324,
+        331
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 15,
+      "file": "frames/frame-015.png",
+      "sha256": "81c86360ffb04992e3791818eacb825a5132dddff697e2fd47353c208bc2cfd6",
+      "source": "part-1-generated.png",
+      "sourceCrop": [
+        945,
+        936,
+        1254,
+        1254
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          922,
+          922,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -12,
+          4
+        ],
+        "targetAnchorPx": [
+          192.0,
+          184.07685887838707
+        ]
+      },
+      "atlasRect": [
+        1152,
+        1152,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        61,
+        37,
+        323,
+        331
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 16,
+      "file": "frames/frame-016.png",
+      "sha256": "daa1ed1f50ba61fd58d1dbede06a1003b25a7ad1ff9f6f2f12198cb64d0ee45a",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        0,
+        0,
+        327,
+        328
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          -18,
+          -18,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -14,
+          -32
+        ],
+        "targetAnchorPx": [
+          192.0,
+          184.0
+        ]
+      },
+      "atlasRect": [
+        0,
+        1536,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        57,
+        39,
+        328,
+        329
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 17,
+      "file": "frames/frame-017.png",
+      "sha256": "b5ff30f48e039b32a841ca4ee32db2c38a5c681f92274ecc22996d237e382aae",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        327,
+        0,
+        641,
+        328
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          295,
+          -18,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -16,
+          -31
+        ],
+        "targetAnchorPx": [
+          192.0,
+          184.07685887838707
+        ]
+      },
+      "atlasRect": [
+        384,
+        1536,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        57,
+        39,
+        327,
+        330
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 18,
+      "file": "frames/frame-018.png",
+      "sha256": "4b6fc88213cd144fe571eabc68092c0f5b5c0f047ec943370337961ba55807a2",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        641,
+        0,
+        953,
+        328
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          609,
+          -18,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -16,
+          -31
+        ],
+        "targetAnchorPx": [
+          192.0,
+          184.30448186995486
+        ]
+      },
+      "atlasRect": [
+        768,
+        1536,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        57,
+        39,
+        327,
+        330
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 19,
+      "file": "frames/frame-019.png",
+      "sha256": "bbceee562abde267c3a860fb6c0d9c11637e2ed30631bdcef13b29dc2aa7e7b3",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        953,
+        0,
+        1254,
+        328
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          922,
+          -18,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -16,
+          -31
+        ],
+        "targetAnchorPx": [
+          192.0,
+          184.6741215507898
+        ]
+      },
+      "atlasRect": [
+        1152,
+        1536,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        58,
+        39,
+        327,
+        330
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 20,
+      "file": "frames/frame-020.png",
+      "sha256": "60a4451646bf24799a6baf64a82fff787449fdda06cf3c1765389ac1b7231d5e",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        0,
+        328,
+        327,
+        632
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          -18,
+          295,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -18,
+          -18
+        ],
+        "targetAnchorPx": [
+          192.0,
+          185.17157287525382
+        ]
+      },
+      "atlasRect": [
+        0,
+        1920,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        55,
+        39,
+        330,
+        331
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 21,
+      "file": "frames/frame-021.png",
+      "sha256": "adef3f729b1af09e6a5e38a7cc1e0bb6201b3b907839acdb649a9b5c1792eecc",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        327,
+        328,
+        641,
+        632
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          295,
+          295,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -14,
+          -16
+        ],
+        "targetAnchorPx": [
+          192.0,
+          185.7777190679216
+        ]
+      },
+      "atlasRect": [
+        384,
+        1920,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        55,
+        40,
+        330,
+        332
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 22,
+      "file": "frames/frame-022.png",
+      "sha256": "9ced41e8dd9541c82188316dd16a5f0e43da4d8fe783c62e68adf081aaa23b7d",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        641,
+        328,
+        953,
+        632
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          609,
+          295,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -8,
+          -16
+        ],
+        "targetAnchorPx": [
+          192.0,
+          186.46926627053963
+        ]
+      },
+      "atlasRect": [
+        768,
+        1920,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        55,
+        40,
+        330,
+        332
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 23,
+      "file": "frames/frame-023.png",
+      "sha256": "a3b19c2d2cc6cfa50ce7220505cce3bf59a47884487bc56aa01aaa0688ab2ef7",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        953,
+        328,
+        1254,
+        632
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          922,
+          295,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -2,
+          -15
+        ],
+        "targetAnchorPx": [
+          192.0,
+          187.2196387119355
+        ]
+      },
+      "atlasRect": [
+        1152,
+        1920,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        55,
+        41,
+        329,
+        334
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 24,
+      "file": "frames/frame-024.png",
+      "sha256": "2951f64552c433c93b971ffcd5b678e096b9ca591af010776a3ffb17b2a6c072",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        0,
+        632,
+        327,
+        932
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          -18,
+          609,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -14,
+          -5
+        ],
+        "targetAnchorPx": [
+          192.0,
+          188.0
+        ]
+      },
+      "atlasRect": [
+        0,
+        2304,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        51,
+        43,
+        332,
+        333
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 25,
+      "file": "frames/frame-025.png",
+      "sha256": "5f66f625044c35385ef1321ff56611a92cd8401ebe96162a223858696c295081",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        327,
+        632,
+        641,
+        932
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          295,
+          609,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -20,
+          -4
+        ],
+        "targetAnchorPx": [
+          192.0,
+          188.7803612880645
+        ]
+      },
+      "atlasRect": [
+        384,
+        2304,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        53,
+        44,
+        332,
+        334
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 26,
+      "file": "frames/frame-026.png",
+      "sha256": "d36ddde7c7bec2e89b28ca594f846a3e492422523149184613badf688d4f7929",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        641,
+        632,
+        953,
+        932
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          609,
+          609,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -22,
+          -3
+        ],
+        "targetAnchorPx": [
+          192.0,
+          189.53073372946037
+        ]
+      },
+      "atlasRect": [
+        768,
+        2304,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        51,
+        45,
+        333,
+        335
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 27,
+      "file": "frames/frame-027.png",
+      "sha256": "a11e1646c582b902cfdb43547cc1a9e5967ed9331227e6384639513f76938a6d",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        953,
+        632,
+        1254,
+        932
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          922,
+          609,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -22,
+          -2
+        ],
+        "targetAnchorPx": [
+          192.0,
+          190.2222809320784
+        ]
+      },
+      "atlasRect": [
+        1152,
+        2304,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        53,
+        44,
+        331,
+        336
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 28,
+      "file": "frames/frame-028.png",
+      "sha256": "611b0176e456cb15c31fa42a88cfc6c7916cb31d65e10e32fd494c99cc7e29fb",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        0,
+        932,
+        327,
+        1254
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          -18,
+          922,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -16,
+          14
+        ],
+        "targetAnchorPx": [
+          192.0,
+          190.82842712474618
+        ]
+      },
+      "atlasRect": [
+        0,
+        2688,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        51,
+        43,
+        332,
+        339
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 29,
+      "file": "frames/frame-029.png",
+      "sha256": "9a1f657365f91e0f1370e8fe08178eae2a0c8e518a2574bb0c5e6acf644c0d78",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        327,
+        932,
+        641,
+        1254
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          295,
+          922,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -15,
+          15
+        ],
+        "targetAnchorPx": [
+          192.0,
+          191.3258784492102
+        ]
+      },
+      "atlasRect": [
+        384,
+        2688,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        53,
+        43,
+        331,
+        339
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 30,
+      "file": "frames/frame-030.png",
+      "sha256": "f49f3b8ea55f06b5fc0447e99e0cb368899cfffc3db943fe8a774b33dab38147",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        641,
+        932,
+        953,
+        1254
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          609,
+          922,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -18,
+          13
+        ],
+        "targetAnchorPx": [
+          192.0,
+          191.69551813004514
+        ]
+      },
+      "atlasRect": [
+        768,
+        2688,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        53,
+        44,
+        330,
+        339
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 31,
+      "file": "frames/frame-031.png",
+      "sha256": "4f0c1db38e02bddcc653369617b0abb510371810a5ec22fb759cac81e40be837",
+      "source": "part-2-generated.png",
+      "sourceCrop": [
+        953,
+        932,
+        1254,
+        1254
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          922,
+          922,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -18,
+          13
+        ],
+        "targetAnchorPx": [
+          192.0,
+          191.92314112161293
+        ]
+      },
+      "atlasRect": [
+        1152,
+        2688,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        56,
+        45,
+        328,
+        339
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 32,
+      "file": "frames/frame-032.png",
+      "sha256": "603131aed2344901aac1ff9f1fdcb391daf8badb800de2eff34c9e89e9ddc95a",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        0,
+        0,
+        324,
+        334
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          -18,
+          -18,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -12,
+          -30
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        0,
+        3072,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        53,
+        48,
+        330,
+        335
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 33,
+      "file": "frames/frame-033.png",
+      "sha256": "6a642b82a3db88dec8cdf6b6ac97a5c6edac70355a418a94413042327d571fb5",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        324,
+        0,
+        637,
+        334
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          295,
+          -18,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -11,
+          -28
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        384,
+        3072,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        51,
+        48,
+        333,
+        337
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 34,
+      "file": "frames/frame-034.png",
+      "sha256": "8d1cb8b8b16e2b9e111f3782f62f37763ff0b1a29616ebd32015059c6f39d021",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        637,
+        0,
+        948,
+        334
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          609,
+          -18,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -7,
+          -28
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        768,
+        3072,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        51,
+        47,
+        333,
+        337
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 35,
+      "file": "frames/frame-035.png",
+      "sha256": "81124483eb3cc1818fd11a42236f2909a47fa87119d08db558bc4b86eafcb536",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        948,
+        0,
+        1254,
+        334
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          922,
+          -18,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -2,
+          -28
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        1152,
+        3072,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        53,
+        47,
+        332,
+        337
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 36,
+      "file": "frames/frame-036.png",
+      "sha256": "4a06914a1de1e820d834f24aa75089e5793fd8d2ade6e09724079090241a5840",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        0,
+        334,
+        324,
+        630
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          -18,
+          295,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -13,
+          -13
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        0,
+        3456,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        47,
+        52,
+        337,
+        332
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 37,
+      "file": "frames/frame-037.png",
+      "sha256": "b6acd7a246262afd9c80d45e64e2ad419839ec611e8fd6d9b2c9a29d7cfd7553",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        324,
+        334,
+        637,
+        630
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          295,
+          295,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -14,
+          -13
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        384,
+        3456,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        43,
+        56,
+        340,
+        328
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 38,
+      "file": "frames/frame-038.png",
+      "sha256": "5ab4cec8431312192f4a2435a6bee707730279638febe5ec22fa145f6e19f1d2",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        637,
+        334,
+        948,
+        630
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          609,
+          295,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -12,
+          -14
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        768,
+        3456,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        40,
+        58,
+        343,
+        327
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 39,
+      "file": "frames/frame-039.png",
+      "sha256": "3a0942e9725ea0350cd03940aa3d6c5c3a62895b7961112199154b1def0ade3e",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        948,
+        334,
+        1254,
+        630
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          922,
+          295,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -3,
+          -14
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        1152,
+        3456,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        42,
+        58,
+        342,
+        326
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 40,
+      "file": "frames/frame-040.png",
+      "sha256": "371c1ad043f23adad355337fe1bb29145632f0312d664d1175b9ab197359cf0e",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        0,
+        630,
+        324,
+        933
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          -18,
+          609,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -12,
+          -1
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        0,
+        3840,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        48,
+        46,
+        336,
+        338
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 41,
+      "file": "frames/frame-041.png",
+      "sha256": "53c570ccecc8ff4deb555fa2fd8049854274393d3441ddeb110deb8535821550",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        324,
+        630,
+        637,
+        933
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          295,
+          609,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -12,
+          -1
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        384,
+        3840,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        50,
+        46,
+        335,
+        338
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 42,
+      "file": "frames/frame-042.png",
+      "sha256": "1de2cc40ed2fa3fd7c6c01035871fb9587f2801fe46a2684172bbf15ed9dbfa3",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        637,
+        630,
+        948,
+        933
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          609,
+          609,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -6,
+          -3
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        768,
+        3840,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        49,
+        46,
+        336,
+        338
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 43,
+      "file": "frames/frame-043.png",
+      "sha256": "b35fb3527f50f2e6d553a27fca64596c8ea7dc1c8d59e511d2c295552f5c6c75",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        948,
+        630,
+        1254,
+        933
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          922,
+          609,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -4,
+          -2
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        1152,
+        3840,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        49,
+        45,
+        334,
+        338
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 44,
+      "file": "frames/frame-044.png",
+      "sha256": "0b71debbc8cff142a9fdd690aebb4766ef435386cb1937ac6b8c685e89e31dd6",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        0,
+        933,
+        324,
+        1254
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          -18,
+          922,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -13,
+          16
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        0,
+        4224,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        49,
+        44,
+        335,
+        341
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 45,
+      "file": "frames/frame-045.png",
+      "sha256": "bbc838dd8de626e101d1a0d0e239a011d1747cee186ea0c2166e787d132116a5",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        324,
+        933,
+        637,
+        1254
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          295,
+          922,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -10,
+          15
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        384,
+        4224,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        50,
+        44,
+        335,
+        340
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 46,
+      "file": "frames/frame-046.png",
+      "sha256": "59f3d7828823137e18ac8a9b8e3a28004d2e9f8596787c2e29801c8c6bdd1903",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        637,
+        933,
+        948,
+        1254
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          609,
+          922,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -10,
+          15
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        768,
+        4224,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        48,
+        44,
+        335,
+        340
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 47,
+      "file": "frames/frame-047.png",
+      "sha256": "3dd5ac03836fe18f4b00c57244992281db1b5953ec69423706d5204d697a8434",
+      "source": "part-3-generated.png",
+      "sourceCrop": [
+        948,
+        933,
+        1254,
+        1254
+      ],
+      "normalization": {
+        "sourceVirtualCell": [
+          922,
+          922,
+          350,
+          350
+        ],
+        "resizePx": [
+          384,
+          384
+        ],
+        "uniformScale": 1.0971428571428572,
+        "translationPx": [
+          -6,
+          16
+        ],
+        "targetAnchorPx": [
+          192.0,
+          192.0
+        ]
+      },
+      "atlasRect": [
+        1152,
+        4224,
+        384,
+        384
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha32": [
+        50,
+        44,
+        334,
+        341
+      ],
+      "edgeMaxAlpha": 0
+    }
+  ],
+  "selectedThirdSheetCandidate": "part-3-candidate-original.png",
+  "preview": {
+    "webp": "preview.webp",
+    "gif": "preview-light.gif"
+  }
+}
