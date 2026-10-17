@@ -3515,19 +3515,28 @@ def extract_last_user_prompt(t_path):
     if not t_path or not os.path.isfile(t_path):
         return None
     try:
-        with open(t_path, 'r', encoding='utf-8') as f:
-            for line in reversed(f.readlines()):
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    entry = json.loads(line)
-                    if entry.get('type') == 'USER_INPUT' or entry.get('source') == 'USER_EXPLICIT':
-                        content = entry.get('content')
-                        if isinstance(content, str) and content.strip():
-                            return content.strip()
-                except Exception:
-                    pass
+        size = os.path.getsize(t_path)
+        read_size = min(size, 131072)  # Read at most trailing 128KB
+        with open(t_path, 'rb') as f:
+            if size > read_size:
+                f.seek(size - read_size)
+            chunk = f.read(read_size)
+        import re
+        lines = chunk.decode('utf-8', errors='replace').splitlines()
+        for line in reversed(lines):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+                if isinstance(entry, dict) and (entry.get('type') == 'USER_INPUT' or entry.get('source') == 'USER_EXPLICIT'):
+                    content = entry.get('content')
+                    if isinstance(content, str) and content.strip():
+                        text = content.strip()
+                        m = re.search(r'<USER_REQUEST>\\s*(.*?)\\s*</USER_REQUEST>', text, re.DOTALL)
+                        return m.group(1).strip() if m else text
+            except Exception:
+                pass
     except Exception:
         pass
     return None
@@ -3653,9 +3662,12 @@ def main():
                     }
                     print(json.dumps(out), flush=True)
                     sys.exit(0)
-                # 'ask' or unknown: fall through → no output → Claude Code asks in terminal
+                # 'ask' or unknown: fall through
         except Exception:
             pass
+        if agent == 'antigravity' or payload.get('coucou_agent') == 'antigravity':
+            print('{"decision":"ask"}', flush=True)
+            sys.exit(0)
         return
 
     # Parse --agent <name> and optional positional event from argv.
@@ -3703,7 +3715,11 @@ def main():
         pass
 
     event = payload.get('hook_event_name', '')
-    if event == 'UserPromptSubmit' and not payload.get('prompt'):
+    try:
+        inv_ok = int(payload.get('invocationNum', 1)) <= 1
+    except Exception:
+        inv_ok = True
+    if event == 'UserPromptSubmit' and not payload.get('prompt') and inv_ok:
         t_path = payload.get('transcriptPath') or payload.get('transcript_path')
         if t_path:
             t_path = os.path.expanduser(t_path)
@@ -3795,7 +3811,10 @@ def main():
     # Antigravity needs a decision on PreToolUse ({} reads as a denial). "ask" keeps its own
     # permission prompt (and the user's Always Allow); Coucou never allows a tool by itself.
     if agent == 'antigravity' and event == 'PreToolUse':
+        if payload.get('tool_name') == 'ask_question':
+            return  # handled by --ask hook, do not emit conflicting ask
         print('{"decision":"ask"}', flush=True)
+        sys.exit(0)
     elif agent in ('gemini', 'antigravity', 'muse', 'copilot'):
         print('{}', flush=True)
 
@@ -3874,24 +3893,44 @@ def extract_last_user_prompt(t_path):
     if not t_path or not os.path.isfile(t_path):
         return None
     try:
-        with open(t_path, 'r', encoding='utf-8') as f:
-            for line in reversed(f.readlines()):
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    entry = json.loads(line)
-                    if entry.get('type') == 'USER_INPUT' or entry.get('source') == 'USER_EXPLICIT':
-                        content = entry.get('content')
-                        if isinstance(content, str) and content.strip():
-                            return content.strip()
-                except Exception:
-                    pass
+        size = os.path.getsize(t_path)
+        read_size = min(size, 131072)  # Read at most trailing 128KB
+        with open(t_path, 'rb') as f:
+            if size > read_size:
+                f.seek(size - read_size)
+            chunk = f.read(read_size)
+        import re
+        lines = chunk.decode('utf-8', errors='replace').splitlines()
+        for line in reversed(lines):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+                if isinstance(entry, dict) and (entry.get('type') == 'USER_INPUT' or entry.get('source') == 'USER_EXPLICIT'):
+                    content = entry.get('content')
+                    if isinstance(content, str) and content.strip():
+                        text = content.strip()
+                        m = re.search(r'<USER_REQUEST>\\s*(.*?)\\s*</USER_REQUEST>', text, re.DOTALL)
+                        return m.group(1).strip() if m else text
+            except Exception:
+                pass
     except Exception:
         pass
     return None
 
 def main():
+    agent = ''
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] == '--agent' and i + 1 < len(args):
+            agent = args[i + 1]
+            break
+        i += 1
+    if not agent and os.environ.get('CLAUDE_CODE_ENTRYPOINT') == 'claude-desktop':
+        agent = 'claude-desktop'
+
     raw = b''
     payload = {}
     try:
@@ -3997,9 +4036,13 @@ def main():
                     sys.stdout.write(json.dumps(out) + '\\n')
                     sys.stdout.flush()
                     sys.exit(0)
-                # 'ask' or unknown: fall through → no output → Claude Code asks in terminal
+                # 'ask' or unknown: fall through
         except Exception:
             pass
+        if agent == 'antigravity' or payload.get('coucou_agent') == 'antigravity':
+            sys.stdout.write('{"decision":"ask"}\\n')
+            sys.stdout.flush()
+            sys.exit(0)
         return
 
     # Parse --agent <name> and optional positional event from argv.
@@ -4046,7 +4089,11 @@ def main():
         pass
 
     event = payload.get('hook_event_name', '')
-    if event == 'UserPromptSubmit' and not payload.get('prompt'):
+    try:
+        inv_ok = int(payload.get('invocationNum', 1)) <= 1
+    except Exception:
+        inv_ok = True
+    if event == 'UserPromptSubmit' and not payload.get('prompt') and inv_ok:
         t_path = payload.get('transcriptPath') or payload.get('transcript_path')
         if t_path:
             t_path = os.path.expanduser(t_path)
@@ -4142,8 +4189,11 @@ def main():
     # Antigravity needs a decision on PreToolUse ({} reads as a denial). "ask" keeps its own
     # permission prompt (and the user's Always Allow); Coucou never allows a tool by itself.
     if agent == 'antigravity' and event == 'PreToolUse':
+        if payload.get('tool_name') == 'ask_question':
+            return  # handled by --ask hook, do not emit conflicting ask
         sys.stdout.write('{"decision":"ask"}\\n')
         sys.stdout.flush()
+        sys.exit(0)
     elif agent in ('gemini', 'antigravity', 'muse', 'copilot'):
         sys.stdout.write('{}\\n')
         sys.stdout.flush()
