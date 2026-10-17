@@ -33,6 +33,8 @@ mod shortcuts;
 mod sounds;
 mod speech;
 mod spotify;
+mod telegram;
+mod telegram_api;
 mod tray;
 mod voice;
 #[cfg(windows)]
@@ -108,6 +110,12 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) {
         settings.phone_relay = current.phone_relay;
         settings.phone_relay_url = current.phone_relay_url.clone();
         settings.phone_chat_models = current.phone_chat_models.clone();
+        settings.telegram_enabled = current.telegram_enabled;
+        settings.telegram_paired_chat_id = current.telegram_paired_chat_id;
+        settings.telegram_paired_user_id = current.telegram_paired_user_id;
+        settings.telegram_paired_bot_username = current.telegram_paired_bot_username.clone();
+        settings.telegram_pairing_nonce = current.telegram_pairing_nonce.clone();
+        settings.telegram_pairing_expires_at = current.telegram_pairing_expires_at;
         *current = settings;
         (screen_changed, autostart_changed, shortcuts_changed)
     };
@@ -862,6 +870,11 @@ pub fn run() {
             notes::notes_export,
             voice::voice_done,
             voice::voice_say_native,
+            telegram::telegram_status,
+            telegram::telegram_test_token,
+            telegram::telegram_set_enabled,
+            telegram::telegram_new_pairing,
+            telegram::telegram_disconnect,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
@@ -901,6 +914,7 @@ pub fn run() {
             hooks::ensure_hook_exe(&handle);
             pipe::start(handle.clone());
             phone_link::start_if_enabled(&handle);
+            telegram::start(handle.clone());
             integrations::start(handle.clone());
             spotify::sync(&handle, &loaded.active_integrations);
             shortcuts::apply(&handle, &loaded.shortcuts);
@@ -921,6 +935,7 @@ pub fn run() {
             // Withdraw the phone link's announcement on the local network before the process ends.
             if let tauri::RunEvent::Exit = event {
                 phone_link::stop_on_exit(app);
+                telegram::stop(app);
                 notes::shutdown(app);
             }
         });

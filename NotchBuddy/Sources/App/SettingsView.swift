@@ -1665,6 +1665,9 @@ struct SettingsView: View {
                 }
                 .onChange(of: cryptoExchange) { _, _ in CryptoController.shared.settingsChanged() }
                 .onChange(of: cryptoCurrency) { _, _ in CryptoController.shared.settingsChanged() }
+                // Telegram bot settings
+                TelegramSettingsSection()
+                    .padding(.top, 4)
 
                 // Portfolio: exchange accounts + wallets.
                 PortfolioSettingsSection()
@@ -2746,6 +2749,260 @@ struct ShortcutRecorderButton: View {
         return map[c] ?? "·"
     }
 }
+
+// MARK: - Telegram Settings Section
+
+struct TelegramSettingsSection: View {
+    @ObservedObject private var store = TelegramSettingsStore.shared
+    @State private var botToken: String = ""
+    @State private var isTesting = false
+    @State private var testResult: String?
+    @State private var isTestSuccess: Bool = false
+    @State private var showGuide = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // Header
+            HStack(spacing: 6) {
+                Circle().fill(Color(hex: "#0088CC")).frame(width: 8, height: 8)
+                Text(String(localized: "telegram.title"))
+                    .font(.system(size: 12, weight: .semibold))
+            }
+
+            Text(String(localized: "telegram.description"))
+                .font(.system(size: 10))
+                .foregroundColor(Color(hex: "#8E939C"))
+
+            // Guide disclosure/link
+            DisclosureGroup(isExpanded: $showGuide) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(String(localized: "telegram.guide.title"))
+                        .font(.system(size: 11, weight: .medium))
+                    HStack(spacing: 4) {
+                        Text(String(localized: "telegram.guide.step1"))
+                        Button("@BotFather") {
+                            if let url = URL(string: "https://t.me/BotFather") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                        .buttonStyle(.link)
+                    }
+                    .font(.system(size: 11))
+                    Text(String(localized: "telegram.guide.step2")).font(.system(size: 11))
+                    Text(String(localized: "telegram.guide.step3")).font(.system(size: 11))
+                }
+                .padding(.vertical, 4)
+            } label: {
+                Text(String(localized: "telegram.guide.title"))
+                    .font(.system(size: 11))
+                    .foregroundColor(.accentColor)
+            }
+
+            // Token field & test
+            VStack(alignment: .leading, spacing: 4) {
+                Text(String(localized: "telegram.token.label"))
+                    .font(.system(size: 11, weight: .medium))
+
+                HStack(spacing: 8) {
+                    SecureField(
+                        store.hasToken ? String(localized: "telegram.token.saved") : String(localized: "telegram.token.placeholder"),
+                        text: $botToken
+                    )
+                    .textFieldStyle(.roundedBorder)
+
+                    Button(isTesting ? String(localized: "telegram.action.testing") : String(localized: "telegram.action.test")) {
+                        testToken()
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(isTesting || (botToken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !store.hasToken))
+                }
+
+                if let testResult = testResult {
+                    Text(testResult)
+                        .font(.system(size: 10))
+                        .foregroundColor(isTestSuccess ? Color.green : Color.red)
+                }
+            }
+
+            // Status and pairing block
+            let proj = store.statusProjection
+            if proj.isTokenConfigured {
+                VStack(alignment: .leading, spacing: 6) {
+                    // Status summary
+                    HStack(spacing: 8) {
+                        Text(String(localized: "telegram.status.label") + ":")
+                            .font(.system(size: 11, weight: .medium))
+
+                        switch proj.connectionStatus {
+                        case .unauthorized:
+                            Text(String(localized: "telegram.status.unauthorized"))
+                                .font(.system(size: 11))
+                                .foregroundColor(.red)
+                        case .conflict:
+                            Text(String(localized: "telegram.status.conflict"))
+                                .font(.system(size: 11))
+                                .foregroundColor(.red)
+                        default:
+                            if proj.isPaired {
+                                Text(String(localized: "telegram.status.paired"))
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.green)
+                                if let user = proj.pairedBotUsername {
+                                    Text(String(format: String(localized: "telegram.status.bot"), user))
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
+                                }
+                                if let masked = proj.maskedChatId {
+                                    Text(String(format: String(localized: "telegram.status.chat"), masked))
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
+                                }
+                            } else {
+                                Text(String(localized: "telegram.status.awaiting-pairing"))
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                    }
+
+                    if !proj.isPaired {
+                        Text(String(localized: "telegram.pairing.instruction"))
+                            .font(.system(size: 10))
+                            .foregroundColor(Color(hex: "#8E939C"))
+
+                        Button(String(localized: "telegram.action.pair")) {
+                            startPairing()
+                        }
+                        .buttonStyle(.borderedProminent)
+                    } else {
+                        // Toggles
+                        VStack(alignment: .leading, spacing: 4) {
+                            Toggle(String(localized: "telegram.notify.finished"), isOn: Binding(
+                                get: { store.settings.notifyFinished },
+                                set: { val in
+                                    var s = store.settings
+                                    s.notifyFinished = val
+                                    store.save(s)
+                                    TelegramBotController.shared.settingsChanged()
+                                }
+                            ))
+                            .toggleStyle(.checkbox)
+
+                            Toggle(String(localized: "telegram.notify.questions"), isOn: Binding(
+                                get: { store.settings.notifyQuestions },
+                                set: { val in
+                                    var s = store.settings
+                                    s.notifyQuestions = val
+                                    store.save(s)
+                                    TelegramBotController.shared.settingsChanged()
+                                }
+                            ))
+                            .toggleStyle(.checkbox)
+
+                            Toggle(String(localized: "telegram.notify.approvals"), isOn: Binding(
+                                get: { store.settings.notifyApprovals },
+                                set: { val in
+                                    var s = store.settings
+                                    s.notifyApprovals = val
+                                    store.save(s)
+                                    TelegramBotController.shared.settingsChanged()
+                                }
+                            ))
+                            .toggleStyle(.checkbox)
+                        }
+                        .font(.system(size: 11))
+                        .padding(.vertical, 2)
+
+                        // Re-pair and Disconnect
+                        HStack(spacing: 8) {
+                            Button(String(localized: "telegram.action.repair")) {
+                                rePair()
+                            }
+                            .buttonStyle(.bordered)
+
+                            Button(String(localized: "telegram.action.disconnect")) {
+                                disconnect()
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                }
+                .padding(.top, 4)
+            } else {
+                HStack(spacing: 8) {
+                    Text(String(localized: "telegram.status.label") + ":")
+                        .font(.system(size: 11, weight: .medium))
+                    Text(String(localized: "telegram.status.not-configured"))
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+                .padding(.top, 2)
+            }
+        }
+    }
+
+    private func testToken() {
+        let tokenToTest = botToken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? (KeychainStore.shared.get("telegram-bot-token") ?? "")
+            : botToken.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !tokenToTest.isEmpty else { return }
+
+        isTesting = true
+        testResult = nil
+
+        Task {
+            let transport = URLSessionTelegramHTTPTransport(token: tokenToTest)
+            let api = TelegramBotAPI(transport: transport)
+            do {
+                let identity = try await api.getMe()
+                await MainActor.run {
+                    self.isTesting = false
+                    self.isTestSuccess = true
+                    let botName = identity.username.map { "@\($0)" } ?? identity.firstName
+                    self.testResult = "OK: \(botName)"
+
+                    // Save token and username
+                    var s = store.settings
+                    s.enabled = true
+                    if let u = identity.username {
+                        s.pairedBotUsername = u
+                    }
+                    store.save(s, token: tokenToTest)
+                    self.botToken = ""
+                    TelegramBotController.shared.settingsChanged()
+                }
+            } catch {
+                await MainActor.run {
+                    self.isTesting = false
+                    self.isTestSuccess = false
+                    self.testResult = "Error: \(TelegramAPIError.sanitize(error.localizedDescription, token: tokenToTest))"
+                }
+            }
+        }
+    }
+
+    private func startPairing() {
+        let username = store.settings.pairedBotUsername ?? ""
+        guard !username.isEmpty else { return }
+        let nonce = TelegramPairing.nonce()
+        store.savePairingNonce(nonce)
+        if let url = store.pairingLink(nonce: nonce, botUsername: username) {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    private func rePair() {
+        store.clearPairing()
+        startPairing()
+    }
+
+    private func disconnect() {
+        store.clear()
+        TelegramBotController.shared.stop()
+    }
+}
+
 
 extension SettingsView {
     /// One section of Settings, for the Coucou Flow window.

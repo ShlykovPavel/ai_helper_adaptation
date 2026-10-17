@@ -97,6 +97,15 @@ pub struct Settings {
     pub phone_relay: bool,
     /// The relay's address (`wss://…`), empty until the user enters it. Not a secret. Owned by Rust.
     pub phone_relay_url: String,
+    pub telegram_enabled: bool,
+    pub telegram_notify_finished: bool,
+    pub telegram_notify_questions: bool,
+    pub telegram_notify_approvals: bool,
+    pub telegram_paired_chat_id: Option<i64>,
+    pub telegram_paired_user_id: Option<i64>,
+    pub telegram_paired_bot_username: Option<String>,
+    pub telegram_pairing_nonce: Option<String>,
+    pub telegram_pairing_expires_at: Option<f64>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -162,6 +171,15 @@ impl Default for Settings {
             phone_services: Vec::new(),
             phone_relay: false,
             phone_relay_url: String::new(),
+            telegram_enabled: false,
+            telegram_notify_finished: true,
+            telegram_notify_questions: true,
+            telegram_notify_approvals: true,
+            telegram_paired_chat_id: None,
+            telegram_paired_user_id: None,
+            telegram_paired_bot_username: None,
+            telegram_pairing_nonce: None,
+            telegram_pairing_expires_at: None,
         }
     }
 }
@@ -448,7 +466,16 @@ mod tests {
   "phoneUsage": true,
   "phoneServices": ["integration_stripe"],
   "phoneRelay": true,
-  "phoneRelayUrl": "wss://relay.example.workers.dev"
+  "phoneRelayUrl": "wss://relay.example.workers.dev",
+  "telegramEnabled": true,
+  "telegramNotifyFinished": false,
+  "telegramNotifyQuestions": false,
+  "telegramNotifyApprovals": false,
+  "telegramPairedChatId": 123456789,
+  "telegramPairedUserId": 987654321,
+  "telegramPairedBotUsername": "test_bot",
+  "telegramPairingNonce": "nonce123",
+  "telegramPairingExpiresAt": 1700000000.0
 }"##;
 
     fn custom() -> Value {
@@ -626,6 +653,30 @@ mod tests {
         assert!(parse(&custom_with("phoneRelay", Some(serde_json::json!(true)))).unwrap().phone_relay);
         assert!(!parse(&custom_with("phoneRelay", Some(serde_json::json!("yes")))).unwrap().phone_relay, "a wrong type does not switch it on");
         assert!(parse(&custom_with("phoneRelayUrl", Some(serde_json::json!(5)))).unwrap().phone_relay_url.is_empty());
+    }
+
+    #[test]
+    fn a_file_from_before_telegram_keeps_it_off_and_uses_defaults() {
+        let d = Settings::default();
+        assert!(!d.telegram_enabled);
+        assert!(d.telegram_notify_finished);
+        assert!(d.telegram_notify_questions);
+        assert!(d.telegram_notify_approvals);
+        assert_eq!(d.telegram_paired_chat_id, None);
+        assert_eq!(d.telegram_paired_user_id, None);
+        assert_eq!(d.telegram_paired_bot_username, None);
+        assert_eq!(d.telegram_pairing_nonce, None);
+        assert_eq!(d.telegram_pairing_expires_at, None);
+
+        let old = parse(&custom_with("telegramEnabled", None)).unwrap();
+        assert!(!old.telegram_enabled);
+        assert_eq!(old.mochi_outfit, "witchHat");
+
+        let custom_parsed = parse(&custom_with("telegramEnabled", Some(serde_json::json!(true)))).unwrap();
+        assert!(custom_parsed.telegram_enabled);
+
+        let bad_type = parse(&custom_with("telegramEnabled", Some(serde_json::json!("yes")))).unwrap();
+        assert!(!bad_type.telegram_enabled, "a wrong type does not switch it on");
     }
 
     #[test]
@@ -956,6 +1007,15 @@ mod tests {
                 "phoneServices",
                 "phoneRelay",
                 "phoneRelayUrl",
+                "telegramEnabled",
+                "telegramNotifyFinished",
+                "telegramNotifyQuestions",
+                "telegramNotifyApprovals",
+                "telegramPairedChatId",
+                "telegramPairedUserId",
+                "telegramPairedBotUsername",
+                "telegramPairingNonce",
+                "telegramPairingExpiresAt",
             ]
         );
         let _ = std::fs::remove_dir_all(&dir);

@@ -178,6 +178,14 @@ export interface PhoneAnswersStatus {
   enabled: boolean;
 }
 
+export interface TelegramStatusResponse {
+  enabled: boolean;
+  tokenPresent: boolean;
+  status: string;
+  pairedChatId: number | null;
+  pairedBotUsername: string | null;
+}
+
 export const Bridge = {
   boot: () => call<BootInfo>("boot"),
   /** The system's languages as the webview sees them, for Rust's own texts (i18n.rs). */
@@ -358,6 +366,13 @@ export const Bridge = {
 
   /** Tray → Pause. Stops the integration pollers, not just the island. */
   setPaused: (paused: boolean) => call<void>("set_paused", { paused }),
+
+  // ── Telegram bot ──────────────────────────────────────────────────────────
+  telegramStatus: () => call<TelegramStatusResponse>("telegram_status"),
+  telegramTestToken: (token: string) => callOrThrow<string>("telegram_test_token", { token }),
+  telegramSetEnabled: (enabled: boolean) => callOrThrow<void>("telegram_set_enabled", { enabled }),
+  telegramNewPairing: () => callOrThrow<string>("telegram_new_pairing"),
+  telegramDisconnect: () => callOrThrow<void>("telegram_disconnect"),
 
   // ── Global shortcuts ──────────────────────────────────────────────────────
   /** How each global shortcut went when Rust last registered them. */

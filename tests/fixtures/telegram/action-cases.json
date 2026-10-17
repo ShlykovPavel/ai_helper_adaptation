@@ -1,0 +1,15 @@
+{
+  "callback_grammar": "c:<ref>:<op>",
+  "cases": [
+    {"name": "valid-approval", "callback_query": {"from": {"id": 987654321}, "message": {"chat": {"id": 123456789, "type": "private"}, "message_id": 41}, "data": "c:QmFzZTY0UmVmMDAwMDAwMQ:allow"}, "event": "approval", "operation": "allow"},
+    {"name": "valid-question", "callback_query": {"from": {"id": 987654321}, "message": {"chat": {"id": 123456789, "type": "private"}, "message_id": 42}, "data": "c:k7N2pQ8vLm4XzR1aBcDeFg:select"}, "event": "question", "operation": "select"},
+    {"name": "wrong-user", "callback_query": {"from": {"id": 111222333}, "message": {"chat": {"id": 123456789, "type": "private"}, "message_id": 41}, "data": "c:QmFzZTY0UmVmMDAwMDAwMQ:allow"}, "expected": "ignored"},
+    {"name": "group-chat", "callback_query": {"from": {"id": 987654321}, "message": {"chat": {"id": -100222333444, "type": "group"}, "message_id": 44}, "data": "c:QmFzZTY0UmVmMDAwMDAwMQ:allow"}, "expected": "ignored"},
+    {"name": "duplicate-callback", "callback_query": {"from": {"id": 987654321}, "message": {"chat": {"id": 123456789, "type": "private"}, "message_id": 41}, "data": "c:n4Vx8Qa2Lm9Rk1PcYz7HsA:allow"}, "registry_state": "consumed", "expected": "expired"},
+    {"name": "expired-action", "callback_query": {"from": {"id": 987654321}, "message": {"chat": {"id": 123456789, "type": "private"}, "message_id": 41}, "data": "c:t6Wq3Jm8Hs1Vb4NdXc9KpQ:deny"}, "registry_state": "expired", "expected": "expired"}
+  ],
+  "api_errors": [
+    {"status": 409, "ok": false, "error_code": 409, "description": "Conflict: another getUpdates instance is active"},
+    {"status": 429, "ok": false, "error_code": 429, "description": "Too Many Requests", "parameters": {"retry_after": 3}}
+  ]
+}

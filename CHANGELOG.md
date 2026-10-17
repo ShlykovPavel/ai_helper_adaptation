@@ -12,6 +12,21 @@
   - **Facade/Adapter Architecture**: Zero-conflict integration wrapping existing `BotCanvasView` and `island.ts`, allowing seamless switching between Shapeshifter and original Mochi mascots.
   - **Comprehensive Verification**: Cross-platform unit tests, end-to-end integration test suite, and clean Xcode build verification.
 
+## 0.6.0 — October 17, 2026
+
+Coucou Telegram Bot arrives on macOS, Windows, and Linux: connect your own Telegram bot to stay in control of your AI coding agents from anywhere on your phone, with turn completion notifications, questions, and permission approvals.
+
+- **Coucou Telegram Bot (macOS, Windows, Linux)** — your personal Telegram bot keeps you updated when you step away from your desk. Connect your bot in Settings → Integrations, pair your phone with one tap, and respond directly from Telegram:
+  - **Turn completion alerts (`Stop`)** — get notified the moment an agent finishes its work, with the agent name, project directory, and a summary of the final answer. Automatic deduplication keeps your chat clean when multiple sessions finish together.
+  - **Interactive permission requests (`PermissionRequest`)** — Allow or Deny tool execution requests right from Telegram inline buttons. Decisions are protected with 120-second validity, single-use action tokens, and active request fingerprint verification.
+  - **Interactive questions (`AskUserQuestion`)** — answer agent questions from your phone with interactive inline buttons: instant single-select choices, multi-select checkboxes with an « Отправить » button, and « Ответить текстом » to type custom answers back to the agent CLI.
+  - **Direct and private** — Coucou connects directly from your machine to `https://api.telegram.org` over HTTPS long polling (`getUpdates`). No relay servers, no public webhooks, no third-party proxies, and zero telemetry.
+  - **Secure token storage** — your bot token is stored exclusively in your operating system's native keystore (macOS Keychain, Windows Credential Manager, Linux Secret Service / GNOME Keyring / KWallet). It is never written to `settings.json`, plain-text configs, or application logs.
+  - **Safe pairing** — paired via a cryptographic one-time deep link (`https://t.me/<bot>?start=<nonce>`) valid for 10 minutes, restricted strictly to private chats and your own user ID. Updates from groups, channels, or unauthorized users are ignored.
+  - **Independent notification preferences** — independently toggle turn completion notifications, question prompts, and permission requests to fit your workflow.
+  - Learn more in the [Telegram Bot documentation](docs/telegram.md) and [architecture spike](docs/superpowers/spikes/2026-10-15-agent-inbound-channel.md).
+
+
 ## Windows and Linux 0.5.0 — October 15, 2026
 
 Windows and Linux catch up with the Mac's 0.3.0 and 0.4.0: the Coucou window, Flow dictation, the Notetaker and « OK Coucou ». All of it free and open source.

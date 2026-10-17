@@ -56,6 +56,7 @@ export interface ApprovalInfo {
 /** One question of an AskUserQuestion call. */
 export interface AskedQuestion {
   question: string;
+  header?: string;
   options: { label: string; description: string }[];
   multiSelect: boolean;
 }
@@ -165,6 +166,15 @@ export interface Settings {
   };
   /** Selected mascot style: "mochi" or "shapeshifter". */
   selectedMascot?: MascotId;
+  telegramEnabled?: boolean;
+  telegramNotifyFinished?: boolean;
+  telegramNotifyQuestions?: boolean;
+  telegramNotifyApprovals?: boolean;
+  telegramPairedChatId?: number | null;
+  telegramPairedUserId?: number | null;
+  telegramPairedBotUsername?: string | null;
+  telegramPairingNonce?: string | null;
+  telegramPairingExpiresAt?: number | null;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -194,6 +204,15 @@ export const DEFAULT_SETTINGS: Settings = {
   pillColors: {},
   language: "",
   selectedMascot: "shapeshifter",
+  telegramEnabled: false,
+  telegramNotifyFinished: true,
+  telegramNotifyQuestions: true,
+  telegramNotifyApprovals: true,
+  telegramPairedChatId: null,
+  telegramPairedUserId: null,
+  telegramPairedBotUsername: null,
+  telegramPairingNonce: null,
+  telegramPairingExpiresAt: null,
 };
 
 type Listener = () => void;
