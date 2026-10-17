@@ -449,8 +449,10 @@ final class HookServer: @unchecked Sendable {
         // • a known terminal (Warp, Terminal, iTerm…) → integration_claude, host recorded on the task
         #if !APPSTORE
         let isCodexEvent = rawAgent == "codex"
+        let isAgyEvent = rawAgent == "antigravity" || rawAgent == "agy"
         #else
         let isCodexEvent = false
+        let isAgyEvent = false
         #endif
         let agentId: String
         let isExternalAgent: Bool
@@ -458,9 +460,13 @@ final class HookServer: @unchecked Sendable {
         if isCodexEvent {
             agentId = "agent_codex"
             isExternalAgent = false
+        } else if isAgyEvent {
+            agentId = "agent_antigravity"
+            isExternalAgent = false
         } else if let agent = validAgent {
             agentId = "agent_\(agent)"
-            isExternalAgent = true
+            // Any agent declared in PillCatalog with .workspace category is first-class
+            isExternalAgent = PillCatalog.definition(for: agentId)?.category != .workspace
         } else if isCursorEditor {
             agentId = "agent_cursor"
             isExternalAgent = false
@@ -623,7 +629,9 @@ final class HookServer: @unchecked Sendable {
                     AppState.shared.removeTask(id: agentId)
                 } else {
                     AppState.shared.updateTask(id: agentId, state: .idle)
-                    self.clearPillBadge(id: agentId)
+                    if focused {
+                        self.clearPillBadge(id: agentId)
+                    }
                 }
             }
 
