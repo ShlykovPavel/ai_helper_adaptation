@@ -613,7 +613,7 @@ final class HookServer: @unchecked Sendable {
             RecapStore.shared.preToolUse(sessionId: recapSessionId, tool: tool)
             // AskUserQuestion is handled via the dedicated --ask hook.
             // Skip state/step update here to avoid flickering over the question card.
-            guard tool != "AskUserQuestion" else { break }
+            guard tool != "AskUserQuestion" && tool != "ask_question" else { break }
             upsertTask(pill: agentId, display: display, working: true,
                        externalAgent: isExternalAgent ? validAgent : nil)
             state.updateTask(id: agentId, state: .working)
@@ -1937,15 +1937,27 @@ final class HookServer: @unchecked Sendable {
         var root = try Self.strictReadJSONObject(at: Self.agyHooksURL,
                                                  label: "~/.gemini/config/hooks.json")
         let base = hookBase()
-        // PreToolUse / PostToolUse: tool-level hooks — use matcher group
-        // PreInvocation / PostInvocation / Stop: lifecycle hooks — direct handler, no matcher
         var coucou: [String: Any] = [:]
-        for event in ["PreToolUse", "PostToolUse"] {
-            let hook: [String: Any] = ["type": "command",
-                                       "command": "\(base) --agent antigravity \(event)",
-                                       "timeout": 10]
-            coucou[event] = [["matcher": "*", "hooks": [hook]]]
-        }
+        let askHook: [String: Any] = [
+            "type": "command",
+            "command": "\(base) --agent antigravity --ask PreToolUse",
+            "timeout": 130
+        ]
+        let generalPreToolHook: [String: Any] = [
+            "type": "command",
+            "command": "\(base) --agent antigravity PreToolUse",
+            "timeout": 10
+        ]
+        coucou["PreToolUse"] = [
+            ["matcher": "ask_question", "hooks": [askHook]],
+            ["matcher": "*", "hooks": [generalPreToolHook]]
+        ]
+        let postToolHook: [String: Any] = [
+            "type": "command",
+            "command": "\(base) --agent antigravity PostToolUse",
+            "timeout": 10
+        ]
+        coucou["PostToolUse"] = [["matcher": "*", "hooks": [postToolHook]]]
         for event in ["PreInvocation", "PostInvocation", "Stop"] {
             let hook: [String: Any] = ["type": "command",
                                        "command": "\(base) --agent antigravity \(event)",
@@ -3499,6 +3511,27 @@ def normalize_tool_fields(payload):
     if not payload.get('cwd') and payload.get('workdir'):
         payload['cwd'] = payload['workdir']
 
+def extract_last_user_prompt(t_path):
+    if not t_path or not os.path.isfile(t_path):
+        return None
+    try:
+        with open(t_path, 'r', encoding='utf-8') as f:
+            for line in reversed(f.readlines()):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                    if entry.get('type') == 'USER_INPUT' or entry.get('source') == 'USER_EXPLICIT':
+                        content = entry.get('content')
+                        if isinstance(content, str) and content.strip():
+                            return content.strip()
+                except Exception:
+                    pass
+    except Exception:
+        pass
+    return None
+
 def main():
     agent = ''
     args = sys.argv[1:]
@@ -3567,10 +3600,13 @@ def main():
 
     # --ask mode: dedicated hook for AskUserQuestion via PreToolUse (Claude Code 2.1.85+)
     if '--ask' in sys.argv[1:]:
+        normalize_tool_fields(payload)
         tool = payload.get('tool_name', '')
-        if tool != 'AskUserQuestion':
+        if tool not in ('AskUserQuestion', 'ask_question'):
             return  # Not an AskUserQuestion invocation — exit cleanly (no output)
         payload['coucou_kind'] = 'ask_user_question'
+        if agent:
+            payload.setdefault('coucou_agent', agent)
         env = os.environ
         payload.setdefault('term_program', env.get('TERM_PROGRAM', ''))
         payload.setdefault('iterm_session_id', env.get('ITERM_SESSION_ID', ''))
@@ -3606,7 +3642,15 @@ def main():
                 if decision == 'answer':
                     answers = resp_obj.get('answers', {})
                     questions = payload.get('tool_input', {}).get('questions', [])
-                    out = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'allow', 'updatedInput': {'questions': questions, 'answers': answers}}}
+                    out = {
+                        'decision': 'allow',
+                        'hookSpecificOutput': {
+                            'hookEventName': 'PreToolUse',
+                            'permissionDecision': 'allow',
+                            'updatedInput': {'questions': questions, 'answers': answers}
+                        },
+                        'updatedInput': {'questions': questions, 'answers': answers}
+                    }
                     print(json.dumps(out), flush=True)
                     sys.exit(0)
                 # 'ask' or unknown: fall through → no output → Claude Code asks in terminal
@@ -3659,6 +3703,18 @@ def main():
         pass
 
     event = payload.get('hook_event_name', '')
+    if event == 'UserPromptSubmit' and not payload.get('prompt'):
+        t_path = payload.get('transcriptPath') or payload.get('transcript_path')
+        if t_path:
+            t_path = os.path.expanduser(t_path)
+        if (not t_path or not os.path.isfile(t_path)) and payload.get('session_id'):
+            sid = payload['session_id']
+            cand = os.path.expanduser(f'~/.gemini/antigravity/brain/{sid}/.system_generated/logs/transcript.jsonl')
+            if os.path.isfile(cand):
+                t_path = cand
+        prompt = extract_last_user_prompt(t_path)
+        if prompt:
+            payload['prompt'] = prompt
     # socket_path is already defined above
 
     if event == 'PermissionRequest':
@@ -3814,6 +3870,27 @@ def normalize_tool_fields(payload):
     if not payload.get('cwd') and payload.get('workdir'):
         payload['cwd'] = payload['workdir']
 
+def extract_last_user_prompt(t_path):
+    if not t_path or not os.path.isfile(t_path):
+        return None
+    try:
+        with open(t_path, 'r', encoding='utf-8') as f:
+            for line in reversed(f.readlines()):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                    if entry.get('type') == 'USER_INPUT' or entry.get('source') == 'USER_EXPLICIT':
+                        content = entry.get('content')
+                        if isinstance(content, str) and content.strip():
+                            return content.strip()
+                except Exception:
+                    pass
+    except Exception:
+        pass
+    return None
+
 def main():
     raw = b''
     payload = {}
@@ -3866,10 +3943,13 @@ def main():
 
     # --ask mode: dedicated hook for AskUserQuestion via PreToolUse (Claude Code 2.1.85+)
     if '--ask' in sys.argv[1:]:
+        normalize_tool_fields(payload)
         tool = payload.get('tool_name', '')
-        if tool != 'AskUserQuestion':
+        if tool not in ('AskUserQuestion', 'ask_question'):
             return  # Not an AskUserQuestion invocation — exit cleanly (no output)
         payload['coucou_kind'] = 'ask_user_question'
+        if agent:
+            payload.setdefault('coucou_agent', agent)
         env = os.environ
         payload.setdefault('term_program', env.get('TERM_PROGRAM', ''))
         payload.setdefault('iterm_session_id', env.get('ITERM_SESSION_ID', ''))
@@ -3905,7 +3985,15 @@ def main():
                 if decision == 'answer':
                     answers = resp_obj.get('answers', {})
                     questions = payload.get('tool_input', {}).get('questions', [])
-                    out = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'allow', 'updatedInput': {'questions': questions, 'answers': answers}}}
+                    out = {
+                        'decision': 'allow',
+                        'hookSpecificOutput': {
+                            'hookEventName': 'PreToolUse',
+                            'permissionDecision': 'allow',
+                            'updatedInput': {'questions': questions, 'answers': answers}
+                        },
+                        'updatedInput': {'questions': questions, 'answers': answers}
+                    }
                     sys.stdout.write(json.dumps(out) + '\\n')
                     sys.stdout.flush()
                     sys.exit(0)
@@ -3958,6 +4046,18 @@ def main():
         pass
 
     event = payload.get('hook_event_name', '')
+    if event == 'UserPromptSubmit' and not payload.get('prompt'):
+        t_path = payload.get('transcriptPath') or payload.get('transcript_path')
+        if t_path:
+            t_path = os.path.expanduser(t_path)
+        if (not t_path or not os.path.isfile(t_path)) and payload.get('session_id'):
+            sid = payload['session_id']
+            cand = os.path.expanduser(f'~/.gemini/antigravity/brain/{sid}/.system_generated/logs/transcript.jsonl')
+            if os.path.isfile(cand):
+                t_path = cand
+        prompt = extract_last_user_prompt(t_path)
+        if prompt:
+            payload['prompt'] = prompt
     # socket_path is already defined above
 
     if event == 'PermissionRequest':
