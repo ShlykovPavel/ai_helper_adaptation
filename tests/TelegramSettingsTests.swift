@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 // MARK: - Standalone Test Doubles for Compilation
 
@@ -68,6 +69,7 @@ struct TelegramSettingsTestRunner {
         await testPairingLinkFormatting()
         await testRepairClearsPairingKeepsToken()
         await testUserDefaultsDidChangeNotificationReloadsStore()
+        await testStatusProjectionDoesNotTriggerObjectWillChange()
 
         print("TelegramSettingsTests: ALL TESTS PASSED ✅")
     }
@@ -291,5 +293,22 @@ struct TelegramSettingsTestRunner {
         precondition(store.settings.pairedChatId == 99999, "Store should automatically reload when UserDefaults changes")
         precondition(store.settings.pairedUserId == 88888, "Store should automatically reload when UserDefaults changes")
         print("  - testUserDefaultsDidChangeNotificationReloadsStore: PASS")
+    }
+
+    static func testStatusProjectionDoesNotTriggerObjectWillChange() async {
+        let (store, defaults, _, suite) = makeIsolatedStore()
+        defer { cleanup(suiteName: suite, defaults: defaults) }
+
+        var changeCount = 0
+        let cancellable = store.objectWillChange.sink { _ in
+            changeCount += 1
+        }
+        _ = store.statusProjection
+        _ = store.statusProjection
+        _ = store.status
+        cancellable.cancel()
+
+        precondition(changeCount == 0, "Accessing statusProjection triggered objectWillChange \(changeCount) times! Mutating @Published in a getter causes infinite SwiftUI re-renders.")
+        print("  - testStatusProjectionDoesNotTriggerObjectWillChange: PASS")
     }
 }

@@ -109,10 +109,16 @@ final class TelegramSettingsStore: ObservableObject {
 
     // MARK: - Load & Save
 
+    @discardableResult
     func load() -> TelegramSettings {
         let loaded = Self.readSettings(from: defaults)
-        self.settings = loaded
-        self.hasToken = (tokenStore.getToken()?.isEmpty == false)
+        let tokenExists = (tokenStore.getToken()?.isEmpty == false)
+        if self.settings != loaded {
+            self.settings = loaded
+        }
+        if self.hasToken != tokenExists {
+            self.hasToken = tokenExists
+        }
         return loaded
     }
 
@@ -193,7 +199,7 @@ final class TelegramSettingsStore: ObservableObject {
         defaults.removeObject(forKey: Keys.pairingExpiresAt)
         defaults.removeObject(forKey: Keys.expectedUserId)
 
-        var current = load()
+        var current = self.settings
         current.pairedChatId = nil
         current.pairedUserId = nil
         self.settings = current
@@ -225,8 +231,8 @@ final class TelegramSettingsStore: ObservableObject {
     }
 
     func statusProjection(connectionStatus: TelegramConnectionStatus) -> TelegramStatusProjection {
-        let s = load()
-        let hasTok = (tokenStore.getToken()?.isEmpty == false)
+        let s = self.settings
+        let hasTok = self.hasToken
         let isPaired = s.pairedChatId != nil && s.pairedUserId != nil
         return TelegramStatusProjection(
             isTokenConfigured: hasTok,
