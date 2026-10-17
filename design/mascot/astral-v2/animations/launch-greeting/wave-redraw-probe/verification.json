@@ -1,0 +1,11 @@
+{
+  "checks": "passed",
+  "uniqueDrawings": 16,
+  "displayFps": 12,
+  "durationMs": 1333.3333333333333,
+  "sourceToPng": true,
+  "pngToAtlas": true,
+  "provenanceRecords": 9,
+  "artisticApproval": false,
+  "maxBorderAlpha": 2
+}

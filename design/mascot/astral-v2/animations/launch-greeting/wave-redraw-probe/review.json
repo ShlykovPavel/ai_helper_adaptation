@@ -1,0 +1,36 @@
+{
+  "status": "pose-direction-approved-motion-needs-refinement",
+  "artisticApproval": false,
+  "sourceSHA": "6314609d4d0395cea6203174a8213a80b9cb469d2eacb2759c642a19b36b2b02",
+  "candidate": "B",
+  "generatedDrawings": 16,
+  "uniqueDrawingsPerSecond": 12,
+  "durationMs": 1333.3333333333333,
+  "reviewer": "root",
+  "method": [
+    "Saved source sheets A and B visually inspected",
+    "Browser playback at1x, stop on16, seek7/11/12, 0.25x speed control",
+    "Dark and light background,26px and64px slots"
+  ],
+  "improvements": [
+    "Paw visibly rises beside the face; the lift is readable at64px.",
+    "Abrupt horizontal flattening in candidateA frame6 is removed; phases4–7 tilt outward in sequence.",
+    "A single outward-and-return movement replaces the old sequence of small inconsistent waves."
+  ],
+  "limitations": [
+    "Shoulder attachment still migrates upward toward cheek.",
+    "Paw silhouette is not strongly separated from head.",
+    "Frame10→11 changes tilt slightly;11→12 lowers too abruptly.",
+    "Minor body and lighting redraw remains; not identical pixels outside moving paw.",
+    "16 drawings at12/s are a motion study, not final24-unique-drawings/s production animation."
+  ],
+  "original96FrameGreetingPreserved": true,
+  "runtimeIntegrated": false,
+  "decision": "Keep B as a reviewable probe; do not replace full greeting or claim final smoothness.",
+  "userFeedback": {
+    "date": "2026-10-17",
+    "poseDirection": "accepted from screenshot: already resembles the intended greeting",
+    "motionApproval": false,
+    "scope": "Approval of the raised-paw direction only; no approval of complete playback or runtime integration."
+  }
+}

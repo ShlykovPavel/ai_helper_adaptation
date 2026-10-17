@@ -1,0 +1,276 @@
+{
+  "status": "draft-complete",
+  "checks": "passed",
+  "artisticApproval": false,
+  "runtimeIntegrated": false,
+  "uniqueDrawings": 96,
+  "targetUniqueDrawings": 96,
+  "displayFps": 24,
+  "availableDurationMs": 4000.0,
+  "targetDurationMs": 4000,
+  "sourceToPngBytes": true,
+  "pngToAtlasRGBA": true,
+  "sourceAndArtifactHashes": true,
+  "softAlphaFrames": 96,
+  "maxBorderAlpha": 2,
+  "loopSeamChecked": false,
+  "previews": {
+    "preview.webp": {
+      "frames": 96,
+      "durationMs": 4000,
+      "timingQuantumMs": 1,
+      "playCount": 1,
+      "sha256": "7c062469719f6a511e3c8f7cae73e73cfbe1082daf584d775c1854dbcf3551df"
+    },
+    "preview-light.gif": {
+      "frames": 96,
+      "durationMs": 4000,
+      "timingQuantumMs": 10,
+      "playCount": 1,
+      "sha256": "644bb5a97aa561223dd15853bcbfe68f946f83658979344c54c2948540325c10"
+    }
+  },
+  "verifiedGenerationFiles": [
+    {
+      "record": "generation.generation",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/prompt-key-poses.txt",
+      "sha256": "e7043c12102ce0ca0e1c323e80c9e384524b4770506ef35cd5d63972f42007a2"
+    },
+    {
+      "record": "generation.references[0]",
+      "path": "design/mascot/astral-v2/astral-idle-master.png",
+      "sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b"
+    },
+    {
+      "record": "generation.outputs[0]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/key-poses-generated.png",
+      "sha256": "a8d373eff9b274716b9aff7f1ad72776f9d8f6d83fc922ea0e8b8acf2b818249"
+    },
+    {
+      "record": "generation.outputs[1]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-1-generated.png",
+      "sha256": "15ef196e34be3de40fceddc81984ecdfbf412eab511347f92b79557f76881591"
+    },
+    {
+      "record": "generation.outputs[2]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-1-candidate-original.png",
+      "sha256": "15ef196e34be3de40fceddc81984ecdfbf412eab511347f92b79557f76881591"
+    },
+    {
+      "record": "generation.outputs[3]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-1-candidate-corrected.png",
+      "sha256": "3ee4cccf1fe19db327f7f8805a5e9b4aa65e74c38e8c5a3435d30cb4f862b6fd"
+    },
+    {
+      "record": "generation.part1_generation",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/prompt-part1.txt",
+      "sha256": "0e978da7d1f20c53b7647e1c777954964e21f1171c61edcbf17711c1887aa843"
+    },
+    {
+      "record": "generation.part1_generation.reference_order[0]",
+      "path": "design/mascot/astral-v2/astral-idle-master.png",
+      "sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b"
+    },
+    {
+      "record": "generation.part1_generation.reference_order[1]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/key-poses-generated.png",
+      "sha256": "a8d373eff9b274716b9aff7f1ad72776f9d8f6d83fc922ea0e8b8acf2b818249"
+    },
+    {
+      "record": "generation.part1_correction_generation",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/prompt-part1-correction.txt",
+      "sha256": "a4a5da0b7eda8e3577652fcf6c7c65ae3ac51da9cc7c5b39a7f06816bf089a21"
+    },
+    {
+      "record": "generation.part1_correction_generation.reference_order[0]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-1-candidate-original.png",
+      "sha256": "15ef196e34be3de40fceddc81984ecdfbf412eab511347f92b79557f76881591"
+    },
+    {
+      "record": "generation.part1_correction_generation.reference_order[1]",
+      "path": "design/mascot/astral-v2/astral-idle-master.png",
+      "sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b"
+    },
+    {
+      "record": "generation.continuationParts.part2",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/prompt-part2.txt",
+      "sha256": "50d413da3ea53ca6fd39b13814726722799d6f590f96da90cf35fb1bb62ace53"
+    },
+    {
+      "record": "generation.continuationParts.part2.reference_order[0]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-2-start-reference.png",
+      "sha256": "4df250def45ce224be873cd8e6b50ebca3b01f2a8def3322f19112216861d0af"
+    },
+    {
+      "record": "generation.continuationParts.part2.reference_order[1]",
+      "path": "design/mascot/astral-v2/astral-idle-master.png",
+      "sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b"
+    },
+    {
+      "record": "generation.continuationParts.part2.reference_order[2]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-1-generated.png",
+      "sha256": "15ef196e34be3de40fceddc81984ecdfbf412eab511347f92b79557f76881591"
+    },
+    {
+      "record": "generation.continuationParts.part2.reference_order[3]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/key-poses-generated.png",
+      "sha256": "a8d373eff9b274716b9aff7f1ad72776f9d8f6d83fc922ea0e8b8acf2b818249"
+    },
+    {
+      "record": "generation.continuationParts.part2.outputs[0]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-2-generated.png",
+      "sha256": "6793bbfa9b4c0ab850af150c7aae5350a90623be8f78b77abfd8711b3d5c94b1"
+    },
+    {
+      "record": "generation.continuationParts.part3",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/prompt-part3.txt",
+      "sha256": "4cc6e647e856273dc62023abb8ac839dbeacc59dba2f45f48526f2803e9ce120"
+    },
+    {
+      "record": "generation.continuationParts.part3.reference_order[0]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-3-start-reference.png",
+      "sha256": "24ba4e011e5726f337cfe3dd0bdc554ad526ae20adc3a1f977d0325ec5dd9256"
+    },
+    {
+      "record": "generation.continuationParts.part3.reference_order[1]",
+      "path": "design/mascot/astral-v2/astral-idle-master.png",
+      "sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b"
+    },
+    {
+      "record": "generation.continuationParts.part3.reference_order[2]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-2-generated.png",
+      "sha256": "6793bbfa9b4c0ab850af150c7aae5350a90623be8f78b77abfd8711b3d5c94b1"
+    },
+    {
+      "record": "generation.continuationParts.part3.reference_order[3]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/key-poses-generated.png",
+      "sha256": "a8d373eff9b274716b9aff7f1ad72776f9d8f6d83fc922ea0e8b8acf2b818249"
+    },
+    {
+      "record": "generation.continuationParts.part3.outputs[0]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-3-generated.png",
+      "sha256": "bdecd97bfe8c0b064b0eb18caf06801d1554496a1cab55261f3a229bc655b644"
+    },
+    {
+      "record": "generation.continuationParts.part4",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/prompt-part4.txt",
+      "sha256": "969c19f05cc0cfba6d0d39fa026f4d685a0104a6ec6b8239d4367358a6142614"
+    },
+    {
+      "record": "generation.continuationParts.part4.reference_order[0]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-4-start-reference.png",
+      "sha256": "cc55a6a0f437f602dc117694101bba6920d0a0e15de16794e74033bab4b88398"
+    },
+    {
+      "record": "generation.continuationParts.part4.reference_order[1]",
+      "path": "design/mascot/astral-v2/astral-idle-master.png",
+      "sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b"
+    },
+    {
+      "record": "generation.continuationParts.part4.reference_order[2]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-3-generated.png",
+      "sha256": "bdecd97bfe8c0b064b0eb18caf06801d1554496a1cab55261f3a229bc655b644"
+    },
+    {
+      "record": "generation.continuationParts.part4.reference_order[3]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/key-poses-generated.png",
+      "sha256": "a8d373eff9b274716b9aff7f1ad72776f9d8f6d83fc922ea0e8b8acf2b818249"
+    },
+    {
+      "record": "generation.continuationParts.part4.outputs[0]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-4-generated.png",
+      "sha256": "f05b9e66c6ee6a3309e3841c39eb4b38a1aa32e95f1eef81f1bc9e897f891cc0"
+    },
+    {
+      "record": "generation.continuationParts.part5",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/prompt-part5.txt",
+      "sha256": "2b6b642035d3719c2f15d9fb5638b1382408bff9c344ff492dae59fd2bbe064f"
+    },
+    {
+      "record": "generation.continuationParts.part5.reference_order[0]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-5-start-reference.png",
+      "sha256": "601d6efd37f6c7499ee056df7d74f86ca8bd026fd5a87a00c2f56c19b772188c"
+    },
+    {
+      "record": "generation.continuationParts.part5.reference_order[1]",
+      "path": "design/mascot/astral-v2/astral-idle-master.png",
+      "sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b"
+    },
+    {
+      "record": "generation.continuationParts.part5.reference_order[2]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-4-generated.png",
+      "sha256": "f05b9e66c6ee6a3309e3841c39eb4b38a1aa32e95f1eef81f1bc9e897f891cc0"
+    },
+    {
+      "record": "generation.continuationParts.part5.reference_order[3]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/key-poses-generated.png",
+      "sha256": "a8d373eff9b274716b9aff7f1ad72776f9d8f6d83fc922ea0e8b8acf2b818249"
+    },
+    {
+      "record": "generation.continuationParts.part5.outputs[0]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-5-generated.png",
+      "sha256": "d37bf59379d2d940f8fa3d26594d105209c47bf3287e3a37058ad0e96b7a5ec3"
+    },
+    {
+      "record": "generation.continuationParts.part6",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/prompt-part6.txt",
+      "sha256": "57ca3a5a8a3895d3fa6b9a1a5bae58a6f06f088d9cfdc47bc022059a0b413aa0"
+    },
+    {
+      "record": "generation.continuationParts.part6.reference_order[0]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-6-start-reference.png",
+      "sha256": "aed4a85c78c42d0e2afd1745de9cba2ff156e0d9131db20c54c5a14c2ec67d51"
+    },
+    {
+      "record": "generation.continuationParts.part6.reference_order[1]",
+      "path": "design/mascot/astral-v2/astral-idle-master.png",
+      "sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b"
+    },
+    {
+      "record": "generation.continuationParts.part6.reference_order[2]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-5-generated.png",
+      "sha256": "d37bf59379d2d940f8fa3d26594d105209c47bf3287e3a37058ad0e96b7a5ec3"
+    },
+    {
+      "record": "generation.continuationParts.part6.reference_order[3]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/key-poses-generated.png",
+      "sha256": "a8d373eff9b274716b9aff7f1ad72776f9d8f6d83fc922ea0e8b8acf2b818249"
+    },
+    {
+      "record": "generation.continuationParts.part6.outputs[0]",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-6-generated.png",
+      "sha256": "ca21d3d40ba7ae04f3669b5e3b037127eb7f4d3ba3ea19473920d0d54395f349"
+    },
+    {
+      "record": "generation.continuationManifests.part2",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-2-generation.json",
+      "sha256": "511c4b16825b35c2b97e1b01d1bddb6d1dee27dbb4696a9aaf59e18998cd748a"
+    },
+    {
+      "record": "generation.continuationManifests.part3",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-3-generation.json",
+      "sha256": "3e03bbb5c1a7bab0a8c545154de651af8c9e8e31cfa37ca579581cdafd3698f2"
+    },
+    {
+      "record": "generation.continuationManifests.part4",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-4-generation.json",
+      "sha256": "dc1187955793d396721cff2c0821b463038793304663d28412f09adb4e7881c9"
+    },
+    {
+      "record": "generation.continuationManifests.part5",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-5-generation.json",
+      "sha256": "10bede879b7b4ca952281a0095751ea537bf6aa6b20fda59410e4127860ee6c3"
+    },
+    {
+      "record": "generation.continuationManifests.part6",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-6-generation.json",
+      "sha256": "cbae054e99446ef3e380b3e0b690606d0e7f8f83f59145987fb55f193876e428"
+    }
+  ],
+  "artifactSHA": {
+    "atlas.png": "75ba560f23cb61c2e32b5d00fe5d1dba0b66e5d670e4c2d8ef3088c7f03d1777",
+    "atlas.json": "be91c6c7a644d806e877ee2d3643f96d415baec05393860ae8e73feaec8bca3b",
+    "index.html": "a9e227232f64878e8d076ee479ce3ba89c43cf0c25aae1d1dcc66e443edc53cf",
+    "player-template.html": "259f416b4571a27f1ac029eab2c03c95abed666939f0aa1ce75d1d81b0313339"
+  }
+}

@@ -1,0 +1,16 @@
+Use case: identity-preserve
+Asset type: actual sequential hand-drawn raster animation sprite sheet, part 1 of Astral's launch greeting.
+Input image 1 is the CANONICAL identity master: exactly preserve its body proportions, dense frosted pearlescent icy silver-blue jelly-glass volume, two upright glowing WHITE oval eyes without pupils, tiny curled attached side paws and exactly three rounded bottom waves. Input image 2 is an eight-pose STORYBOARD ONLY: use only its first two poses to understand soft entry and settling; do not copy the waving/blinking poses. Canonical image 1 wins on character design.
+
+Create ONE SQUARE transparent PNG sprite sheet containing exactly SIXTEEN distinct sequential animation drawings in a STRICT 4 COLUMNS by 4 ROWS grid of equal SQUARE cells. Reading order left to right then next row. This is consecutive frames 0–15 at 24 UNIQUE DRAWINGS PER SECOND, covering ONLY the first 0.667 seconds of a four-second greeting. It is not the full greeting. Every cell is one complete isolated full-body Astral, same framing, same root center and eye proportions, extremely subtle genuine organic pose changes between neighboring drawings. Do not repeat static duplicates. No numbers, text, grid lines, labels, borders or background color.
+
+Motion choreography for these sixteen drawings:
+Frames 0–3, top row: soft incoming stretch, only 2–3 percent taller than neutral and correspondingly just slightly narrower. Tiny paws still attached and relaxed near the lower sides, barely lower than neutral. Gradually release that stretch across the row.
+Frames 4–7, second row: gently settle into a tiny soft squash, maximum 2 percent shorter than neutral, barely wider; no sudden jump at row boundary.
+Frames 8–11, third row: smoothly and gently recover to canonical neutral height without overshoot or bounce. Small bottom waves relax gradually; eyes remain constant open ovals.
+Frames 12–15, fourth row: settle into calm canonical neutral proportions, very small diminishing organic changes in lower waves and tiny side paws. Last drawing is neutral body proportions matching image 1, ready for later noticing-the-viewer segment.
+
+All sixteen drawings face front. There is NO greeting wave yet, NO lifted paw, NO body tilt, NO blink, NO dramatic squash, NO jump or scale zoom. Both little paws always rest close to and visibly connected to the torso, not independent floating spheres, no long arms, hands, fingers or palms. Exactly three rounded lower waves. Same soft studio light from upper left, same pearly highlights and inner milky volume across every drawing. Material must remain dense translucent frosted jelly-glass like canonical master, not a hollow clear-glass shell.
+
+Composition: use consistent centered framing in each cell, all bodies about 70–75 percent of square-cell height, substantial truly empty transparent gutters between all cells and outer margins; no limb, lower wave, head or glow touches any cell edge. Keep the tiny intended organic stretch and squash; avoid random body/eye scale changes or random lighting changes.
+True transparent alpha background only, preserve semitransparent silhouette edges, keep gutters empty. No checkerboard pattern, floor, cast shadows, scenery, logos, mouth, nose, internal core, pupils, blush, clothes, objects, extra particles, props or decorations.

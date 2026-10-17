@@ -1,0 +1,368 @@
+{
+  "schema_version": 1,
+  "created_date": "2026-10-17",
+  "scene": "Astral launch greeting",
+  "part": 3,
+  "status": "draft-unapproved",
+  "tool": "tools.image_gen__imagegen",
+  "tool_mode": "built-in",
+  "transparent_background": true,
+  "generation_call_count": 1,
+  "prompt_path": "design/mascot/astral-v2/animations/launch-greeting/prompt-part3.txt",
+  "prompt_sha256": "4cc6e647e856273dc62023abb8ac839dbeacc59dba2f45f48526f2803e9ce120",
+  "prompt_text": "Use case: stylized-concept\nAsset type: animation sprite sheet, Astral launch greeting, part 3 of 6.\nDraw exactly 16 genuinely successive, slightly different animation drawings: global frames 32–47, one drawing per 1/24 second. Continue immediately from actual frame 31. A small attached IMAGE-LEFT flipper is already raised beside the cheek. Perform the first friendly wave outward and back, then the outward half of the second wave. Do not lower the flipper or start over.\n\nInput images in exact order and roles:\n1. ACTUAL LAST POSE, frame31, highest-priority continuity reference for precise current geometry, face, raised small flipper position and light. Its 384px exported canvas is for proportion reference; do NOT copy its literal size into a 313.5px sheet cell.\n2. CANONICAL MASTER: identity, frosted material, face and anatomical vocabulary only. The current animation is rounder than this master: do not suddenly narrow or elongate the body to match it.\n3. PREVIOUS PART2 SHEET: authoritative current source-cell optical scale, rounded proportions, lighting and preceding movement. Continue its final drawing smoothly. At 1254px sheet size, keep body visible height around 265 SOURCE pixels, as in part2; no scale growth, no shrinking, no eye zoom.\n4. STORYBOARD: friendly small flipper wave gesture intent only. Do not copy its larger framing, pose sizes or blink.\n\nLayout: one square transparent PNG approximately 1254x1254, exactly 4 columns by 4 rows, 16 regular equal square cells. Chronological order left-to-right then top-to-bottom. Each cell contains the complete same spirit, consistently centered in a fixed frontal nearly orthographic camera. Leave generous genuinely empty transparent corridors around every sprite, especially the moving raised flipper: about 10% safe edge space where possible. Nothing cut off or crossing adjacent cells. Optical body volume and face scale stay constant. Keep horizontal and vertical positions consistent rather than changing row framing. This is a sequential animation, not 16 unrelated key poses, repeated holds or separate characters.\n\nMotion timeline, every adjacent drawing has only a very small change:\nRow1 frames32,33,34,35: 32 continues frame31 with image-left flipper close beside cheek. 33 begins a tiny outward wave, 34 a little farther, 35 almost the outward extreme.\nRow2 frames36,37,38,39: 36 is FIRST outward extreme; the flipper reaches just 15–20% of body width farther outward from its cheek-side position, through a short soft jelly connection, never a long arm. 37 begins returning, 38 a little nearer, 39 continues smoothly inward.\nRow3 frames40,41,42,43: 40 almost back, 41 the inward cheek-side extreme completing FIRST wave, 42 begins SECOND wave a little outward, 43 moves a little farther outward.\nRow4 frames44,45,46,47: a gradual continuous outward progression; 44 quarter-out, 45 half-out, 46 nearly out, 47 outward extreme of SECOND wave, ready to return on next sheet. Do not complete the second wave here.\nLet the body respond with a tiny organic lean no more than 3 degrees, with constant optical volume; three lower scallops follow very subtly with delay. The waving flap pivots and bends softly, not a detached ball translating in space. All 16 frames have both white oval eyes fully OPEN, steady eye size and separation. IMAGE-RIGHT small flipper stays low and close to the body throughout.\n\nCritical anatomy: EXACTLY TWO flippers total. The raised image-left flipper IS the same single left flipper: its old low location must NOT remain visible as a third appendage. Raised flipper has the same small rounded jelly size as the last pose, connected by a short soft frosted-glass bridge. NO third flipper, residual lower left hand, extra bulge, human arm, palm, fingers, long tube, detached sphere, or stretched hand. Exactly three softly rounded bottom scallops.\nStyle and identity: same soft domed icy silver-blue spirit, dense frosted pearl jelly-glass rather than a hollow shell; subtle lilac and cool blue edges; two glowing white vertical oval eyes, no pupils. Constant soft upper-left studio light and soft highlights, same calm friendly expression. No arbitrary brightness flicker, body widening, changing face or perspective.\nBackdrop: actual transparent alpha, semitransparent edges preserved. NO background or checkerboard, gridlines, text, labels, numbering, floor, cast shadow, particles, props, clothing, logos, mouth, nose, blush, pupils or inner core. Do not reproduce transparent-view artifacts from inputs. Only sixteen clean successive spirit drawings on transparency.\n",
+  "reference_order": [
+    {
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-3-start-reference.png",
+      "sha256": "24ba4e011e5726f337cfe3dd0bdc554ad526ae20adc3a1f977d0325ec5dd9256",
+      "role": "Actual preceding frame31, stable archived input: exact current geometry, raised image-left flipper and face; exported canvas does not define source cell size.",
+      "viewed_before_generation": true
+    },
+    {
+      "path": "design/mascot/astral-v2/astral-idle-master.png",
+      "sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b",
+      "role": "Canonical approved material, identity, face and anatomy only; no abrupt remapping to narrower master.",
+      "viewed_before_generation": true
+    },
+    {
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-2-generated.png",
+      "sha256": "6793bbfa9b4c0ab850af150c7aae5350a90623be8f78b77abfd8711b3d5c94b1",
+      "role": "Authoritative current source-cell scale, light, proportions and prior movement.",
+      "viewed_before_generation": true
+    },
+    {
+      "path": "design/mascot/astral-v2/animations/launch-greeting/key-poses-generated.png",
+      "sha256": "a8d373eff9b274716b9aff7f1ad72776f9d8f6d83fc922ea0e8b8acf2b818249",
+      "role": "Storyboard small friendly waving gesture intent only, not framing or timing.",
+      "viewed_before_generation": true
+    }
+  ],
+  "source_output_path": "/Users/pavel/.codex/generated_images/01a14897-8bd2-7be1-a415-23af43c9a508/exec-7d705e92-aea1-4ac3-9d40-4f76dbf7e75b.png",
+  "source_output_sha256": "bdecd97bfe8c0b064b0eb18caf06801d1554496a1cab55261f3a229bc655b644",
+  "source_output_path_historical_only": true,
+  "outputs": [
+    {
+      "path": "design/mascot/astral-v2/animations/launch-greeting/part-3-generated.png",
+      "sha256": "bdecd97bfe8c0b064b0eb18caf06801d1554496a1cab55261f3a229bc655b644",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "source_copy_byte_identical": true,
+      "grid_columns": 4,
+      "grid_rows": 4,
+      "nominal_cell_width": 313.5,
+      "nominal_cell_height": 313.5,
+      "alpha": {
+        "extrema": [
+          0,
+          255
+        ],
+        "zero_pixels": 604583,
+        "partial_pixels": 964320,
+        "opaque_pixels": 3613
+      },
+      "global_frame_indices": [
+        32,
+        47
+      ],
+      "intended_distinct_drawings": 16,
+      "nominal_cell_raw_pixel_hash_count": 16,
+      "fps": 24,
+      "intended_duration_seconds": 0.6666666666666666
+    }
+  ],
+  "review": {
+    "status": "draft-unapproved",
+    "visual_inspection_completed": true,
+    "observations": [
+      "The single raised image-left flipper pivots outward through the first row, returns during row2 and early row3, then turns outward again by frame47. Intended outward extrema at36 and47, inward phase at41 are recognizable.",
+      "Exactly two flippers observed, no extra lower image-left flipper or human hand. Raised flipper appears attached to the body.",
+      "Both white oval eyes stay open in all16 phases; no blink, lowering, pupils, nose, mouth or core observed.",
+      "Material, color and upper-left light remain recognizable; all16 nominal cells have distinct raw pixel hashes. Pixel uniqueness alone does not certify artistic motion quality."
+    ],
+    "limitations": [
+      "First nominal-cell alpha32 silhouette is247x254 source pixels against previous part final258x269: width -4.26%, height -5.58%. This introduces a visible seam risk31→32 despite the prompt targeting constant265px body height. Root should assess the packed seam before any final approval.",
+      "Nominal-cell alpha32 height ranges250–258 source pixels, below the265px target; width247–272px changes partly with the outward flipper. Constant optical body volume is not proven by bounding boxes.",
+      "Wave gesture is restrained and mostly a rotation/bend of the small flipper; exact15–20%-body-width outward travel and smoothness at24fps are not quantitatively proven.",
+      "Grid optical placement drifts by row; fourth-row top margin is12px within nominal equal cells. Uniform approximately10% gutters were not achieved; root packer must inspect whole-pose positioning and actual transparent corridors.",
+      "No raster repainting, deformation, interpolation, cleanup or per-frame eye/body scaling was applied. This is an unapproved design segment, not a finished96-frame clip or native integration."
+    ],
+    "diagnostics": {
+      "measurement": "alpha>=32 in rounded equal nominal cells; diagnostic rectangles only, not final packing crops",
+      "nominal_cells": [
+        {
+          "global_frame_index": 32,
+          "nominal_cell_rect": [
+            0,
+            0,
+            314,
+            314
+          ],
+          "alpha32_bbox_local": [
+            49,
+            46,
+            296,
+            300
+          ],
+          "alpha32_width": 247,
+          "alpha32_height": 254
+        },
+        {
+          "global_frame_index": 33,
+          "nominal_cell_rect": [
+            314,
+            0,
+            627,
+            314
+          ],
+          "alpha32_bbox_local": [
+            43,
+            47,
+            295,
+            300
+          ],
+          "alpha32_width": 252,
+          "alpha32_height": 253
+        },
+        {
+          "global_frame_index": 34,
+          "nominal_cell_rect": [
+            627,
+            0,
+            940,
+            314
+          ],
+          "alpha32_bbox_local": [
+            29,
+            46,
+            289,
+            300
+          ],
+          "alpha32_width": 260,
+          "alpha32_height": 254
+        },
+        {
+          "global_frame_index": 35,
+          "nominal_cell_rect": [
+            940,
+            0,
+            1254,
+            314
+          ],
+          "alpha32_bbox_local": [
+            26,
+            46,
+            288,
+            300
+          ],
+          "alpha32_width": 262,
+          "alpha32_height": 254
+        },
+        {
+          "global_frame_index": 36,
+          "nominal_cell_rect": [
+            0,
+            314,
+            314,
+            627
+          ],
+          "alpha32_bbox_local": [
+            31,
+            42,
+            301,
+            292
+          ],
+          "alpha32_width": 270,
+          "alpha32_height": 250
+        },
+        {
+          "global_frame_index": 37,
+          "nominal_cell_rect": [
+            314,
+            314,
+            627,
+            627
+          ],
+          "alpha32_bbox_local": [
+            39,
+            42,
+            299,
+            293
+          ],
+          "alpha32_width": 260,
+          "alpha32_height": 251
+        },
+        {
+          "global_frame_index": 38,
+          "nominal_cell_rect": [
+            627,
+            314,
+            940,
+            627
+          ],
+          "alpha32_bbox_local": [
+            35,
+            42,
+            297,
+            294
+          ],
+          "alpha32_width": 262,
+          "alpha32_height": 252
+        },
+        {
+          "global_frame_index": 39,
+          "nominal_cell_rect": [
+            940,
+            314,
+            1254,
+            627
+          ],
+          "alpha32_bbox_local": [
+            39,
+            43,
+            295,
+            295
+          ],
+          "alpha32_width": 256,
+          "alpha32_height": 252
+        },
+        {
+          "global_frame_index": 40,
+          "nominal_cell_rect": [
+            0,
+            627,
+            314,
+            940
+          ],
+          "alpha32_bbox_local": [
+            47,
+            28,
+            303,
+            284
+          ],
+          "alpha32_width": 256,
+          "alpha32_height": 256
+        },
+        {
+          "global_frame_index": 41,
+          "nominal_cell_rect": [
+            314,
+            627,
+            627,
+            940
+          ],
+          "alpha32_bbox_local": [
+            43,
+            28,
+            297,
+            284
+          ],
+          "alpha32_width": 254,
+          "alpha32_height": 256
+        },
+        {
+          "global_frame_index": 42,
+          "nominal_cell_rect": [
+            627,
+            627,
+            940,
+            940
+          ],
+          "alpha32_bbox_local": [
+            37,
+            28,
+            296,
+            284
+          ],
+          "alpha32_width": 259,
+          "alpha32_height": 256
+        },
+        {
+          "global_frame_index": 43,
+          "nominal_cell_rect": [
+            940,
+            627,
+            1254,
+            940
+          ],
+          "alpha32_bbox_local": [
+            32,
+            28,
+            296,
+            283
+          ],
+          "alpha32_width": 264,
+          "alpha32_height": 255
+        },
+        {
+          "global_frame_index": 44,
+          "nominal_cell_rect": [
+            0,
+            940,
+            314,
+            1254
+          ],
+          "alpha32_bbox_local": [
+            40,
+            12,
+            306,
+            270
+          ],
+          "alpha32_width": 266,
+          "alpha32_height": 258
+        },
+        {
+          "global_frame_index": 45,
+          "nominal_cell_rect": [
+            314,
+            940,
+            627,
+            1254
+          ],
+          "alpha32_bbox_local": [
+            35,
+            12,
+            301,
+            270
+          ],
+          "alpha32_width": 266,
+          "alpha32_height": 258
+        },
+        {
+          "global_frame_index": 46,
+          "nominal_cell_rect": [
+            627,
+            940,
+            940,
+            1254
+          ],
+          "alpha32_bbox_local": [
+            30,
+            12,
+            300,
+            270
+          ],
+          "alpha32_width": 270,
+          "alpha32_height": 258
+        },
+        {
+          "global_frame_index": 47,
+          "nominal_cell_rect": [
+            940,
+            940,
+            1254,
+            1254
+          ],
+          "alpha32_bbox_local": [
+            25,
+            12,
+            297,
+            270
+          ],
+          "alpha32_width": 272,
+          "alpha32_height": 258
+        }
+      ]
+    }
+  }
+}

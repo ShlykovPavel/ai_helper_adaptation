@@ -1,0 +1,22 @@
+Use case: stylized-concept
+Asset type: Astral launch greeting, sequential animation sprite sheet, part 4 of 6.
+Primary request: Draw exactly16 genuinely successive slightly different animation phases, global frames48–63 at24 distinct drawings/second. Continue actual frame47 without a reset: the small IMAGE-LEFT flipper is raised outward at the second wave's outermost phase. Finish returning from SECOND wave, then perform THIRD friendly wave with slightly smaller amplitude, ending raised beside the cheek. No lowering or blink yet.
+
+Input images in exact order and roles:
+1. ACTUAL LAST POSE frame47: highest priority for precise starting geometry, current body proportions, face, light and outward raised flipper. Its384px exported canvas shows proportions, not literal size to reproduce inside a313.5px sheet cell.
+2. CANONICAL MASTER: reference for approved dense frosted pearl material, face and anatomy only. Current animation is rounder than this master: no abrupt narrowing, elongation, new expression or altered eyes.
+3. PREVIOUS PART3 source sheet: authoritative current source-cell optical size, lighting and movement. Match its final pose and source scale, keeping visible body height around250–258 SOURCE pixels on a1254px sheet. Do not grow to fill cells or shrink at the seam. Maintain optical volume, eye size and eye separation.
+4. STORYBOARD: small attached flipper waving gesture intent only, not large framing, sizes, timeline, blink or final idle.
+
+Layout: one square PNG about1254x1254; strict regular4 columns x4 rows with exactly16 equal square cells in chronological row-major order. Fixed nearly orthographic frontal camera. One complete spirit per cell with consistent optical centering and stable framing. Preserve genuinely transparent corridors and generous safe margins especially beyond raised flipper tips. No cropped sprite, touching neighbors or changing framing at row boundaries. Every phase is a small genuine in-between, not separate key poses, repeated holds or unrelated variations.
+
+Precise timeline:
+Row1 frames48,49,50,51: 48 starts almost identical to outward frame47, only beginning the inward return. 49 a little nearer, 50 halfway inward, 51 nearly beside cheek. Keep changes tiny and continuous.
+Row2 frames52,53,54,55: 52 reaches cheek-side inner phase, completing SECOND wave. 53 starts THIRD wave very slightly outward, 54 a little farther, 55 halfway outward.
+Row3 frames56,57,58,59: 56 nearly outward, 57 THIRD wave outermost phase with slightly less amplitude than previous wave. 58 begins inward, 59 a little nearer the cheek.
+Row4 frames60,61,62,63: 60 continues inward, 61 almost home, 62 reaches cheek, 63 remains raised beside cheek with a tiny settling bend, ready to lower on the next sheet. Do not start lowering, do not add a fourth wave.
+The small flipper rotates and softly bends through a short jelly attachment, never becomes a ball flying or a long arm. Body gives a subtle responsive organic lean up to3 degrees, lower scallops gently lag; preserve volume and face scale. All16 drawings keep both white oval eyes OPEN. IMAGE-RIGHT flipper stays low and close to the body. Friendly calm attention, no exaggerated bounce.
+
+Critical anatomy: exactly TWO small attached flippers total. Raised IMAGE-LEFT flipper IS the same single left appendage, its old low position must NOT remain as an extra third flap. Same small rounded flipper size through the gesture, connected by a short soft frosted-glass bridge. No human hand, palm, fingers, long arm or tube, extra bulge, detached sphere, extra lower left hand. Exactly three soft rounded bottom scallops. Soft domed head, two glowing white vertical oval eyes, no pupils.
+Material and light: same dense frosted pearl icy silver-blue jelly-glass body, subtle lilac and cool blue edges, recognizable on light and dark backgrounds; constant soft upper-left studio light, smooth subdued highlights. No hollow shell, random light flicker, body widening or eye zoom.
+Backdrop: actual transparent alpha with semitransparent edges preserved. No background, checkerboard pattern, gridlines, frame labels, text, numbering, watermark, floor, cast shadow, particles, props, clothing, logos, mouth, nose, blush or inner core. Do not reproduce transparency-display artifacts from references. Only16 successive clean spirit drawings on transparency.

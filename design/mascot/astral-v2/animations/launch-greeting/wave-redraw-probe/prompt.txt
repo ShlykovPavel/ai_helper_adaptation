@@ -1,0 +1,29 @@
+Use case: identity-preserve
+Asset type: transparent RGBA4x4 sprite sheet; precise motion correction to an existing16-frame greeting study.
+Input image1: EDIT TARGET, candidate A sprite sheet. Preserve its4x4 equal-cell layout and all16 body drawings, body dimensions/placement, eye position, material, lighting, image-right resting flipper and three bottom scallops. Edit ONLY the pose sequence of the image-left flipper.
+Input image2: canonical Astral identity reference. Preserve its icy silver-blue pearlescent frosted glass ghost identity, two glowing white open oval eyes and small soft attached flipper anatomy. No redesign.
+
+Primary correction: remove the abrupt horizontal flattening of the left flipper in frame6 (second row, third cell), and make the lifted flipper move through one simple smooth, deliberate outward-and-back arc. Frame6 must be an intermediate diagonal between5 and7, never a90-degree horizontal pancake. On ALL raised frames2-11 the flipper remains a recognizable mostly upright soft rounded flipper, similar length, thickness and volume. Avoid horizontal orientations, shrinking blobs, shape popping, repeated wrist flicks, detached spheres or human hands.
+
+Fixed shoulder root: the image-left flipper has ONE short soft connection fixed at the SAME point on the left shoulder below and to the left of the left eye throughout the motion. The attachment must not crawl up the cheek. Rotate the entire flipper at that stable attachment; its rounded tip traces an arc. The upper part of the raised flipper projects outside the head silhouette, its tip at eye level, with a visible transparent wedge separating its upper inner edge from the head while its short base remains attached. Preserve roughly canonical small flipper size, no long arm, no fingers.
+
+Exact chronological action, one drawing per cell, left-to-right then top-to-bottom:
+0: calm idle as in target.
+1: smooth preparation, slightly rotate left flipper up.
+2: lift halfway; flipper already upright, do not flatten horizontally.
+3: lift higher beside head.
+4: fully raised beside cheek, long axis VERTICAL, tip above the bottom of eyes.
+5: from the SAME shoulder root tilt10degrees outward (toward image-left) from vertical.
+6: tilt20degrees outward from vertical, a smooth intermediate diagonal, NOT horizontal.
+7: outer extreme tilt30degrees outward from vertical, slow into the ONLY wave direction reversal.
+8: return along SAME arc to20degrees outward from vertical.
+9: return to10degrees outward from vertical.
+10: return to VERTICAL beside cheek, inner extreme.
+11: brief still raised vertical hold, no additional outward flick.
+12: begin smoothly lowering.
+13: lower halfway.
+14: almost back to calm resting flipper.
+15: calm resting flipper matching frame0.
+
+Keep ALL other artwork unchanged from edit target: front orthographic camera, tall domed body, scale, position, eyes OPEN throughout, no blink, no body lean/squash/bounce, exactly two flippers and three lower scallops, same soft upper-left light and translucent silver-blue glass. Do not add mouth, nose, pupils, core, logo, text, numbers, arrows, motion lines, borders or watermark.
+Keep output1254x1254, strict4columns×4rows with16complete cells, generous actual transparent gutters. Preserve true transparent alpha and soft existing edges, no painted checkerboard or opaque background. No artwork crossing cell boundaries. This is one16-frame lift–single outward/return wave–lower action, not repeated waves.

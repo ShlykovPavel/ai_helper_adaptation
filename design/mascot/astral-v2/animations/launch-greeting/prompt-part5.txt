@@ -1,0 +1,22 @@
+Use case: stylized-concept
+Asset type: Astral launch greeting, sequential animation sprite sheet, part5 of6.
+Primary request: exactly16 genuinely successive small animation phases, global frames64–79 at24 distinct drawings/second. Continue actual frame63 without a reset. Gently lower the SAME small IMAGE-LEFT flipper from beside the cheek to its normal low side position, make exactly ONE short blink in frames71–73, then settle in neutral frontal pose. No more waving.
+
+Input images in exact order and roles:
+1. ACTUAL LAST POSE frame63: highest priority for precise starting shape, proportions, raised flipper, eye size and light. Its384px exported canvas is for proportions, not literal size inside a313.5px source cell.
+2. CANONICAL MASTER: identity, dense frosted pearl material, face and anatomy only. Current animation is rounder than this master: no abrupt narrowing or elongation to master at the boundary. Preserve the current shape smoothly.
+3. PREVIOUS PART4 source sheet: authoritative current source-cell optical size, lighting and body proportions. Keep visible body height about252–256 SOURCE pixels on a1254px sheet, no growth or shrinking; steady face scale and eye separation.
+4. STORYBOARD: intended lowering flipper and single blink gesture only, not framing, large scale, timing or different proportions.
+
+Layout: one square PNG about1254x1254, strict regular4 columns x4 rows, exactly16 equal square cells. One complete spirit per cell, chronological left-to-right then top-to-bottom. Stable consistent optical centering in a fixed frontal nearly orthographic camera. Truly transparent corridors and generous empty margins, no cropping or touching neighboring cells. Keep equal optical size throughout, especially at row boundaries. Sixteen genuinely distinct tiny in-betweens, not unrelated key poses or duplicated holds.
+
+Row and frame choreography (blink timing is exact):
+ROW1 = frames64,65,66,67. 64 almost continues the final raised flipper of63. 65 a tiny descent,66 a little lower,67 modestly lower along the side. Both eyes stay fully open.
+ROW2 = frames68,69,70,71.68 lowers gently farther,69 almost home,70 reaches nearly normal low position; these three have fully open white oval eyes.71 BEGINNING of the ONLY blink: both eyes a little vertically narrowed but still open. Flipper is already near its normal low side position. No closing eyes earlier than71.
+ROW3 = frames72,73,74,75.72 ONLY fully closed frame: replace BOTH oval eyes with two SHORT white curved arcs, no extra oval eyes behind them.73 both eyes reopening to small open ovals.74 normal fully open white vertical oval eyes again.75 fully open normal eyes. No additional blink. Both flippers are now at their usual low positions.
+ROW4 = frames76,77,78,79. BOTH eyes fully OPEN normal white vertical ovals in every drawing. Both flippers stay low and close to body. Very subtle delayed movement of the three bottom scallops gradually decays; calm neutral frontal spirit by79, prepared for final settling next sheet. No hand raising, no new wave, no closed eyes.
+
+Single-flipper continuity: raised image-left flipper travels DOWNWARD gradually through64–70 as one continuous small attached appendage. It does not teleport or leave behind another flap. EXACTLY TWO flippers total in every drawing. Old low IMAGE-LEFT location stays absent until the same lowered flipper arrives there; never draw a third lower remnant. Flippers remain small, attached through short soft jelly bases, no human hand, fingers, palm, long arm, tubular limb or detached sphere. IMAGE-RIGHT flipper remains low throughout. Exactly three softly rounded lower scallops. Body softly straightens with little responsive motion but no size drift, bouncing, sudden squash or eye zoom.
+
+Identity/style: same soft domed dense frosted pearl icy silver-blue jelly-glass spirit, subtle lilac and cool blue edges, two glowing white vertical oval eyes except the one explicitly timed blink. NO pupils, mouth, nose, blush, inner core or new face. Upper-left soft studio light remains constant; same smooth highlights, no brightness flicker, transparent hollow shell or changing texture. Friendly and relaxed.
+Backdrop: real transparent alpha, semitransparent edges preserved. No background or checkerboard, gridlines, labels, numbering, text, watermark, floor, cast shadow, particles, props, costume or logos. Do not reproduce transparent-view display artifacts. Only the16 clean successive character drawings on transparency.

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Astral · Приветствие</title>
+<style>
+:root{color-scheme:dark;font:15px/1.55 system-ui,-apple-system,sans-serif;color:#e9edf6;background:#10131d}
+*{box-sizing:border-box}body{margin:0}main{max-width:1040px;margin:auto;padding:48px 24px 72px}header{margin-bottom:28px}.eyebrow{color:#9aadd8;font-size:12px;letter-spacing:.16em;text-transform:uppercase}h1{font-size:clamp(28px,5vw,44px);letter-spacing:-.035em;font-weight:580;margin:8px 0}p{margin:8px 0;color:#aab4ca}.badge{display:inline-block;border:1px solid #39405b;border-radius:99px;padding:3px 10px;color:#c8cce8;font-size:12px}.panel{border:1px solid #30374c;border-radius:22px;overflow:hidden;background:#181d2c}.stage{min-height:430px;display:grid;place-items:center;transition:background-color .12s}.dark{background:#090c14}.light{background:#edf0f5}.color{background:#344c70}.checker{background-color:#c1c8d1;background-image:conic-gradient(#e7eaf0 25%,transparent 0 50%,#e7eaf0 0 75%,transparent 0);background-size:28px 28px}.sprite{width:384px;height:384px;max-width:100%;background-repeat:no-repeat;flex:none}.controls{padding:20px 22px;display:grid;gap:14px}.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}button,select{border:1px solid #414b66;border-radius:10px;background:#252e44;color:inherit;padding:9px 13px;font:inherit;cursor:pointer}button:hover{background:#34415e}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #a7baff;outline-offset:3px}button.primary{background:#b9caff;color:#18223b;border-color:#b9caff}label{font-size:13px;color:#bdc6db}select{padding:7px 10px}input[type=range]{width:100%;accent-color:#bbcaff;cursor:pointer}.time{font-variant-numeric:tabular-nums;color:#b7c3dd;font-size:13px;margin-left:auto}.footnote{font-size:12px;color:#8591ac}.sizes{display:flex;gap:24px;margin:22px 0}.size-card{flex:1;border:1px solid #30374c;border-radius:16px;padding:16px}.actual{height:94px;display:flex;align-items:center;justify-content:center;border-radius:10px;margin:12px 0}.size-card p{font-size:12px}.size-card .sprite{max-width:none}details{margin-top:24px;border-top:1px solid #30374c;padding-top:20px}summary{cursor:pointer;color:#c8d4ed}#storyboard{display:block;width:100%;height:auto;margin-top:18px;border-radius:14px}#storyboard-note{font-size:13px}a{color:#b9caff}footer{margin-top:26px;color:#77839e;font-size:12px}@media(max-width:540px){main{padding:28px 14px}.stage{min-height:340px}.stage .sprite{transform:scale(.82)}.sizes{gap:12px}.controls{padding:15px}.time{margin-left:0;width:100%}}
+</style>
+<main>
+  <header><span class="eyebrow">Astral · Animation study</span><h1>Тихое «привет»</h1><span class="badge" id="badge">Дизайн-проба</span><p id="status"></p><p>Дизайн-проба; не подключена к приложению.</p></header>
+  <section class="panel" aria-label="Покадровое приветствие">
+    <div class="stage dark background"><div class="sprite" data-size="384" role="img" aria-label="Текущий рисунок Astral"></div></div>
+    <div class="controls">
+      <div class="row"><button class="primary" id="play">▶ Играть</button><button id="restart">↺ Сначала</button><button id="back" aria-label="Предыдущий кадр">← Кадр</button><button id="forward" aria-label="Следующий кадр">Кадр →</button><output class="time" id="position"></output></div>
+      <input id="seek" type="range" min="0" value="0" step="1" aria-label="Позиция в сценке">
+      <div class="row"><label for="speed">Скорость</label><select id="speed"><option value="0.25">0,25×</option><option value="0.5">0,5×</option><option value="1" selected>1×</option></select><label for="background">Фон</label><select id="background"><option value="dark">Тёмный</option><option value="light">Светлый</option><option value="color">Цветной</option><option value="checker">Шахматный</option></select></div>
+      <div class="footnote">24 настоящих рисунка/с · без звука · один проход · остановка на последнем кадре</div>
+    </div>
+  </section>
+  <div class="sizes">
+    <section class="size-card"><label>26 px · реальный размер</label><div class="actual dark background"><div class="sprite" data-size="26" role="img" aria-label="Astral в размере 26 пикселей"></div></div><p>Слот в компактном интерфейсе</p></section>
+    <section class="size-card"><label>64 px · реальный размер</label><div class="actual dark background"><div class="sprite" data-size="64" role="img" aria-label="Astral в размере 64 пикселя"></div></div><p>Увеличенный интерфейсный слот</p></section>
+  </div>
+  <details open><summary>Статичная раскадровка · ключевые позы</summary><p id="storyboard-note">Это план сценки. Изображение не участвует в проигрывании.</p><img id="storyboard" src="key-poses-generated.png" alt="Статичная раскадровка приветствия Astral" loading="lazy"></details>
+  <footer>PNG-рисунки показаны последовательно, без смешивания соседних кадров. Размеры 26 и 64 px указаны в CSS-пикселях; масштаб страницы влияет на физический размер.</footer>
+</main>
+<script>
+'use strict';
+const meta=__GREETING_METADATA__;
+const $=id=>document.getElementById(id), sprites=[...document.querySelectorAll('.sprite')];
+const count=meta.uniqueDrawings, fps=meta.displayFps, endMs=meta.availableDurationMs;
+const seconds=value=>(value/1000).toLocaleString('ru-RU',{maximumFractionDigits:3});
+$('status').textContent=count===meta.targetUniqueDrawings?`Вся сценка: ${count} разных кадров, ${seconds(endMs)} с.`:`Начало сценки: ${count} / ${meta.targetUniqueDrawings} кадров, ${seconds(endMs)} с из 4 с.`;
+$('badge').textContent=meta.status==='partial'?'Начало сценки · частичный результат':'Все 96 кадров · дизайн-проба';
+$('seek').max=String(count-1);
+for(const sprite of sprites){const size=Number(sprite.dataset.size);sprite.style.width=`${size}px`;sprite.style.height=`${size}px`;sprite.style.backgroundImage=`url("${meta.atlas}")`;sprite.style.backgroundSize=`${meta.atlasSizePx[0]*size/meta.frameSizePx[0]}px ${meta.atlasSizePx[1]*size/meta.frameSizePx[1]}px`;}
+let current=0,playing=false,cursorMs=0,lastNow=0,animationId=null;
+function draw(index){current=Math.max(0,Math.min(count-1,index));const rect=meta.frames[current].atlasRect;for(const sprite of sprites){const scale=Number(sprite.dataset.size)/meta.frameSizePx[0];sprite.style.backgroundPosition=`${-rect[0]*scale}px ${-rect[1]*scale}px`;}$('seek').value=String(current);$('position').textContent=`Кадр ${current+1} / ${count} · ${seconds(current*1000/fps)} / ${seconds(endMs)} с`;}
+function controls(){ $('play').textContent=playing?'Ⅱ Пауза':'▶ Играть';$('play').setAttribute('aria-pressed',String(playing)); }
+function pause(){playing=false;if(animationId!==null)cancelAnimationFrame(animationId);animationId=null;controls();}
+function tick(now){if(!playing)return;cursorMs+=Math.max(0,now-lastNow)*Number($('speed').value);lastNow=now;if(cursorMs>=endMs){cursorMs=endMs;draw(count-1);pause();return;}draw(Math.floor(cursorMs*fps/1000));animationId=requestAnimationFrame(tick);}
+function play(){if(playing){pause();return;}if(cursorMs>=endMs){cursorMs=0;draw(0);}playing=true;lastNow=performance.now();controls();animationId=requestAnimationFrame(tick);}
+function seek(index){pause();draw(index);cursorMs=current*1000/fps;}
+$('play').addEventListener('click',play);
+$('restart').addEventListener('click',()=>{pause();cursorMs=0;draw(0);play();});
+$('back').addEventListener('click',()=>seek(current-1));$('forward').addEventListener('click',()=>seek(current+1));
+$('seek').addEventListener('input',event=>seek(Number(event.target.value)));
+$('speed').addEventListener('change',()=>{lastNow=performance.now();});
+$('background').addEventListener('change',event=>{for(const stage of document.querySelectorAll('.background')){stage.classList.remove('dark','light','color','checker');stage.classList.add(event.target.value);}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
+$('storyboard').addEventListener('error',()=>{$('storyboard').hidden=true;$('storyboard').style.display='none';$('storyboard-note').textContent='Статичная раскадровка ещё не сохранена. Проигрывание доступных рисунков работает независимо.';});
+draw(0);controls();
+</script>
+</html>

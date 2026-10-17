@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "created_on": "2026-10-17",
+  "tool": "built-in image_gen.imagegen",
+  "status": "candidate-unapproved-motion-needs-review",
+  "asset_type": "single-wave-motion-study",
+  "prompt_path": "design/mascot/astral-v2/animations/launch-greeting/wave-redraw-probe/prompt-candidate-a.txt",
+  "prompt_sha256": "2ebbb9660db6b8dbafa77813f095de5738563cc7da86949738b572b4232ebf64",
+  "references": [
+    {
+      "order": 1,
+      "role": "canonical identity, material and proportions reference; not a motion reference",
+      "path": "design/mascot/astral-v2/astral-idle-master.png",
+      "sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b"
+    }
+  ],
+  "intended_layout": {
+    "columns": 4,
+    "rows": 4,
+    "drawings": 16,
+    "requested_size": [
+      1254,
+      1254
+    ]
+  },
+  "intended_playback": {
+    "unique_drawings_per_second": 12,
+    "duration_seconds": 1.3333333333333333,
+    "one_shot": true,
+    "audio": false
+  },
+  "constraints": [
+    "old 96-frame draft preserved",
+    "no native integration",
+    "no claim of final24fps scene",
+    "one generation then review before correction"
+  ],
+  "source_output_path": "/Users/pavel/.codex/generated_images/01a14aac-15ee-7a21-8f02-a290c63d2ff8/exec-706e79dd-1b4e-4cc7-bb18-092a98cec5e7.png",
+  "output": {
+    "path": "design/mascot/astral-v2/animations/launch-greeting/wave-redraw-probe/wave-candidate-a.png",
+    "sha256": "4589701c3c015128767c703095beaeaa6624f3666fcfe9ecd1e4a228d00ae205",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "alpha_diagnostics": {
+    "minimum": 0,
+    "maximum": 255,
+    "zero_pixels": 360952,
+    "soft_pixels": 1207933,
+    "opaque_pixels": 3631
+  },
+  "visual_review": {
+    "method": "view_image of copied original 1254x1254 RGBA source, plus alpha diagnostics; no playback yet",
+    "improvements": [
+      "The image-left flipper rises clearly beside the eyes instead of staying low across the torso.",
+      "There are 16 chronological cells with a lift, outward/return section, and lowered ending; both eyes remain open, two flippers and three lower scallops are visible.",
+      "Canonical taller body proportions are closer than the wider previous greeting sheets."
+    ],
+    "limitations": [
+      "Frames5-7 change flipper silhouette from tilted to horizontal to upright; the wrist/endpoint trajectory is not a confidently clean single arc and may still twitch in playback.",
+      "The raised flipper remains substantially over the body edge, with only limited transparent separation; silhouette clarity at64px is not established.",
+      "Shoulder attachment appears to migrate upward during the lift rather than staying strictly fixed.",
+      "Body and eye drawing/lighting change slightly across cells; identity stability and actual motion must be judged after common-scale slicing and playback.",
+      "Near-transparent background RGB noise is visually conspicuous in raw viewing, but exact internal gutter alpha maxima are only1-2; do not erase alpha or infer visible painted background without compositing."
+    ],
+    "accepted": false
+  },
+  "root_review": {
+    "accepted": false,
+    "reason": "Frames5→6→7 abruptly turn horizontal then upright, reproducing the unwanted twitch. Raised flipper must remain vertical/diagonal and turn once."
+  }
+}

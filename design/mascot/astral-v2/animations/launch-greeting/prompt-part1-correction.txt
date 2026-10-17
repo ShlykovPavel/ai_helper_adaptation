@@ -1,0 +1,16 @@
+Use case: identity-preserve
+Asset type: corrective edit of a sixteen-frame animation sprite sheet.
+Input image 1 is the EDIT TARGET, the original 4x4 sheet. Its final frames became much too wide and round and the settling squash was much too strong. Input image 2 is the CANONICAL IDENTITY MASTER and overrides the target on all body proportions, face, paw design, material and light.
+
+CORRECT ONLY THESE ERRORS across all SIXTEEN sequential drawings: replace the overly wide and squashed bodies with the master's narrow, tall silhouette. Master measured full visible width/height is about 0.784 (734:936). Every frame must keep width/height close to 0.784, within TWO PERCENT. Neutral must look like the actual master, not the round target. Same fixed camera and constant neutral body size across every cell. Do not stretch the face, eye ovals or paws.
+
+Preserve a real gentle sequential movement; do NOT make sixteen static identical copies. Reading order left-to-right row-by-row, consecutive frames 0–15 at 24 unique drawings per second:
+Top row, frames 0–3: ONLY a subtle two-percent vertical stretch relaxing gradually toward neutral; tiny tucked attached paws slightly lower.
+Second row, frames 4–7: ONLY a very small settling squash, never over two percent; keep the character slender and tall, do not broaden to a ball.
+Third row, frames 8–11: gentle restoration of canonical neutral proportions, no overshoot or bounce.
+Fourth row, frames 12–15: neutral canonical tall/narrow body with tiny real diminishing redraws in the three lower waves and small paws.
+All sixteen drawings have two OPEN glowing WHITE vertical oval eyes without pupils, same eye width/height and spacing. NO blink, NO lifted greeting paw, NO waving, NO body tilt yet. Both tiny curled jelly paws remain tucked close and visibly connected to the body; no floating balls, no long arms, palms, fingers or human hands. Exactly three rounded bottom scallops.
+
+Layout: ONE SQUARE PNG, strict FOUR COLUMNS by FOUR ROWS, sixteen equal square cells. Keep each drawing centered in its cell using exactly the same camera and framing, body height about 75 percent of cell height, generous truly transparent outer margins and deep empty corridors between every row and column. No head, paw, scallop or glow touches or crosses a cell boundary. No text, numbers, labels or visible grid.
+
+Style invariants: dense frosted pearlescent icy silver-blue jelly-glass, substantial milky inner body volume matching master, faint lilac/blue edge reflections, soft upper-left studio light fixed in every frame, same frontal near-orthographic camera. Keep the master character's identity exactly; this is pose correction, not redesign. No transparent empty hollow glass shell, mouth, nose, internal core, pupils, blush, logos, clothes, props, extra particles, floor, ground shadows, checkerboard texture or colored background. True transparent alpha background.

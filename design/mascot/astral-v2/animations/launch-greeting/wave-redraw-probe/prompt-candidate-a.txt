@@ -1,0 +1,29 @@
+Use case: stylized-concept
+Asset type: transparent RGBA sprite sheet, a SHORT MOTION STUDY of ONE clear greeting wave by the supplied Astral mascot.
+Input image 1: canonical identity/material/proportions reference only, NOT a motion sheet. Preserve this exact icy silver-blue frosted pearlescent glass ghost, tall softly domed body, exactly two glowing white vertical oval eyes, exactly two small attached soft flippers, and exactly three rounded lower scallops.
+
+Primary request: draw 16 genuinely consecutive animation drawings, arranged as a strict 4 columns by 4 rows equal-cell sprite sheet on a truly transparent square 1254x1254 canvas. Read chronologically left to right, top to bottom, frames 0 through 15. This is ONE lift, ONE outward-and-return wave, ONE lowering. The movement must be readable as hello at a 64px display size. Do not merely wobble or morph a low oval hand in front of the torso. The image-left flipper is visibly raised beside the face and travels through one deliberate arc. The image-right flipper remains completely relaxed in the canonical position throughout.
+
+Character invariants: keep frontal nearly orthographic camera, identical tall canonical body proportions, body scale, center, face position, two OPEN white oval eyes, soft upper-left studio light, silver-blue material and three lower scallops across every cell. Body does NOT squash, stretch, lean, bounce, rotate, blink, drift or brighten. The identity and slender body proportions must match reference 1; do not make a wider round ghost. No mouth, nose, dark pupils, internal core, blush, logos, props or sound symbols.
+
+Flipper mechanics: one small thick rounded translucent flipper with a short soft attachment at the image-left shoulder. Keep its shoulder root stable and its length, thickness and volume consistent. Raise and rotate the whole flipper as an attached limb; do not inflate, split, flatten it into an ellipse, detach it, or replace it with a floating ball. No fingers or human palm. In the raised pose the rounded tip is above the lower edge of the eyes, beside the upper half of the face. The flipper projects beyond the left body silhouette with a clearly visible transparent wedge between its upper inner edge and the cheek, while its short shoulder connection stays attached. The outward and inward extremes should differ enough to read at 64px. The raised flipper remains around canonical flipper length, not a long human arm. Only one purposeful change of wave direction at the outward extreme; no extra twitching or repeated waves.
+
+Exact chronology, each cell one actual new drawing:
+0: canonical calm idle, both flippers relaxed low, open eyes.
+1: slight preparation of image-left flipper, body still.
+2: lift image-left flipper halfway up beside body.
+3: lift farther, the flipper clears the side silhouette.
+4: fully raised near cheek, rounded tip above bottom of eyes; short shoulder connection visible.
+5: move raised flipper along one smooth arc outward, away from cheek.
+6: continue along same arc farther outward.
+7: outer extreme, a confident clear hello silhouette; slow into the turn, do not detach.
+8: return along that SAME arc partway toward cheek.
+9: continue inward toward cheek.
+10: inner extreme near cheek, still fully raised and silhouette clear.
+11: brief raised settle, almost same pose with tiny follow-through, no fresh outward swing.
+12: start lowering flipper along a smooth direct path.
+13: lower halfway, no second wave.
+14: nearly relaxed canonical position.
+15: calm canonical idle again, both flippers relaxed, eyes open.
+
+Sheet layout: exactly 16 complete same-size characters, one centered consistently within each equal square cell, generous fully transparent gutters and margins. Keep the raised flipper, soft glow and all three lower scallops inside its own cell. All drawings fully visible. Each cell has same body height approximately 230-245 px and fixed body center; no zooming. Actual transparent alpha background, no painted checkerboard, no solid background, no drop shadow, no cell borders, text, numbers, arrows, motion lines, captions or watermark. This is a clean production sprite sheet, not a contact sheet mockup. Ensure the four rows are a single ordered action, not four repeated miniature waves.

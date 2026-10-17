@@ -1,0 +1,18 @@
+Use case: identity-preserve
+Asset type: raster key-pose contact sheet for Astral mascot launch greeting animation, exploratory production artwork.
+Input image 1: canonical approved Astral ghost identity reference. Match it closely in every cell: same dome shape, icy silver-blue dense frosted pearlescent jelly-glass material, two glowing white upright oval eyes without pupils, exactly three rounded lower waves, two small attached side paws, same soft upper-left studio light and frontal near-orthographic camera.
+
+Create ONE transparent PNG sheet, wide 2:1 canvas, strict FOUR COLUMNS by TWO ROWS, eight equal SQUARE cells. Reading order left to right across the top row, then left to right across bottom row. Exactly one full Astral in each cell. No borders, grid lines, labels, digits, text or background. Leave generous genuinely transparent gutters all around each full character so no paw, lower wave, glow or head is clipped. The character fills around 65–70 percent of the height of each square cell. Keep the neutral body size, eye size and root position consistent across cells: only the small pose changes below. Do not create a lineup with overlapping characters.
+
+The eight distinct key poses in reading order:
+1. Soft entry pose, body just slightly elongated vertically, paws resting low attached to body; no large scale change or jumping.
+2. Tiny soft settling squash, body only slightly shorter and wider; eyes unchanged, paws low.
+3. Notices the viewer: entire body tilts a clear but gentle 6–8 degrees, eye ovals follow that tilt; the paw on the LEFT SIDE OF THE IMAGE starts lifting while staying small and connected to the body's left side.
+4. LEFT-SIDE-OF-IMAGE paw raised beside the lower cheek, small rounded attached jelly flipper; friendly attentive body.
+5. That SAME LEFT-OF-IMAGE paw rotated outward for the wide phase of a friendly wave, still small, immediately beside the body and visibly connected. Opposite paw stays low.
+6. That same waving paw rotates back inward near cheek, small attached flipper, body gently follows the movement.
+7. Waving paw lowering toward resting position; ONE short blink represented by exactly two short glowing WHITE closed-eye arcs. No other facial marks.
+8. Calm canonical neutral pose matching the input reference silhouette, body proportions, paws and eyes as closely as possible, both paws low.
+
+This is one gentle 4-second greeting scene without music, logos or props. Here we are only establishing key poses, not generating intermediate frames. The hand gesture must read using the existing tiny jelly paws: lift and rotate them, never grow a human arm or hand. Both paws remain visibly attached to the torso in every pose; no detached floating spheres. Exactly three rounded lower waves in each character. Dense frosted translucent material with milky inner body volume just like reference, NOT a thin transparent hollow glass shell. Keep lighting, eye brightness, pearly silver-blue color, body scale and material consistent across all eight cells.
+Avoid: mouth, nose, internal core, pupils, cheeks or blush, fingers, palms, elongated arms, clothing, props, logos, extra particles, floor, cast shadow, ground plane, frame, decorations, checkerboard texture, colored background. True transparent alpha background.

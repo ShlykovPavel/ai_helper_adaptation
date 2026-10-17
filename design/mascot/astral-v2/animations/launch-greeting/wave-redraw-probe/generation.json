@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "created_on": "2026-10-17",
+  "tool": "built-in image_gen.imagegen",
+  "mode": "edit",
+  "status": "candidate-b-unapproved-awaiting-playback",
+  "asset_type": "single-wave-motion-study",
+  "prompt_path": "design/mascot/astral-v2/animations/launch-greeting/wave-redraw-probe/prompt.txt",
+  "prompt_sha256": "10e8188b47bccbfa5ec833c13d95698de54c7d1547682c13da516ab5c6bc2e1a",
+  "references": [
+    {
+      "order": 1,
+      "path": "design/mascot/astral-v2/animations/launch-greeting/wave-redraw-probe/wave-candidate-a.png",
+      "sha256": "4589701c3c015128767c703095beaeaa6624f3666fcfe9ecd1e4a228d00ae205",
+      "role": "edit target: prior16-frame candidateA; correct image-left flipper sequence only"
+    },
+    {
+      "order": 2,
+      "path": "design/mascot/astral-v2/astral-idle-master.png",
+      "sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b",
+      "role": "canonical identity, material and proportions reference"
+    }
+  ],
+  "source_output_path": "/Users/pavel/.codex/generated_images/01a14aac-15ee-7a21-8f02-a290c63d2ff8/exec-7c72db7a-e20b-4082-a577-e854a0c29888.png",
+  "output": {
+    "path": "design/mascot/astral-v2/animations/launch-greeting/wave-redraw-probe/wave-source.png",
+    "sha256": "6314609d4d0395cea6203174a8213a80b9cb469d2eacb2759c642a19b36b2b02",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "candidates": {
+    "a": {
+      "path": "design/mascot/astral-v2/animations/launch-greeting/wave-redraw-probe/wave-candidate-a.png",
+      "sha256": "4589701c3c015128767c703095beaeaa6624f3666fcfe9ecd1e4a228d00ae205"
+    },
+    "a_manifest": {
+      "path": "design/mascot/astral-v2/animations/launch-greeting/wave-redraw-probe/generation-candidate-a.json",
+      "sha256": "803af3c49ada675dc3c88086eb3b94ad6c86903d129dc6233457cd0e282d30ec"
+    },
+    "a_prompt": {
+      "path": "design/mascot/astral-v2/animations/launch-greeting/wave-redraw-probe/prompt-candidate-a.txt",
+      "sha256": "2ebbb9660db6b8dbafa77813f095de5738563cc7da86949738b572b4232ebf64"
+    },
+    "b": {
+      "path": "design/mascot/astral-v2/animations/launch-greeting/wave-redraw-probe/wave-candidate-b.png",
+      "sha256": "6314609d4d0395cea6203174a8213a80b9cb469d2eacb2759c642a19b36b2b02"
+    },
+    "b_prompt": {
+      "path": "design/mascot/astral-v2/animations/launch-greeting/wave-redraw-probe/prompt-candidate-b.txt",
+      "sha256": "10e8188b47bccbfa5ec833c13d95698de54c7d1547682c13da516ab5c6bc2e1a"
+    }
+  },
+  "generation_calls": {
+    "initial": 1,
+    "focused_correction": 1,
+    "total": 2,
+    "stopped_after_authorized_correction": true
+  },
+  "intended_layout": {
+    "columns": 4,
+    "rows": 4,
+    "drawings": 16,
+    "requested_size": [
+      1254,
+      1254
+    ]
+  },
+  "intended_playback": {
+    "unique_drawings_per_second": 12,
+    "duration_seconds": 1.3333333333333333,
+    "one_shot": true,
+    "audio": false
+  },
+  "alpha_diagnostics": {
+    "minimum": 0,
+    "maximum": 255,
+    "zero_pixels": 547136,
+    "soft_pixels": 1023960,
+    "opaque_pixels": 1420,
+    "nominal_internal_column_maxima": [
+      1,
+      1,
+      2
+    ],
+    "nominal_internal_row_maxima": [
+      1,
+      1,
+      2
+    ]
+  },
+  "visual_review": {
+    "method": "visual inspection of generated and saved1254x1254PNG; not yet packed or played",
+    "improvements": [
+      "Frames4→5→6→7 now show a progressive vertical-to-outward diagonal tilt, with no horizontal pancake at6.",
+      "Frames8→9→10 return toward vertical; a single main outward/return action is visibly represented.",
+      "The lifted flipper is higher and more distinct than in the previous96-frame draft; both eyes remain open."
+    ],
+    "limitations": [
+      "Exact10/20/30degree angles are not verified, and a small change between10 and11 remains visible.",
+      "The shoulder attachment still rises toward the cheek through the lift; strict fixed-root anatomy was not fully achieved.",
+      "The raised flipper still overlaps the head silhouette substantially; transparent wedge separation is weak.",
+      "The generator also redrew subtle body/face/light details despite the edit-only instruction; pixel-identical body preservation was not achieved.",
+      "12drops substantially toward the low pose, so continuity of lowering needs playback review.",
+      "CandidateB is a motion-study candidate, not an accepted final24fps greeting or native integration."
+    ],
+    "accepted": false
+  }
+}
