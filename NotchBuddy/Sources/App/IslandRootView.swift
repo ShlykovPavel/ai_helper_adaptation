@@ -538,6 +538,60 @@ struct IslandHeader: View {
         state.pendingApproval != nil || state.voiceMailDraft != nil || isSecurityLocked
     }
 
+    #if !APPSTORE
+    private enum ActivePlanHeaderPill {
+        case claude
+        case codex
+        case antigravity
+    }
+
+    private var activePlanHeaderPill: ActivePlanHeaderPill? {
+        guard state.view == .overview else { return nil }
+
+        // 1. If currently showing a plan detail card, match the card being displayed!
+        if state.showingPlanDetail {
+            if state.planDetailIsAntigravity && state.showAntigravityPlanInNotch { return .antigravity }
+            if state.planDetailIsCodex && state.showCodexPlanInNotch { return .codex }
+            if state.showPlanInNotch && state.planRelayInstalled { return .claude }
+        }
+
+        // 2. If the focused agent has an enabled plan, prioritize the focused agent!
+        let currentFocus = state.focusId
+        if currentFocus == "agent_antigravity" && state.showAntigravityPlanInNotch {
+            return .antigravity
+        }
+        if currentFocus == "agent_codex" && state.showCodexPlanInNotch {
+            return .codex
+        }
+        if currentFocus == "integration_claude" && state.showPlanInNotch && state.planRelayInstalled {
+            return .claude
+        }
+
+        // 3. If mainPillId has an enabled plan, prefer it
+        if state.mainPillId == "agent_antigravity" && state.showAntigravityPlanInNotch {
+            return .antigravity
+        }
+        if state.mainPillId == "agent_codex" && state.showCodexPlanInNotch {
+            return .codex
+        }
+        if state.mainPillId == "integration_claude" && state.showPlanInNotch && state.planRelayInstalled {
+            return .claude
+        }
+
+        // 4. Fallback to any enabled plan: Antigravity -> Codex -> Claude
+        if state.showAntigravityPlanInNotch {
+            return .antigravity
+        }
+        if state.showCodexPlanInNotch {
+            return .codex
+        }
+        if state.showPlanInNotch && state.planRelayInstalled {
+            return .claude
+        }
+        return nil
+    }
+    #endif
+
     var body: some View {
         HStack(spacing: 0) {
             // Left: tab capsules + toast chip (outside notch)
@@ -564,14 +618,15 @@ struct IslandHeader: View {
             // Right: plan pill (GitHub build, home view only) + action icons
             HStack(spacing: 8) {
                 #if !APPSTORE
-                // Claude and Codex both on: only Claude here (two pills and the icons do not
-                // clear the notch); Codex is a row in the Claude plan card.
-                if state.view == .overview && state.showPlanInNotch && state.planRelayInstalled {
-                    ClaudePlanHeaderPill(state: state)
-                } else if state.view == .overview && state.showCodexPlanInNotch {
-                    ClaudePlanHeaderPill(state: state, codex: true)
-                } else if state.view == .overview && state.showAntigravityPlanInNotch {
-                    ClaudePlanHeaderPill(state: state, antigravity: true)
+                if let active = activePlanHeaderPill {
+                    switch active {
+                    case .claude:
+                        ClaudePlanHeaderPill(state: state)
+                    case .codex:
+                        ClaudePlanHeaderPill(state: state, codex: true)
+                    case .antigravity:
+                        ClaudePlanHeaderPill(state: state, antigravity: true)
+                    }
                 }
                 #endif
                 HStack(spacing: 14) {

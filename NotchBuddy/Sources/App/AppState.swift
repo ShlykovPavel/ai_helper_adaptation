@@ -576,9 +576,18 @@ final class AppState: ObservableObject {
 
     // Antigravity plan gauge (from local LanguageServerService RPC)
     @Published var showAntigravityPlanInNotch: Bool = false {
-        didSet { UserDefaults.standard.set(showAntigravityPlanInNotch, forKey: "showAntigravityPlanInNotch") }
+        didSet {
+            UserDefaults.standard.set(showAntigravityPlanInNotch, forKey: "showAntigravityPlanInNotch")
+            if showAntigravityPlanInNotch { refreshAntigravityPlanUsage() }
+        }
     }
-    @Published var antigravityPlanUsage: AntigravityPlanUsage? = nil
+    @Published var antigravityPlanUsage: AntigravityPlanUsage? = nil {
+        didSet {
+            if let u = antigravityPlanUsage, let d = try? JSONEncoder().encode(u) {
+                UserDefaults.standard.set(d, forKey: "antigravityPlanUsage")
+            }
+        }
+    }
     @Published var planDetailIsAntigravity: Bool = false
 
     private static var lastAgyAttempt: Date = .distantPast
@@ -586,7 +595,9 @@ final class AppState: ObservableObject {
 
     func refreshAntigravityPlanUsage() {
         if let u = antigravityPlanUsage, Date().timeIntervalSince(u.updatedAt) < 60 { return }
-        guard !Self.agyFetchInFlight, Date().timeIntervalSince(Self.lastAgyAttempt) > 60 else { return }
+        guard !Self.agyFetchInFlight else { return }
+        let minGap: TimeInterval = antigravityPlanUsage == nil ? 5 : 60
+        guard Date().timeIntervalSince(Self.lastAgyAttempt) > minGap else { return }
         Self.agyFetchInFlight = true
         Self.lastAgyAttempt = Date()
         Task {
@@ -645,9 +656,14 @@ final class AppState: ObservableObject {
         if let d = ud.data(forKey: "claudePlanUsage"),
            let u = try? JSONDecoder().decode(PlanUsage.self, from: d) { claudePlanUsage = u }
         #if !APPSTORE
+        if let d = ud.data(forKey: "antigravityPlanUsage"),
+           let u = try? JSONDecoder().decode(AntigravityPlanUsage.self, from: d) { antigravityPlanUsage = u }
         if let v = ud.object(forKey: "showPlanInNotch") as? Bool { showPlanInNotch = v }
         if let v = ud.object(forKey: "showCodexPlanInNotch") as? Bool { showCodexPlanInNotch = v }
-        if let v = ud.object(forKey: "showAntigravityPlanInNotch") as? Bool { showAntigravityPlanInNotch = v }
+        if let v = ud.object(forKey: "showAntigravityPlanInNotch") as? Bool {
+            showAntigravityPlanInNotch = v
+            if v { refreshAntigravityPlanUsage() }
+        }
         planRelayInstalled = HookServer.statusLineInstalled()
         #endif
 
@@ -713,6 +729,13 @@ final class AppState: ObservableObject {
         guard let idx = tasks.firstIndex(where: { $0.id == id }) else { return }
         focusId = id
         tasks[idx].pillBadge = nil  // clear badge when user brings task to focus
+        #if !APPSTORE
+        if id == "agent_antigravity" && showAntigravityPlanInNotch {
+            refreshAntigravityPlanUsage()
+        } else if id == "agent_codex" && showCodexPlanInNotch {
+            refreshCodexPlanUsage()
+        }
+        #endif
     }
 
     func setPillBadge(_ badge: PillBadge, for id: String) {

@@ -423,35 +423,69 @@ struct OverviewView: View {
                     CardBackground(wash: nil)
                     Group {
                         if state.planDetailIsAntigravity {
-                            AntigravityPlanCardView(usage: state.antigravityPlanUsage)
+                            AntigravityPlanCardView(
+                                usage: state.antigravityPlanUsage,
+                                codexRow: state.showCodexPlanInNotch,
+                                codexUsage: state.codexPlanUsage,
+                                onCodex: {
+                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                        state.planDetailIsAntigravity = false
+                                        state.planDetailIsCodex = true
+                                    }
+                                    state.refreshCodexPlanUsage()
+                                },
+                                claudeRow: state.showPlanInNotch && state.planRelayInstalled,
+                                claudeUsage: state.claudePlanUsage,
+                                onClaude: {
+                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                        state.planDetailIsAntigravity = false
+                                        state.planDetailIsCodex = false
+                                    }
+                                }
+                            )
                         } else if state.planDetailIsCodex {
-                            CodexPlanCardView(usage: state.codexPlanUsage)
+                            CodexPlanCardView(
+                                usage: state.codexPlanUsage,
+                                antigravityRow: state.showAntigravityPlanInNotch,
+                                antigravityUsage: state.antigravityPlanUsage,
+                                onAntigravity: {
+                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                        state.planDetailIsCodex = false
+                                        state.planDetailIsAntigravity = true
+                                    }
+                                    state.refreshAntigravityPlanUsage()
+                                },
+                                claudeRow: state.showPlanInNotch && state.planRelayInstalled,
+                                claudeUsage: state.claudePlanUsage,
+                                onClaude: {
+                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                        state.planDetailIsCodex = false
+                                        state.planDetailIsAntigravity = false
+                                    }
+                                }
+                            )
                         } else {
-                            // Claude and Codex/Antigravity both on: the header shows only the Claude pill,
-                            // Codex and Antigravity are additional rows here that open their own cards.
-                            let bothPlans = state.showPlanInNotch && state.planRelayInstalled
-                                && state.showCodexPlanInNotch
-                            let agyPlanRow = state.showPlanInNotch && state.planRelayInstalled
-                                && state.showAntigravityPlanInNotch
-                            ClaudePlanCardView(usage: state.claudePlanUsage,
-                                               codexRow: bothPlans,
-                                               codexUsage: state.codexPlanUsage,
-                                               onCodex: {
-                                                   withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-                                                       state.planDetailIsAntigravity = false
-                                                       state.planDetailIsCodex = true
-                                                   }
-                                                   state.refreshCodexPlanUsage()
-                                               },
-                                               antigravityRow: agyPlanRow,
-                                               antigravityUsage: state.antigravityPlanUsage,
-                                               onAntigravity: {
-                                                   withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-                                                       state.planDetailIsCodex = false
-                                                       state.planDetailIsAntigravity = true
-                                                   }
-                                                   state.refreshAntigravityPlanUsage()
-                                               })
+                            ClaudePlanCardView(
+                                usage: state.claudePlanUsage,
+                                codexRow: state.showCodexPlanInNotch,
+                                codexUsage: state.codexPlanUsage,
+                                onCodex: {
+                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                        state.planDetailIsAntigravity = false
+                                        state.planDetailIsCodex = true
+                                    }
+                                    state.refreshCodexPlanUsage()
+                                },
+                                antigravityRow: state.showAntigravityPlanInNotch,
+                                antigravityUsage: state.antigravityPlanUsage,
+                                onAntigravity: {
+                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                        state.planDetailIsCodex = false
+                                        state.planDetailIsAntigravity = true
+                                    }
+                                    state.refreshAntigravityPlanUsage()
+                                }
+                            )
                         }
                     }
                     .transition(.opacity)

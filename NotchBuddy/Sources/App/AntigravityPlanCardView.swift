@@ -5,6 +5,12 @@ import SwiftUI
 
 struct AntigravityPlanCardView: View {
     let usage: AntigravityPlanUsage?   // nil = loading or unavailable
+    var codexRow: Bool = false
+    var codexUsage: CodexPlanUsage? = nil
+    var onCodex: (() -> Void)? = nil
+    var claudeRow: Bool = false
+    var claudeUsage: PlanUsage? = nil
+    var onClaude: (() -> Void)? = nil
 
     @State private var now = Date()
 
@@ -38,6 +44,26 @@ struct AntigravityPlanCardView: View {
                 if usage?.thirdPartyFiveHour != nil {
                     GaugeRowView(label: "3P 5h", window: usage?.thirdPartyFiveHour, now: now, labelWidth: 64)
                 }
+                #if !APPSTORE
+                if codexRow {
+                    Button(action: { onCodex?() }) {
+                        let window = codexDominantWindow
+                        GaugeRowView(label: "Codex", window: window, now: now,
+                                     weekly: window != nil && window == codexUsage?.sevenDay, labelWidth: 64)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+                if claudeRow {
+                    Button(action: { onClaude?() }) {
+                        let window = claudeDominantWindow
+                        GaugeRowView(label: "Claude", window: window, now: now,
+                                     weekly: window != nil && window == claudeUsage?.sevenDay, labelWidth: 64)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+                #endif
             }
             .padding(.top, 8)
             .padding(.leading, 108)
@@ -61,5 +87,29 @@ struct AntigravityPlanCardView: View {
         if mins < 60 { return "\(mins) min ago" }
         return "\(mins / 60) h ago"
     }
+
+    #if !APPSTORE
+    private var codexDominantWindow: PlanWindow? {
+        guard let u = codexUsage else { return nil }
+        switch (u.fiveHour, u.sevenDay) {
+        case (nil, nil): return nil
+        case (let f?, nil): return f
+        case (nil, let w?): return w
+        case (let f?, let w?):
+            return ClaudePlanGauge.effectivePct(f) >= ClaudePlanGauge.effectivePct(w) ? f : w
+        }
+    }
+
+    private var claudeDominantWindow: PlanWindow? {
+        guard let u = claudeUsage else { return nil }
+        switch (u.fiveHour, u.sevenDay) {
+        case (nil, nil): return nil
+        case (let f?, nil): return f
+        case (nil, let w?): return w
+        case (let f?, let w?):
+            return ClaudePlanGauge.effectivePct(f) >= ClaudePlanGauge.effectivePct(w) ? f : w
+        }
+    }
+    #endif
 }
 #endif
