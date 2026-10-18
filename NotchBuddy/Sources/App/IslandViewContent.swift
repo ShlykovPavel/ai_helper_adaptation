@@ -358,6 +358,52 @@ struct OverviewView: View {
     var agent: AgentTask? { state.focusTask }
 
     var body: some View {
+        Group {
+            #if !APPSTORE
+            if state.showingPlanDetail {
+                PlanDetailIslandView(state: state)
+                    .transition(.opacity)
+            } else {
+                overviewCards
+                    .transition(.opacity)
+            }
+            #else
+            overviewCards
+            #endif
+        }
+        .onChange(of: state.focusId) { _, new in
+            showingN8nDetail = false
+            activeDiffId = nil
+            #if !APPSTORE
+            withAnimation(.easeIn(duration: 0.16)) { state.showingPlanDetail = false }
+            #endif
+            if new == "integration_github" { GithubPoller.shared.refreshIfStale() }
+        }
+        #if !APPSTORE
+        .onChange(of: state.view) { _, v in
+            if v != .overview { state.showingPlanDetail = false; activeDiffId = nil }
+        }
+        #endif
+        .onChange(of: state.mode) { _, m in
+            #if !APPSTORE
+            if m != .expanded { state.showingPlanDetail = false; activeDiffId = nil }
+            #endif
+            if m == .expanded && state.focusId == "integration_github" {
+                GithubPoller.shared.refreshIfStale()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .islandToggleDiff)) { _ in
+            if let id = activeDiffId {
+                withAnimation(.easeIn(duration: 0.16)) { activeDiffId = nil }
+                _ = id
+            } else if let task = state.focusTask,
+                      let last = state.sessionDiffs[task.id]?.last {
+                withAnimation(.easeIn(duration: 0.16)) { activeDiffId = last.id }
+            }
+        }
+    }
+
+    private var overviewCards: some View {
         HStack(spacing: 10) {
             // Left card: title row + ticker below + ↗ button overlay
             ZStack(alignment: .topLeading) {
@@ -417,81 +463,6 @@ struct OverviewView: View {
                     }
                 }
 
-                // Plan detail overlays on top of normal content (GitHub build, home view only)
-                #if !APPSTORE
-                if state.showingPlanDetail {
-                    CardBackground(wash: nil)
-                    Group {
-                        if state.planDetailIsAntigravity {
-                            AntigravityPlanCardView(
-                                usage: state.antigravityPlanUsage,
-                                codexRow: state.showCodexPlanInNotch,
-                                codexUsage: state.codexPlanUsage,
-                                onCodex: {
-                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-                                        state.planDetailIsAntigravity = false
-                                        state.planDetailIsCodex = true
-                                    }
-                                    state.refreshCodexPlanUsage()
-                                },
-                                claudeRow: state.showPlanInNotch && state.planRelayInstalled,
-                                claudeUsage: state.claudePlanUsage,
-                                onClaude: {
-                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-                                        state.planDetailIsAntigravity = false
-                                        state.planDetailIsCodex = false
-                                    }
-                                }
-                            )
-                        } else if state.planDetailIsCodex {
-                            CodexPlanCardView(
-                                usage: state.codexPlanUsage,
-                                antigravityRow: state.showAntigravityPlanInNotch,
-                                antigravityUsage: state.antigravityPlanUsage,
-                                onAntigravity: {
-                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-                                        state.planDetailIsCodex = false
-                                        state.planDetailIsAntigravity = true
-                                    }
-                                    state.refreshAntigravityPlanUsage()
-                                },
-                                claudeRow: state.showPlanInNotch && state.planRelayInstalled,
-                                claudeUsage: state.claudePlanUsage,
-                                onClaude: {
-                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-                                        state.planDetailIsCodex = false
-                                        state.planDetailIsAntigravity = false
-                                    }
-                                }
-                            )
-                        } else {
-                            ClaudePlanCardView(
-                                usage: state.claudePlanUsage,
-                                codexRow: state.showCodexPlanInNotch,
-                                codexUsage: state.codexPlanUsage,
-                                onCodex: {
-                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-                                        state.planDetailIsAntigravity = false
-                                        state.planDetailIsCodex = true
-                                    }
-                                    state.refreshCodexPlanUsage()
-                                },
-                                antigravityRow: state.showAntigravityPlanInNotch,
-                                antigravityUsage: state.antigravityPlanUsage,
-                                onAntigravity: {
-                                    withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-                                        state.planDetailIsCodex = false
-                                        state.planDetailIsAntigravity = true
-                                    }
-                                    state.refreshAntigravityPlanUsage()
-                                }
-                            )
-                        }
-                    }
-                    .transition(.opacity)
-                }
-                #endif
-
                 // Diff overlay — replaces ticker when a diff step is tapped
                 if let diffId = activeDiffId,
                    let task = agent,
@@ -502,11 +473,7 @@ struct OverviewView: View {
                 }
 
                 // ↗ jump button — last in ZStack so it renders on top; hidden while any detail is open
-                #if !APPSTORE
-                let hideJumpButton = showingN8nDetail || state.showingPlanDetail || activeDiffId != nil
-                #else
                 let hideJumpButton = showingN8nDetail || activeDiffId != nil
-                #endif
                 if !hideJumpButton {
                     Button(action: { openAgentTarget(agent) }) {
                         Image(systemName: "arrow.up.right")
@@ -527,36 +494,6 @@ struct OverviewView: View {
             // Right card: agent pills
             CardBackground(wash: nil) {
                 AgentPillsView(state: state)
-            }
-        }
-        .onChange(of: state.focusId) { _, new in
-            showingN8nDetail = false
-            activeDiffId = nil
-            #if !APPSTORE
-            withAnimation(.easeIn(duration: 0.16)) { state.showingPlanDetail = false }
-            #endif
-            if new == "integration_github" { GithubPoller.shared.refreshIfStale() }
-        }
-        #if !APPSTORE
-        .onChange(of: state.view) { _, v in
-            if v != .overview { state.showingPlanDetail = false; activeDiffId = nil }
-        }
-        #endif
-        .onChange(of: state.mode) { _, m in
-            #if !APPSTORE
-            if m != .expanded { state.showingPlanDetail = false; activeDiffId = nil }
-            #endif
-            if m == .expanded && state.focusId == "integration_github" {
-                GithubPoller.shared.refreshIfStale()
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .islandToggleDiff)) { _ in
-            if let id = activeDiffId {
-                withAnimation(.easeIn(duration: 0.16)) { activeDiffId = nil }
-                _ = id
-            } else if let task = state.focusTask,
-                      let last = state.sessionDiffs[task.id]?.last {
-                withAnimation(.easeIn(duration: 0.16)) { activeDiffId = last.id }
             }
         }
     }
@@ -653,6 +590,106 @@ struct OverviewView: View {
         }
     }
 }
+
+#if !APPSTORE
+// MARK: - Plan Detail Full-Width Island View
+
+struct PlanDetailIslandView: View {
+    @ObservedObject var state: AppState
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            CardBackground(wash: nil)
+
+            Group {
+                if state.planDetailIsAntigravity {
+                    AntigravityPlanCardView(
+                        usage: state.antigravityPlanUsage,
+                        codexRow: state.showCodexPlanInNotch,
+                        codexUsage: state.codexPlanUsage,
+                        onCodex: {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                state.planDetailIsAntigravity = false
+                                state.planDetailIsCodex = true
+                            }
+                            state.refreshCodexPlanUsage()
+                        },
+                        claudeRow: state.showPlanInNotch && state.planRelayInstalled,
+                        claudeUsage: state.claudePlanUsage,
+                        onClaude: {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                state.planDetailIsAntigravity = false
+                                state.planDetailIsCodex = false
+                            }
+                        }
+                    )
+                } else if state.planDetailIsCodex {
+                    CodexPlanCardView(
+                        usage: state.codexPlanUsage,
+                        antigravityRow: state.showAntigravityPlanInNotch,
+                        antigravityUsage: state.antigravityPlanUsage,
+                        onAntigravity: {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                state.planDetailIsCodex = false
+                                state.planDetailIsAntigravity = true
+                            }
+                            state.refreshAntigravityPlanUsage()
+                        },
+                        claudeRow: state.showPlanInNotch && state.planRelayInstalled,
+                        claudeUsage: state.claudePlanUsage,
+                        onClaude: {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                state.planDetailIsCodex = false
+                                state.planDetailIsAntigravity = false
+                            }
+                        }
+                    )
+                } else {
+                    ClaudePlanCardView(
+                        usage: state.claudePlanUsage,
+                        codexRow: state.showCodexPlanInNotch,
+                        codexUsage: state.codexPlanUsage,
+                        onCodex: {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                state.planDetailIsAntigravity = false
+                                state.planDetailIsCodex = true
+                            }
+                            state.refreshCodexPlanUsage()
+                        },
+                        antigravityRow: state.showAntigravityPlanInNotch,
+                        antigravityUsage: state.antigravityPlanUsage,
+                        onAntigravity: {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                                state.planDetailIsCodex = false
+                                state.planDetailIsAntigravity = true
+                            }
+                            state.refreshAntigravityPlanUsage()
+                        }
+                    )
+                }
+            }
+
+            // Dismiss xmark button in top-trailing corner
+            Button(action: {
+                withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+                    state.showingPlanDetail = false
+                }
+            }) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(Color(hex: "#8E939C"))
+                    .frame(width: 18, height: 18)
+                    .background(Color.white.opacity(0.08))
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 8)
+            .padding(.trailing, 10)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+#endif
 
 // MARK: - Empty
 

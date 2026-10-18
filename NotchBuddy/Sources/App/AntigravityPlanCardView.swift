@@ -34,40 +34,70 @@ struct AntigravityPlanCardView: View {
             .padding(.leading, 108)
             .padding(.trailing, 36)
 
-            // Gauge rows
-            VStack(alignment: .leading, spacing: 5) {
-                GaugeRowView(label: "Gemini 5h", window: usage?.geminiFiveHour, now: now, labelWidth: 64)
-                GaugeRowView(label: "Gemini Wk", window: usage?.geminiWeekly, now: now, weekly: true, labelWidth: 64)
-                if usage?.thirdPartyWeekly != nil {
-                    GaugeRowView(label: "3P Wk", window: usage?.thirdPartyWeekly, now: now, weekly: true, labelWidth: 64)
-                }
-                if usage?.thirdPartyFiveHour != nil {
-                    GaugeRowView(label: "3P 5h", window: usage?.thirdPartyFiveHour, now: now, labelWidth: 64)
-                }
-                #if !APPSTORE
-                if codexRow {
-                    Button(action: { onCodex?() }) {
-                        let window = codexDominantWindow
-                        GaugeRowView(label: "Codex", window: window, now: now,
-                                     weekly: window != nil && window == codexUsage?.sevenDay, labelWidth: 64)
-                            .contentShape(Rectangle())
+            // Gauge rows (2 columns when third-party models or Claude row are present)
+            let hasSecondColumn = usage?.thirdPartyWeekly != nil || usage?.thirdPartyFiveHour != nil || claudeRow
+
+            if hasSecondColumn {
+                HStack(alignment: .top, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        GaugeRowView(label: "Gemini 5h", window: usage?.geminiFiveHour, now: now, labelWidth: 64)
+                        GaugeRowView(label: "Gemini Wk", window: usage?.geminiWeekly, now: now, weekly: true, labelWidth: 64)
+                        #if !APPSTORE
+                        if codexRow {
+                            Button(action: { onCodex?() }) {
+                                let window = codexDominantWindow
+                                GaugeRowView(label: "Codex", window: window, now: now,
+                                             weekly: window != nil && window == codexUsage?.sevenDay, labelWidth: 64)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        #endif
                     }
-                    .buttonStyle(.plain)
-                }
-                if claudeRow {
-                    Button(action: { onClaude?() }) {
-                        let window = claudeDominantWindow
-                        GaugeRowView(label: "Claude", window: window, now: now,
-                                     weekly: window != nil && window == claudeUsage?.sevenDay, labelWidth: 64)
-                            .contentShape(Rectangle())
+
+                    VStack(alignment: .leading, spacing: 5) {
+                        if usage?.thirdPartyFiveHour != nil {
+                            GaugeRowView(label: "3P 5h", window: usage?.thirdPartyFiveHour, now: now, labelWidth: 46)
+                        }
+                        if usage?.thirdPartyWeekly != nil {
+                            GaugeRowView(label: "3P Wk", window: usage?.thirdPartyWeekly, now: now, weekly: true, labelWidth: 46)
+                        }
+                        #if !APPSTORE
+                        if claudeRow {
+                            Button(action: { onClaude?() }) {
+                                let window = claudeDominantWindow
+                                GaugeRowView(label: "Claude", window: window, now: now,
+                                             weekly: window != nil && window == claudeUsage?.sevenDay, labelWidth: 46)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        #endif
                     }
-                    .buttonStyle(.plain)
                 }
-                #endif
+                .padding(.top, 8)
+                .padding(.leading, 108)
+                .padding(.trailing, 12)
+            } else {
+                VStack(alignment: .leading, spacing: 5) {
+                    GaugeRowView(label: "Gemini 5h", window: usage?.geminiFiveHour, now: now, labelWidth: 64)
+                    GaugeRowView(label: "Gemini Wk", window: usage?.geminiWeekly, now: now, weekly: true, labelWidth: 64)
+                    #if !APPSTORE
+                    if codexRow {
+                        Button(action: { onCodex?() }) {
+                            let window = codexDominantWindow
+                            GaugeRowView(label: "Codex", window: window, now: now,
+                                         weekly: window != nil && window == codexUsage?.sevenDay, labelWidth: 64)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    #endif
+                }
+                .padding(.top, 8)
+                .padding(.leading, 108)
+                .padding(.trailing, 12)
             }
-            .padding(.top, 8)
-            .padding(.leading, 108)
-            .padding(.trailing, 12)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .padding(.top, 4)

@@ -37,36 +37,71 @@ struct ClaudePlanCardView: View {
             .padding(.leading, 108)
             .padding(.trailing, 36)
 
-            // Gauge rows
-            VStack(alignment: .leading, spacing: 5) {
-                GaugeRowView(label: String(localized: "plan.5hours"), window: usage?.fiveHour, now: now)
-                GaugeRowView(label: String(localized: "plan.week"),   window: usage?.sevenDay,  now: now, weekly: true)
-                #if !APPSTORE
-                if codexRow {
-                    // The Codex window closest to its limit; a click opens the Codex card.
-                    Button(action: onCodex) {
-                        let window = codexDominantWindow
-                        GaugeRowView(label: "Codex", window: window, now: now,
-                                     weekly: window != nil && window == codexUsage?.sevenDay)
-                            .contentShape(Rectangle())
+            // Gauge rows (2 columns when both Codex and Gemini rows are present)
+            #if !APPSTORE
+            let hasTwoColumns = codexRow && antigravityRow
+            #else
+            let hasTwoColumns = false
+            #endif
+
+            if hasTwoColumns {
+                HStack(alignment: .top, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        GaugeRowView(label: String(localized: "plan.5hours"), window: usage?.fiveHour, now: now)
+                        GaugeRowView(label: String(localized: "plan.week"),   window: usage?.sevenDay,  now: now, weekly: true)
                     }
-                    .buttonStyle(.plain)
-                }
-                if antigravityRow {
-                    // The Antigravity window closest to its limit; a click opens the Antigravity card.
-                    Button(action: { onAntigravity?() }) {
-                        let window = antigravityDominantWindow
-                        GaugeRowView(label: "Gemini", window: window, now: now,
-                                     weekly: window != nil && window == antigravityUsage?.geminiWeekly)
-                            .contentShape(Rectangle())
+                    #if !APPSTORE
+                    VStack(alignment: .leading, spacing: 5) {
+                        Button(action: onCodex) {
+                            let window = codexDominantWindow
+                            GaugeRowView(label: "Codex", window: window, now: now,
+                                         weekly: window != nil && window == codexUsage?.sevenDay)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: { onAntigravity?() }) {
+                            let window = antigravityDominantWindow
+                            GaugeRowView(label: "Gemini", window: window, now: now,
+                                         weekly: window != nil && window == antigravityUsage?.geminiWeekly)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
+                    #endif
                 }
-                #endif
+                .padding(.top, 8)
+                .padding(.leading, 108)
+                .padding(.trailing, 12)
+            } else {
+                VStack(alignment: .leading, spacing: 5) {
+                    GaugeRowView(label: String(localized: "plan.5hours"), window: usage?.fiveHour, now: now)
+                    GaugeRowView(label: String(localized: "plan.week"),   window: usage?.sevenDay,  now: now, weekly: true)
+                    #if !APPSTORE
+                    if codexRow {
+                        Button(action: onCodex) {
+                            let window = codexDominantWindow
+                            GaugeRowView(label: "Codex", window: window, now: now,
+                                         weekly: window != nil && window == codexUsage?.sevenDay)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    if antigravityRow {
+                        Button(action: { onAntigravity?() }) {
+                            let window = antigravityDominantWindow
+                            GaugeRowView(label: "Gemini", window: window, now: now,
+                                         weekly: window != nil && window == antigravityUsage?.geminiWeekly)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    #endif
+                }
+                .padding(.top, 8)
+                .padding(.leading, 108)
+                .padding(.trailing, 12)
             }
-            .padding(.top, 8)
-            .padding(.leading, 108)
-            .padding(.trailing, 12)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .padding(.top, 4)
@@ -151,7 +186,7 @@ struct GaugeRowView: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(Color(hex: "#C5C8CD"))
                     .monospacedDigit()
-                    .frame(width: 30, alignment: .trailing)
+                    .frame(width: 38, alignment: .trailing)
                 Image(systemName: "arrow.clockwise")
                     .font(.system(size: 8))
                     .foregroundColor(Color(hex: "#6B7079"))

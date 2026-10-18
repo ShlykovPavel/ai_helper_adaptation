@@ -163,47 +163,81 @@ struct CodexPlanCardView: View {
             .padding(.leading, 108)
             .padding(.trailing, 36)
 
-            // Gauge rows
-            VStack(alignment: .leading, spacing: 5) {
-                if usage?.fiveHour != nil {
-                    GaugeRowView(label: "5 hours", window: usage?.fiveHour, now: now)
-                }
-                GaugeRowView(label: "Week", window: usage?.sevenDay, now: now, weekly: true)
-                HStack(spacing: 5) {
-                    Text("Resets")
-                        .font(.system(size: 11))
-                        .foregroundColor(Color(hex: "#6B7079"))
-                        .frame(width: 40, alignment: .leading)
-                    Text(resetsText)
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(Color(hex: "#C5C8CD"))
-                        .lineLimit(1)
-                        .fixedSize()
-                }
-                #if !APPSTORE
-                if antigravityRow {
-                    Button(action: { onAntigravity?() }) {
-                        let window = antigravityDominantWindow
-                        GaugeRowView(label: "Gemini", window: window, now: now,
-                                     weekly: window != nil && window == antigravityUsage?.geminiWeekly)
-                            .contentShape(Rectangle())
+            // Gauge rows (2 columns when cross-agent rows are present)
+            #if !APPSTORE
+            let hasSecondColumn = antigravityRow || claudeRow
+            #else
+            let hasSecondColumn = false
+            #endif
+
+            if hasSecondColumn {
+                HStack(alignment: .top, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        if usage?.fiveHour != nil {
+                            GaugeRowView(label: "5 hours", window: usage?.fiveHour, now: now)
+                        }
+                        GaugeRowView(label: "Week", window: usage?.sevenDay, now: now, weekly: true)
+                        HStack(spacing: 5) {
+                            Text("Resets")
+                                .font(.system(size: 11))
+                                .foregroundColor(Color(hex: "#6B7079"))
+                                .frame(width: 40, alignment: .leading)
+                            Text(resetsText)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(Color(hex: "#C5C8CD"))
+                                .lineLimit(1)
+                                .fixedSize()
+                        }
                     }
-                    .buttonStyle(.plain)
-                }
-                if claudeRow {
-                    Button(action: { onClaude?() }) {
-                        let window = claudeDominantWindow
-                        GaugeRowView(label: "Claude", window: window, now: now,
-                                     weekly: window != nil && window == claudeUsage?.sevenDay)
-                            .contentShape(Rectangle())
+
+                    #if !APPSTORE
+                    VStack(alignment: .leading, spacing: 5) {
+                        if antigravityRow {
+                            Button(action: { onAntigravity?() }) {
+                                let window = antigravityDominantWindow
+                                GaugeRowView(label: "Gemini", window: window, now: now,
+                                             weekly: window != nil && window == antigravityUsage?.geminiWeekly)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        if claudeRow {
+                            Button(action: { onClaude?() }) {
+                                let window = claudeDominantWindow
+                                GaugeRowView(label: "Claude", window: window, now: now,
+                                             weekly: window != nil && window == claudeUsage?.sevenDay)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
-                    .buttonStyle(.plain)
+                    #endif
                 }
-                #endif
+                .padding(.top, 8)
+                .padding(.leading, 108)
+                .padding(.trailing, 12)
+            } else {
+                VStack(alignment: .leading, spacing: 5) {
+                    if usage?.fiveHour != nil {
+                        GaugeRowView(label: "5 hours", window: usage?.fiveHour, now: now)
+                    }
+                    GaugeRowView(label: "Week", window: usage?.sevenDay, now: now, weekly: true)
+                    HStack(spacing: 5) {
+                        Text("Resets")
+                            .font(.system(size: 11))
+                            .foregroundColor(Color(hex: "#6B7079"))
+                            .frame(width: 40, alignment: .leading)
+                        Text(resetsText)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(Color(hex: "#C5C8CD"))
+                            .lineLimit(1)
+                            .fixedSize()
+                    }
+                }
+                .padding(.top, 8)
+                .padding(.leading, 108)
+                .padding(.trailing, 12)
             }
-            .padding(.top, 8)
-            .padding(.leading, 108)
-            .padding(.trailing, 12)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .padding(.top, 4)
