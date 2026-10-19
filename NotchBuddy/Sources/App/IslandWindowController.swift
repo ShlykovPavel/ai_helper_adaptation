@@ -330,6 +330,7 @@ final class IslandWindowController: NSWindowController {
         // Dead Tunnel prompt and Security Panic also stay held open until resolved.
         fsm.isHeldOpen = {
             AppState.shared.pendingApproval != nil ||
+            AppState.shared.pendingQuestion != nil ||
             AppState.shared.voiceMailDraft != nil ||
             AppState.shared.view == .deadTunnelPrompt ||
             AppState.shared.view == .securityPanic ||
@@ -1281,6 +1282,7 @@ final class IslandWindowController: NSWindowController {
 
     func defaultView() -> IslandView {
         if state.pendingApproval != nil { return .approval }
+        if state.pendingQuestion != nil { return .question }
         return state.tasks.isEmpty ? .empty : .overview
     }
 

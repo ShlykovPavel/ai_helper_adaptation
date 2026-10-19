@@ -52,7 +52,11 @@ struct QuestionQueue: Sendable {
 
     func resolved(byEvent name: String, sessionId: String, pillId: String) -> [QueuedQuestion] {
         switch name {
-        case "Stop", "StopFailure", "UserPromptSubmit", "SessionEnd", "Interrupt", "PostToolUse", "PostToolUseFailure":
+        case "PostToolUse", "PostToolUseFailure":
+            // Codex may finish parallel tools while its question hook is waiting.
+            // Its socket closes on answer or fallback; another tool must not dismiss it.
+            return entries.filter { $0.pillId == pillId && $0.sessionId == sessionId && $0.pillId != "agent_codex" }
+        case "Stop", "StopFailure", "UserPromptSubmit", "SessionEnd", "Interrupt":
             return entries.filter { $0.pillId == pillId && $0.sessionId == sessionId }
         default:
             return []

@@ -536,7 +536,7 @@ struct IslandHeader: View {
     /// Pending approval or mail draft, or active security alert/prompt: the island refuses to fold (fsm.isHeldOpen), so the
     /// close cross is not shown.
     private var heldOpen: Bool {
-        state.pendingApproval != nil || state.voiceMailDraft != nil || isSecurityLocked
+        state.pendingApproval != nil || state.pendingQuestion != nil || state.voiceMailDraft != nil || isSecurityLocked
     }
 
     #if !APPSTORE

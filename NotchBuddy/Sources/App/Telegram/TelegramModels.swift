@@ -144,24 +144,33 @@ struct TelegramMessageChat: Codable, Equatable, Sendable {
     }
 }
 
+struct TelegramReplyReference: Codable, Equatable, Sendable {
+    let messageId: Int64
+    enum CodingKeys: String, CodingKey { case messageId = "message_id" }
+}
+
 struct TelegramMessage: Codable, Equatable, Sendable {
     let messageId: Int64
     let chat: TelegramMessageChat
     let from: TelegramUser?
     let text: String?
+    let replyToMessage: TelegramReplyReference?
 
     enum CodingKeys: String, CodingKey {
         case messageId = "message_id"
         case chat
         case from
         case text
+        case replyToMessage = "reply_to_message"
     }
 
-    init(messageId: Int64, chat: TelegramMessageChat, from: TelegramUser? = nil, text: String? = nil) {
+    init(messageId: Int64, chat: TelegramMessageChat, from: TelegramUser? = nil, text: String? = nil,
+         replyToMessage: TelegramReplyReference? = nil) {
         self.messageId = messageId
         self.chat = chat
         self.from = from
         self.text = text
+        self.replyToMessage = replyToMessage
     }
 }
 

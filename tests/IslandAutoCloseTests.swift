@@ -17,7 +17,7 @@ enum IslandAutoCloseTests {
         let edited = openedMachine(delay: 15)
         edited.mouseLeft()
         edited.homeToPetitDelay = 0.05
-        try await waitForCompact(edited, )
+        try await waitForCompact(edited)
 
         // Increasing the delay must also cancel the previous, shorter timer.
         // (Margins sized for a slow CI runner: the check runs long after the
@@ -37,7 +37,7 @@ enum IslandAutoCloseTests {
         try await Task.sleep(for: .milliseconds(100))
         precondition(hovered.state == .home)
         hovered.mouseLeft()
-        try await waitForCompact(hovered, )
+        try await waitForCompact(hovered)
 
         // A setting edit while hovering must not start a countdown.
         let hoveredEdit = openedMachine(delay: 15)
@@ -45,7 +45,7 @@ enum IslandAutoCloseTests {
         try await Task.sleep(for: .milliseconds(100))
         precondition(hoveredEdit.state == .home)
         hoveredEdit.mouseLeft()
-        try await waitForCompact(hoveredEdit, )
+        try await waitForCompact(hoveredEdit)
 
         // Greeting timing is independent from the normal auto-close preference.
         let greeting = IslandStateMachine()
@@ -67,7 +67,7 @@ enum IslandAutoCloseTests {
         precondition(heldOpen.state == .home)
         approvalPending = false
         heldOpen.mouseLeft()
-        try await waitForCompact(heldOpen, )
+        try await waitForCompact(heldOpen)
 
         // An approval arriving during a countdown also blocks its replacement timer.
         let heldCountdown = openedMachine(delay: 0.2)
@@ -80,7 +80,7 @@ enum IslandAutoCloseTests {
         precondition(heldCountdown.state == .home)
         newApprovalPending = false
         heldCountdown.mouseLeft()
-        try await waitForCompact(heldCountdown, )
+        try await waitForCompact(heldCountdown)
 
         print("Island auto-close: 8 cases passed")
     }

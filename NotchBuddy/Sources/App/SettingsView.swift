@@ -51,6 +51,7 @@ struct SettingsView: View {
     @State private var agyPendingInstall: Bool = true
 
     @State private var codexHooksInstalled: Bool = HookServer.codexHooksInstalled()
+    @State private var codexHooksUpdateNeeded: Bool = HookServer.codexHooksNeedUpdate()
     @State private var showCodexDiff: Bool = false
     @State private var pendingCodexJSON: String = ""
     @State private var codexPendingInstall: Bool = true
@@ -1022,16 +1023,19 @@ struct SettingsView: View {
         GroupBox(String(localized: "hooks.codex.title")) {
             VStack(alignment: .leading, spacing: 10) {
                 Text(codexHooksInstalled
-                     ? String(localized: "hooks.codex.installed")
+                     ? (codexHooksUpdateNeeded ? "Update hooks to answer Codex questions in the notch." : String(localized: "hooks.codex.installed"))
                      : "~/.codex/hooks.json")
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(.secondary)
                 HStack(spacing: 10) {
-                    Button(String(localized: "hooks.install")) { triggerCodexPreview(install: true) }
+                    Button(codexHooksUpdateNeeded ? "Update hooks" : String(localized: "hooks.install")) { triggerCodexPreview(install: true) }
                         .buttonStyle(.borderedProminent)
                     Button(String(localized: "hooks.uninstall")) { triggerCodexPreview(install: false) }
                         .buttonStyle(.bordered)
                 }
+                Text("After installing or updating hooks, review and trust them in Codex.")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
                 if showCodexDiff {
                     ScrollView {
                         Text(pendingCodexJSON)
@@ -2162,6 +2166,7 @@ struct SettingsView: View {
             showCodexDiff = false
             pendingCodexJSON = ""
             codexHooksInstalled = codexPendingInstall
+            codexHooksUpdateNeeded = false
             statusMessage = codexPendingInstall
                 ? String(localized: "status.codex-hooks-installed")
                 : String(localized: "status.codex-hooks-removed")

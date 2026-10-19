@@ -3,7 +3,7 @@ import SwiftUI
 
 // MARK: - Codex plan usage
 
-struct CodexPlanUsage {
+struct CodexPlanUsage: Sendable {
     var fiveHour: PlanWindow?
     var sevenDay: PlanWindow?
     var resetCredits: Int?         // free full resets available
@@ -20,7 +20,10 @@ enum CodexPlanGauge {
 
     static func codexExecutable() -> String? {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
-        var candidates = [
+        let env = ProcessInfo.processInfo.environment
+        var candidates = [env["CODEX_CLI_PATH"]].compactMap { $0 }
+        candidates += (env["PATH"] ?? "").split(separator: ":").map { "\($0)/codex" }
+        candidates += [
             "\(home)/.local/bin/codex",
             "/opt/homebrew/bin/codex",
             "/usr/local/bin/codex",
@@ -28,6 +31,10 @@ enum CodexPlanGauge {
             "\(home)/.volta/bin/codex",
             "\(home)/.bun/bin/codex",
             "\(home)/Library/pnpm/codex",
+            "/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex",
+            "\(home)/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex",
+            "/Applications/Codex.app/Contents/Resources/codex",
+            "\(home)/Applications/Codex.app/Contents/Resources/codex",
         ]
         // nvm: one bin folder per Node version, newest first.
         let nvmNode = "\(home)/.nvm/versions/node"
@@ -57,19 +64,19 @@ enum CodexPlanGauge {
         process.standardOutput = output
         process.standardError = FileHandle.nullDevice
         do { try process.run() } catch { return nil }
-        defer { if process.isRunning { process.terminate() } }
+        defer {
+            try? input.fileHandleForWriting.close()
+            if process.isRunning { process.terminate() }
+            process.waitUntilExit()
+        }
 
         // Give up after 15 s: terminating closes stdout, which ends the read loop.
         let timeout = DispatchWorkItem { if process.isRunning { process.terminate() } }
         DispatchQueue.global().asyncAfter(deadline: .now() + 15, execute: timeout)
         defer { timeout.cancel() }
 
-        let requests = [
-            #"{"id":1,"method":"initialize","params":{"clientInfo":{"name":"coucou","version":"1"}}}"#,
-            #"{"method":"initialized"}"#,
-            #"{"id":2,"method":"account/rateLimits/read"}"#,
-        ]
-        input.fileHandleForWriting.write(Data((requests.joined(separator: "\n") + "\n").utf8))
+        // Finish initialization before requesting account data.
+        input.fileHandleForWriting.write(Data((#"{"id":1,"method":"initialize","params":{"clientInfo":{"name":"coucou","version":"1"}}}"# + "\n").utf8))
 
         var buffer = Data()
         while true {
@@ -79,8 +86,13 @@ enum CodexPlanGauge {
             while let nl = buffer.firstIndex(of: 0x0A) {
                 let line = buffer[buffer.startIndex..<nl]
                 buffer.removeSubrange(buffer.startIndex...nl)
-                guard let obj = try? JSONSerialization.jsonObject(with: line) as? [String: Any],
-                      obj["id"] as? Int == 2 else { continue }
+                guard let obj = try? JSONSerialization.jsonObject(with: line) as? [String: Any] else { continue }
+                if obj["id"] as? Int == 1 {
+                    guard obj["error"] == nil, obj["result"] != nil else { return nil }
+                    input.fileHandleForWriting.write(Data((#"{"method":"initialized"}"# + "\n" + #"{"id":2,"method":"account/rateLimits/read"}"# + "\n").utf8))
+                    continue
+                }
+                guard obj["id"] as? Int == 2 else { continue }
                 return (obj["result"] as? [String: Any]).flatMap(parse)
             }
         }
@@ -88,15 +100,18 @@ enum CodexPlanGauge {
 
     /// Parses an `account/rateLimits/read` result.
     static func parse(result: [String: Any]) -> CodexPlanUsage? {
-        guard let limits = result["rateLimits"] as? [String: Any] else { return nil }
+        let buckets = result["rateLimitsByLimitId"] as? [String: Any]
+        guard let limits = (buckets?["codex"] as? [String: Any]) ?? (result["rateLimits"] as? [String: Any]) else { return nil }
         var usage = CodexPlanUsage(planType: limits["planType"] as? String, updatedAt: Date())
         // primary/secondary are not fixed to a window: sort them by duration
         for key in ["primary", "secondary"] {
             guard let w = limits[key] as? [String: Any],
-                  let pct = w["usedPercent"] as? Double,
-                  let resetsAt = w["resetsAt"] as? Double else { continue }
+                  let pct = (w["usedPercent"] as? NSNumber)?.doubleValue,
+                  let resetsAt = (w["resetsAt"] as? NSNumber)?.doubleValue,
+                  let mins = w["windowDurationMins"] as? Int,
+                  mins > 0, pct.isFinite, resetsAt.isFinite, resetsAt > 0 else { continue }
             let window = PlanWindow(usedPct: min(100, max(0, pct)), resetsAt: Date(timeIntervalSince1970: resetsAt))
-            if let mins = w["windowDurationMins"] as? Int, mins <= 24 * 60 {
+            if mins <= 24 * 60 {
                 usage.fiveHour = window
             } else {
                 usage.sevenDay = window
@@ -134,6 +149,7 @@ private let resetExpiryFormatter: DateFormatter = {
 
 struct CodexPlanCardView: View {
     let usage: CodexPlanUsage?   // nil = loading or unavailable
+    var loadError: String? = nil
     var antigravityRow: Bool = false
     var antigravityUsage: AntigravityPlanUsage? = nil
     var onAntigravity: (() -> Void)? = nil
@@ -250,7 +266,7 @@ struct CodexPlanCardView: View {
     }
 
     private var subtitleText: String {
-        guard let usage else { return "Asking Codex…" }
+        guard let usage else { return loadError ?? "Asking Codex…" }
         let plan = usage.planType.map { "\($0) · " } ?? ""
         let diff = now.timeIntervalSince(usage.updatedAt)
         if diff < 60 { return plan + "just now" }

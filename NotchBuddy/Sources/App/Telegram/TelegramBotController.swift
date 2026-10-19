@@ -35,6 +35,7 @@ final class TelegramBotController {
         var submitRef: String?
         var textRef: String?
         var terminalRef: String?
+        var textPromptMessageId: Int64? = nil
     }
 
     // MARK: - Properties
@@ -596,7 +597,13 @@ final class TelegramBotController {
 
         // Handle reply to awaiting text question
         if var active = activeQuestion, active.awaitingText {
+            guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+            if let replyId = message.replyToMessage?.messageId,
+               replyId != active.textPromptMessageId && replyId != active.messageId {
+                return
+            }
             active.awaitingText = false
+            active.textPromptMessageId = nil
             let qIndex = active.currentQuestionIndex
             while active.selections.count <= qIndex {
                 active.selections.append([])
@@ -826,7 +833,38 @@ final class TelegramBotController {
             case .accepted:
                 active.awaitingText = true
                 activeQuestion = active
-                try? await api?.answerCallbackQuery(id: cb.id, text: "Отправьте ваш ответ текстовым сообщением", showAlert: false)
+                do {
+                    guard let api else { throw TelegramAPIError.invalidResponse }
+                    let promptId = try await api.sendMessage(
+                        chatId: chatId,
+                        text: "Напишите ответ на вопрос:\n\(active.items[active.currentQuestionIndex].question)",
+                        forceReply: true,
+                        replyToMessageId: active.messageId
+                    )
+                    // A local answer or a new question may arrive while Telegram sends the prompt.
+                    guard var current = activeQuestion,
+                          current.messageId == active.messageId,
+                          current.sessionId == active.sessionId,
+                          current.currentQuestionIndex == active.currentQuestionIndex else { return }
+                    current.textPromptMessageId = promptId
+                    activeQuestion = current
+                    try? await api.answerCallbackQuery(id: cb.id, text: nil, showAlert: false)
+                } catch {
+                    guard var current = activeQuestion,
+                          current.messageId == active.messageId,
+                          current.sessionId == active.sessionId,
+                          current.currentQuestionIndex == active.currentQuestionIndex else { return }
+                    current.awaitingText = false
+                    current.textPromptMessageId = nil
+                    // Reissue the consumed text action so a failed network request can be retried.
+                    let ui = await buildQuestionUI(for: &current, chatId: chatId, userId: fromId)
+                    guard activeQuestion?.messageId == current.messageId else { return }
+                    activeQuestion = current
+                    try? await api?.editMessage(chatId: chatId, messageId: current.messageId,
+                                               text: ui.text + "\n\nНе удалось открыть ввод. Нажмите «Ответить текстом» ещё раз.",
+                                               keyboard: ui.keyboard)
+                    try? await api?.answerCallbackQuery(id: cb.id, text: "Не удалось открыть ввод. Попробуйте ещё раз.", showAlert: true)
+                }
 
             case .rejected:
                 try? await api?.answerCallbackQuery(id: cb.id, text: "Срок действия истёк", showAlert: false)

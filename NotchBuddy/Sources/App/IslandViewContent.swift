@@ -629,6 +629,7 @@ struct PlanDetailIslandView: View {
                 } else if state.planDetailIsCodex {
                     CodexPlanCardView(
                         usage: state.codexPlanUsage,
+                        loadError: state.codexPlanError,
                         antigravityRow: state.showAntigravityPlanInNotch,
                         antigravityUsage: state.antigravityPlanUsage,
                         onAntigravity: {
@@ -690,6 +691,13 @@ struct PlanDetailIslandView: View {
             .padding(.trailing, 10)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .task {
+            while !Task.isCancelled {
+                if state.planDetailIsCodex { state.refreshCodexPlanUsage() }
+                do { try await Task.sleep(for: .seconds(60)) }
+                catch { return }
+            }
+        }
     }
 }
 #endif
@@ -826,7 +834,9 @@ struct QuestionView: View {
                                 .font(.system(size: 10))
                                 .foregroundColor(Color(hex: "#6B7079"))
                         }
-                        Button("Reply in terminal") { HookServer.shared.sendQuestionAsk(for: shownId) }
+                        Button(askerId == "agent_codex" ? "Reply in Codex" : "Reply in terminal") {
+                            HookServer.shared.sendQuestionAsk(for: shownId)
+                        }
                             .buttonStyle(.plain)
                             .font(.system(size: 10))
                             .foregroundColor(Color(hex: "#6B7079"))
@@ -958,7 +968,7 @@ struct QuestionView: View {
             }
         }
         .onAppear { resetQuestionState() }
-        .onChange(of: state.pendingQuestion) { _, _ in resetQuestionState() }
+        .onChange(of: state.pendingQuestion?.id) { _, _ in resetQuestionState() }
     }
 
     private func resetQuestionState() {
@@ -966,7 +976,7 @@ struct QuestionView: View {
         let count = state.pendingQuestion?.questions.count ?? 0
         selections = Array(repeating: [], count: count)
         otherTexts = Array(repeating: "", count: count)
-        showOther  = Array(repeating: false, count: count)
+        showOther = state.pendingQuestion?.questions.map { $0.options.isEmpty } ?? []
     }
 
     private func toggleSelection(qi: Int, label: String) {

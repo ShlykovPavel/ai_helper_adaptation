@@ -149,14 +149,20 @@ final class TelegramBotAPI: Sendable {
         return try JSONDecoder().decode([TelegramUpdate].self, from: data)
     }
 
-    func sendMessage(chatId: Int64, text: String, keyboard: TelegramInlineKeyboard? = nil) async throws -> Int64 {
+    func sendMessage(chatId: Int64, text: String, keyboard: TelegramInlineKeyboard? = nil,
+                     forceReply: Bool = false, replyToMessageId: Int64? = nil) async throws -> Int64 {
         let safeText = String(text.prefix(3500))
         var body: [String: Any] = [
             "chat_id": chatId,
             "text": safeText
         ]
-        if let keyboard = keyboard {
+        if forceReply {
+            body["reply_markup"] = ["force_reply": true, "input_field_placeholder": "Напишите ваш ответ"]
+        } else if let keyboard = keyboard {
             body["reply_markup"] = keyboard.toDictionary()
+        }
+        if let replyToMessageId {
+            body["reply_parameters"] = ["message_id": replyToMessageId]
         }
         let response = try await execute("sendMessage", body: body)
         guard let result = response["result"] as? [String: Any] else {

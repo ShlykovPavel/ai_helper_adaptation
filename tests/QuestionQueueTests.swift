@@ -53,6 +53,13 @@ enum QuestionQueueTests {
         let resolvedUnrelated = q.resolved(byEvent: "Notification", sessionId: "s3", pillId: "agent_antigravity")
         check("resolved empty on Notification", resolvedUnrelated.isEmpty)
 
+        let codex = entry(4, session: "s4", pill: "agent_codex")
+        _ = q.enqueue(codex)
+        check("parallel Codex tool completion keeps question pending",
+              q.resolved(byEvent: "PostToolUse", sessionId: "s4", pillId: "agent_codex").isEmpty)
+        check("Codex session ending still clears question",
+              q.resolved(byEvent: "Stop", sessionId: "s4", pillId: "agent_codex") == [codex])
+
         if failures > 0 { exit(1) }
     }
 }

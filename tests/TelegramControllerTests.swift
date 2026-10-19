@@ -9,6 +9,9 @@ actor MockTelegramTransport: TelegramHTTPTransport {
 
     private var _requests: [SentRequest] = []
     var nextMessageId: Int64 = 100
+    private var nextMessageError: TelegramAPIError?
+
+    func failNextMessage() { nextMessageError = .networkError("Test failure") }
 
     var requests: [SentRequest] { _requests }
     var lastRequest: SentRequest? { _requests.last }
@@ -16,6 +19,10 @@ actor MockTelegramTransport: TelegramHTTPTransport {
     func request(_ method: String, body: [String: Any]) async throws -> [String: Any] {
         _requests.append(SentRequest(method: method, body: body))
         if method == "sendMessage" {
+            if let error = nextMessageError {
+                nextMessageError = nil
+                throw error
+            }
             let mid = nextMessageId
             nextMessageId += 1
             return ["ok": true, "result": ["message_id": mid]]
@@ -65,6 +72,7 @@ struct TelegramControllerTestRunner {
         await testQuestionSingleSelectMapsToBuildAnswers()
         await testQuestionMultiSelectMapsToBuildAnswers()
         await testQuestionTextAnswer()
+        await testTextPromptFailureCanRetry()
         await testLocalResolutionRemovesKeyboard()
         await testDisabledTelegramRejectsCallbacksAndSendsNoMessages()
         await testPollingStartsWhenUnpaired()
@@ -581,19 +589,74 @@ struct TelegramControllerTestRunner {
         ))
 
         // Send text message from paired user
+        let textPrompts = (await transport.requests).filter { $0.method == "sendMessage" }
+        assert(textPrompts.count == 2, "Reply by text must send a visible input prompt")
+        let promptMarkup = textPrompts.last?.body["reply_markup"] as? [String: Any]
+        assert(promptMarkup?["force_reply"] as? Bool == true, "Telegram must open its native reply interface")
+        let replyParameters = textPrompts.last?.body["reply_parameters"] as? [String: Any]
+        assert(replyParameters?["message_id"] as? Int64 == 100, "Input prompt must refer to the current question")
+        assert((textPrompts.last?.body["text"] as? String)?.contains("Format?") == true)
+
+        // An attachment without text must not submit an empty answer.
+        await controller.handle(update: TelegramUpdate(
+            updateId: 7002,
+            message: TelegramMessage(messageId: 101, chat: TelegramMessageChat(id: pairedChatId, type: "private"),
+                                     from: TelegramUser(id: pairedUserId, firstName: "Owner"))
+        ))
+        assert(recorder.answers.isEmpty, "Non-text messages must leave the question waiting")
+
+        // A reply to an old prompt must not answer the current question.
+        let staleReply: [String: Any] = ["message_id": 102, "chat": ["id": pairedChatId, "type": "private"],
+                                        "from": ["id": pairedUserId], "text": "Old reply",
+                                        "reply_to_message": ["message_id": 42]]
+        let staleMessage = try! JSONDecoder().decode(TelegramMessage.self, from: JSONSerialization.data(withJSONObject: staleReply))
+        await controller.handle(update: TelegramUpdate(updateId: 7003, message: staleMessage))
+        assert(recorder.answers.isEmpty, "A stale reply must leave the current question waiting")
+
+        // Send text message from paired user
         await controller.handle(update: TelegramUpdate(
             updateId: 7002,
             message: TelegramMessage(
                 messageId: 101,
                 chat: TelegramMessageChat(id: pairedChatId, type: "private"),
                 from: TelegramUser(id: pairedUserId, firstName: "Owner"),
-                text: "Custom Typed Answer"
+                text: "Custom Typed Answer",
+                replyToMessage: TelegramReplyReference(messageId: 101)
             )
         ))
 
         assert(recorder.answers.count == 1, "Expected answers submitted via text")
         assert((recorder.answers[0]["Format?"] as? String) == "Custom Typed Answer")
         print("  ✓ Question text answer: PASS")
+    }
+
+    static func testTextPromptFailureCanRetry() async {
+        let transport = MockTelegramTransport()
+        let recorder = TestHookServerRecorder()
+        let controller = TelegramBotController(api: TelegramBotAPI(transport: transport), settings: makeSettings(),
+                                               onQuestionAnswers: { recorder.recordAnswers($0) })
+        let item = QuestionItemSnapshot(question: "Напишите ответ", options: [])
+        controller.handle(event: TelegramEvent(sessionId: "retry", agentId: "agent_codex", agentName: "Codex",
+                                               kind: .question, question: QuestionSnapshot(items: [item])))
+        try? await Task.sleep(nanoseconds: 50_000_000)
+        let firstRef = controller.activeQuestion!.textRef!
+        await transport.failNextMessage()
+        func click(_ ref: String, id: Int64) -> TelegramUpdate {
+            TelegramUpdate(updateId: id, callbackQuery: TelegramCallbackQuery(id: "text-\(id)",
+                from: TelegramUser(id: pairedUserId),
+                message: TelegramMessage(messageId: 100, chat: TelegramMessageChat(id: pairedChatId, type: "private")),
+                data: "c:\(ref):text"))
+        }
+        await controller.handle(update: click(firstRef, id: 1))
+        assert(controller.activeQuestion?.awaitingText == false, "Failed prompt must not consume the next chat message")
+        assert(recorder.answers.isEmpty)
+        let retryRef = controller.activeQuestion!.textRef!
+        assert(retryRef != firstRef, "Failed prompt must offer a fresh text button")
+        await controller.handle(update: click(retryRef, id: 2))
+        assert(controller.activeQuestion?.awaitingText == true)
+        let prompts = (await transport.requests).filter { $0.method == "sendMessage" }
+        assert(prompts.count == 3, "Initial question, failed prompt, successful retry")
+        print("  ✓ Text input prompt can be retried after failure: PASS")
     }
 
     // 9. Local resolution removes keyboard

@@ -12,6 +12,7 @@ struct AskQuestionItem: Equatable, Sendable {
     var header: String      // ≤12 chars; used as section label
     var options: [AskQuestionOption]   // 2–4 choices
     var multiSelect: Bool
+    var answerKey: String? = nil  // Codex uses a stable id rather than the question text.
 }
 
 /// Island height of the pending question, readable from the nonisolated `islandSize`. Written on the main actor only.
@@ -73,14 +74,16 @@ struct AskQuestion: Equatable, Sendable {
     static func parse(toolInput: [String: Any]) -> AskQuestion? {
         guard let rawQs = toolInput["questions"] as? [[String: Any]],
               !rawQs.isEmpty, rawQs.count <= 4 else { return nil }
+        let isCodex = rawQs.contains { $0["id"] != nil || $0["title"] != nil }
         var items: [AskQuestionItem] = []
         for raw in rawQs {
-            guard let question = raw["question"] as? String, !question.isEmpty else { return nil }
+            guard let question = (raw["question"] ?? raw["title"]) as? String,
+                  !question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
 
             var opts: [AskQuestionOption] = []
             if let dictOpts = raw["options"] as? [[String: Any]] {
                 // Claude Code format: [{"label": "...", "description": "..."}]
-                guard dictOpts.count >= 2, dictOpts.count <= 4 else { return nil }
+                guard isCodex ? dictOpts.count <= 9 : (2...4).contains(dictOpts.count) else { return nil }
                 for opt in dictOpts {
                     guard let label = opt["label"] as? String, !label.isEmpty else { return nil }
                     let desc = opt["description"] as? String ?? ""
@@ -88,19 +91,20 @@ struct AskQuestion: Equatable, Sendable {
                 }
             } else if let stringOpts = raw["options"] as? [String] {
                 // Antigravity format: ["Option 1", "Option 2", ...]
-                guard stringOpts.count >= 2, stringOpts.count <= 4 else { return nil }
+                guard isCodex ? stringOpts.count <= 9 : (2...4).contains(stringOpts.count) else { return nil }
                 for label in stringOpts {
                     guard !label.isEmpty else { return nil }
                     opts.append(AskQuestionOption(label: label, description: ""))
                 }
-            } else {
+            } else if !isCodex || (raw["options"] != nil && !(raw["options"] is NSNull)) {
                 return nil
             }
 
             let rawHeader = raw["header"] as? String ?? ""
             let header = String(rawHeader.prefix(12))
             let multi = (raw["multiSelect"] as? Bool) ?? (raw["is_multi_select"] as? Bool) ?? false
-            items.append(AskQuestionItem(question: question, header: header, options: opts, multiSelect: multi))
+            items.append(AskQuestionItem(question: question, header: header, options: opts, multiSelect: multi,
+                                         answerKey: raw["id"] as? String))
         }
         return AskQuestion(questions: items)
     }
@@ -114,9 +118,9 @@ struct AskQuestion: Equatable, Sendable {
         for (i, item) in questions.enumerated() {
             guard i < selections.count, !selections[i].isEmpty else { continue }
             if item.multiSelect {
-                answers[item.question] = selections[i]          // array for multi-select
+                answers[item.answerKey ?? item.question] = selections[i]          // array for multi-select
             } else {
-                answers[item.question] = selections[i][0]       // string for single-select
+                answers[item.answerKey ?? item.question] = selections[i][0]       // string for single-select
             }
         }
         return answers

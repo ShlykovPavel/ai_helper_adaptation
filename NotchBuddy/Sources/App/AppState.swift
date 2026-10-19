@@ -552,9 +552,13 @@ final class AppState: ObservableObject {
 
     // Codex plan gauge (from `codex app-server`) — fetched when the pill shows
     @Published var showCodexPlanInNotch: Bool = false {
-        didSet { UserDefaults.standard.set(showCodexPlanInNotch, forKey: "showCodexPlanInNotch") }
+        didSet {
+            UserDefaults.standard.set(showCodexPlanInNotch, forKey: "showCodexPlanInNotch")
+            if showCodexPlanInNotch { refreshCodexPlanUsage() }
+        }
     }
     @Published var codexPlanUsage: CodexPlanUsage? = nil
+    @Published var codexPlanError: String? = nil
     // Which card showingPlanDetail opens
     @Published var planDetailIsCodex: Bool = false
 
@@ -568,8 +572,13 @@ final class AppState: ObservableObject {
         guard !Self.codexFetchInFlight, Date().timeIntervalSince(Self.lastCodexAttempt) > 60 else { return }
         Self.codexFetchInFlight = true
         Self.lastCodexAttempt = Date()
+        codexPlanError = nil
         Task {
-            if let u = await CodexPlanGauge.fetch() { codexPlanUsage = u }
+            if let u = await CodexPlanGauge.fetch() {
+                codexPlanUsage = u
+            } else {
+                codexPlanError = "Limits unavailable · check Codex sign-in"
+            }
             Self.codexFetchInFlight = false
         }
     }
