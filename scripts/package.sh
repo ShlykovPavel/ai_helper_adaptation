@@ -296,6 +296,11 @@ echo "==> Building ZIP: $ZIP_PATH..."
 rm -f "$ZIP_PATH"
 ditto -c -k "$PAYLOAD_DIR" "$ZIP_PATH"
 
+echo "==> Syncing unpacked payload to $OUTPUT_DIR/Coucou-${VERSION}-macOS-Universal..."
+rm -rf "$OUTPUT_DIR/Coucou-${VERSION}-macOS-Universal"
+mkdir -p "$OUTPUT_DIR/Coucou-${VERSION}-macOS-Universal"
+cp -R "$PAYLOAD_DIR/"* "$OUTPUT_DIR/Coucou-${VERSION}-macOS-Universal/"
+
 # ── 10. Verify Output Artifacts ───────────────────────────────────────────────
 if [ ! -f "$DMG_PATH" ]; then
     echo "error: DMG file was not created at '$DMG_PATH'" >&2
