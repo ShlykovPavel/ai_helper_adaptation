@@ -246,16 +246,16 @@
     <!-- Slot sizes preview -->
     <div class="slots-row">
       <div class="slot-box">
-        <canvas id="slot-64" width="128" height="128" style="width:64px; height:64px;"></canvas>
-        <span>64 pt (Остров)</span>
+        <canvas id="slot-52" width="104" height="104" style="width:52px; height:52px;"></canvas>
+        <span>52 pt (Остров)</span>
       </div>
       <div class="slot-box">
-        <canvas id="slot-32" width="64" height="64" style="width:32px; height:32px;"></canvas>
-        <span>32 pt (Чёлка)</span>
+        <canvas id="slot-22" width="44" height="44" style="width:22px; height:22px;"></canvas>
+        <span>22 pt (Чёлка)</span>
       </div>
       <div class="slot-box">
-        <canvas id="slot-18" width="36" height="36" style="width:18px; height:18px;"></canvas>
-        <span>18 pt (Пилюля)</span>
+        <canvas id="slot-13" width="26" height="26" style="width:13px; height:13px;"></canvas>
+        <span>13 pt (Пилюля)</span>
       </div>
     </div>
   </div>
@@ -684,9 +684,9 @@ function tick(now) {
 
   // Render all views
   drawMascot(document.getElementById('hero-canvas'), 280);
-  drawMascot(document.getElementById('slot-64'), 64);
-  drawMascot(document.getElementById('slot-32'), 32);
-  drawMascot(document.getElementById('slot-18'), 18);
+  drawMascot(document.getElementById('slot-52'), 52);
+  drawMascot(document.getElementById('slot-22'), 22);
+  drawMascot(document.getElementById('slot-13'), 13);
 
   requestAnimationFrame(tick);
 }

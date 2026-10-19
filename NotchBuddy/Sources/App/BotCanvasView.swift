@@ -290,7 +290,7 @@ struct MiniBotCanvasView: View {
         if MascotSettings.selectedMascot == .shapeshifter {
             if task.state == .idle || task.state == .sleeping {
                 AstralHybridIdleView(
-                    size: CGSize(width: 18, height: 18),
+                    size: CGSize(width: 13, height: 13),
                     isPaused: !viewActive,
                     isSleeping: task.state == .sleeping
                 )
