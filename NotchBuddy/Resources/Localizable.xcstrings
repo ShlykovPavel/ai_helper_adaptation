@@ -42063,6 +42063,38 @@
           }
         }
       }
+    },
+    "telegram.keychain.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS Keychain & Security"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Связка ключей macOS и безопасность"
+          }
+        }
+      }
+    },
+    "telegram.keychain.tip" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The bot token is securely stored in your macOS Keychain under \"fr.louisraille.NotchBuddy\". When launching or updating the app, macOS may display a system security prompt asking for your login keychain password. Do not panic — this is standard macOS security protecting your secrets. Select \"Always Allow\" (or \"Allow\") to grant access."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Токен бота безопасно сохраняется в системной Связке ключей macOS (Keychain) под сервисом «fr.louisraille.NotchBuddy». При локальной пересборке или обновлении приложения macOS может показать системный запрос пароля для связки ключей «Вход». Не паникуйте — это штатный механизм безопасности macOS для защиты ваших секретов. Нажмите «Разрешать всегда» (или «Разрешить») и подтвердите доступ."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

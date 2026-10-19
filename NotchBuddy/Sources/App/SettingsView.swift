@@ -2776,6 +2776,10 @@ struct TelegramSettingsSection: View {
                 Circle().fill(Color(hex: "#0088CC")).frame(width: 8, height: 8)
                 Text(String(localized: "telegram.title"))
                     .font(.system(size: 12, weight: .semibold))
+                SettingsInfoTip(
+                    title: String(localized: "telegram.keychain.title"),
+                    text: String(localized: "telegram.keychain.tip")
+                )
             }
 
             Text(String(localized: "telegram.description"))
@@ -2809,8 +2813,14 @@ struct TelegramSettingsSection: View {
 
             // Token field & test
             VStack(alignment: .leading, spacing: 4) {
-                Text(String(localized: "telegram.token.label"))
-                    .font(.system(size: 11, weight: .medium))
+                HStack(spacing: 6) {
+                    Text(String(localized: "telegram.token.label"))
+                        .font(.system(size: 11, weight: .medium))
+                    SettingsInfoTip(
+                        title: String(localized: "telegram.keychain.title"),
+                        text: String(localized: "telegram.keychain.tip")
+                    )
+                }
 
                 HStack(spacing: 8) {
                     SecureField(

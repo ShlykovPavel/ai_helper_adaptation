@@ -181,6 +181,16 @@ In **Settings… → Integrations → Telegram**, you can independently toggle t
 
 ---
 
+### macOS Keychain Password Prompt on Launch or Update
+
+- **Symptom**: macOS displays a system dialog: `«Coucou» wants to use confidential information stored in «fr.louisraille.NotchBuddy» in your keychain.`
+- **Cause**: The bot token is securely stored in the macOS Login Keychain. When Coucou is updated or recompiled locally, its binary signature changes. macOS security prompts for permission to ensure that you trust the updated application to access the existing Keychain entry.
+- **Resolution**:
+  - Enter your Mac login password and click **Always Allow** (or **Allow**).
+  - macOS will record the permission for the updated binary and will not prompt again.
+
+---
+
 ## Managing Your Connection
 
 ### Re-pairing to a New Chat or Account
