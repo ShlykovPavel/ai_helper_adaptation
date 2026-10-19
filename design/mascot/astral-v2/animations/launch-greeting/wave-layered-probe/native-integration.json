@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-19",
+  "surface": "macOS launch greeting only",
+  "userAcceptedPrototype": true,
+  "runtimeIntegrated": true,
+  "durationMs": 4000,
+  "waveCount": 3,
+  "silent": true,
+  "debugBuild": "passed",
+  "nativeFocusedTests": "passed",
+  "browserReferencePoses": 25,
+  "review": "no blockers",
+  "bundleSourceHashesMatch": true,
+  "app": "NotchBuddy/build/Build/Products/Debug/Coucou.app",
+  "liveAppRestarted": false,
+  "otherTestFailures": [
+    "test-all-mascot.sh / test-facade.sh: FlowHubTestStubs omits AskQuestion and TelegramEvent dependencies",
+    "make test / TunnelGuardWatchdogTests.swift:170: expected iface=en0",
+    "windows/tests/expanded-lod.test.mjs: ERR_MODULE_NOT_FOUND for extensionless shapeshifter-compact import",
+    "test-mascot-settings.sh: compile-list lacks IslandMode declaration"
+  ],
+  "limitations": [
+    "visible shoulder seam from accepted prototype",
+    "no blink",
+    "other mascot surfaces unchanged",
+    "live SwiftUI launch not observed"
+  ]
+}

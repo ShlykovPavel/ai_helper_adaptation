@@ -14,10 +14,16 @@ struct BotCanvasView: View {
 
     // One engine per view instance (main bot)
     @StateObject private var engine = BotEngine()
+    @Environment(\.islandViewActive) private var viewActive
 
     var body: some View {
         if MascotSettings.selectedMascot == .shapeshifter {
-            ShapeshifterHostView(state: state, particleOverhang: particleOverhang, lookOriginOverride: lookOriginOverride, paused: paused)
+            if state.effectiveState == .idle, let clip = AstralIdleResources.clip {
+                AstralIdleHostView(state: state, clip: clip, particleOverhang: particleOverhang,
+                    paused: paused || !viewActive || state.isDraggingBot)
+            } else {
+                ShapeshifterHostView(state: state, particleOverhang: particleOverhang, lookOriginOverride: lookOriginOverride, paused: paused)
+            }
         } else {
             // Display refresh rate — every frame on a 60 Hz screen, every frame on ProMotion.
             // MochiFrameClock.advance accumulates the step debt so Mochi's speed never changes.
@@ -276,13 +282,17 @@ struct MiniBotCanvasView: View {
 
     var body: some View {
         if MascotSettings.selectedMascot == .shapeshifter {
-            ShapeshifterCompactView(
-                size: CGSize(width: 18, height: 18),
-                lookX: 0,
-                lookY: 0,
-                shape: MascotSettings.shape,
-                provider: ProviderCoreType.from(pillId: task.id)
-            )
+            if task.state == .idle, let clip = AstralIdleResources.clip {
+                AstralIdleView(clip: clip, size: CGSize(width: 18, height: 18), isPaused: !viewActive)
+            } else {
+                ShapeshifterCompactView(
+                    size: CGSize(width: 18, height: 18),
+                    lookX: 0,
+                    lookY: 0,
+                    shape: MascotSettings.shape,
+                    provider: ProviderCoreType.from(pillId: task.id)
+                )
+            }
         } else {
             // Display refresh rate. Paused in island views that are not shown.
             TimelineView(.animation(paused: !viewActive)) { timeline in

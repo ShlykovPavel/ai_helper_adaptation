@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-19",
+  "runtimeIntegrated": true,
+  "surfaces": [
+    "macOS main BotCanvasView compact/expanded idle",
+    "macOS idle MiniBotCanvasView pills"
+  ],
+  "uniqueDrawings": 48,
+  "displayFps": 24,
+  "displayTicks": 96,
+  "durationMs": 4000,
+  "loop": true,
+  "newDrawingsOrInterpolation": false,
+  "sourceMetadataPreserved": true,
+  "debugBuild": "passed",
+  "nativeTests": "passed",
+  "sourcePackerCheck": "passed",
+  "review": "no blockers",
+  "bundleBytesMatch": true,
+  "app": "NotchBuddy/build/Build/Products/Debug/Coucou.app",
+  "runningAppRestarted": false,
+  "passedChecks": [
+    "48 crops equal original frame pixels",
+    "96 browser ticks",
+    "4-second wrap",
+    "pause/resume freezes elapsed time",
+    "upright CoreGraphics render",
+    "missing-resource fallback",
+    "greeting regression test",
+    "geometry/compact/expanded/sprite tests"
+  ],
+  "otherSuiteFailure": "test-all-mascot.sh: test-facade.sh compile-list omits AskQuestion/TelegramEvent dependencies used by FlowHubTestStubs.swift",
+  "limitations": [
+    "original v2 seam and shape jumps remain",
+    "live SwiftUI transitions and CPU usage not measured",
+    "no new desktop/Hub/other-action/mobile integration"
+  ],
+  "files": {
+    "atlas.png": "2c7947d921263f7ab0142d902a83fb764f70de039b2f4fda6da93e5a8382024f",
+    "atlas.json": "6e3880449945884d06a611ade392b19ae9da10e3d89e1bac5199143d115d5c6c"
+  }
+}

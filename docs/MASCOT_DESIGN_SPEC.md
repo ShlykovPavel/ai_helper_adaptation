@@ -211,14 +211,30 @@ v2 содержит 48 настоящих уникальных рисунков/
 
 ## 7. Состояние приложения и точки подключения
 
-Растровые файлы сейчас лежат в `design/`. Они не подключены к native resources.
+**Idle, 19 октября 2026:** сохранённый атлас «Ты ещё тут?» v2 подключён к
+основному idle-Astral в compact/expanded и маленьким idle-маскотам пилюль macOS.
+`AstralIdleClip` читает собственный `atlas.json` (48 рисунков, 96 тактов / 24 fps,
+4 с), а не контракт старой полосы `astral_idle.png`. Пауза сохраняет рисунок,
+скрытые интервалы не продвигают часы. Исходный известный стык остаётся;
+это интеграция сохранённого дизайна, не исправление его геометрии.
+
+
+**Обновление 19 октября 2026:** двухслойное приветствие подключено к macOS-
+точке запуска через `LaunchGreetingView`/`AstralGreetingView`: 4 с, три взмаха,
+без музыки, неизменные PNG тела и лапки. Ресурсы лежат в
+`NotchBuddy/Resources/Mascots/AstralGreeting`; расчёт движения совпадает с
+[принятой пробой](../design/mascot/astral-v2/animations/launch-greeting/wave-layered-probe/README.md).
+Остальные поверхности сохраняют прежний статус; idle указан в обновлении выше.
+
+
+Остальные растровые файлы лежат в `design/` и пока не подключены к native resources.
 HTML-примерки и SVG — дизайн-артефакты, не доказательство внедрения.
 
 | Зона | Файлы и текущее положение |
 |---|---|
 | macOS, остров | [BotCanvasView.swift](../NotchBuddy/Sources/App/BotCanvasView.swift), [IslandRootView.swift](../NotchBuddy/Sources/App/IslandRootView.swift): существующая развилка Mochi / Shapeshifter |
 | macOS, адаптер | [ShapeshifterHostView.swift](../NotchBuddy/Sources/CoucouKit/Mascots/Shapeshifter/ShapeshifterHostView.swift): выбор размеров и перевод состояний |
-| macOS, маленький маскот | [ShapeshifterCompactView.swift](../NotchBuddy/Sources/CoucouKit/Mascots/Shapeshifter/ShapeshifterCompactView.swift): процедурный Canvas, не новые PNG |
+| macOS, маленький маскот | [ShapeshifterCompactView.swift](../NotchBuddy/Sources/CoucouKit/Mascots/Shapeshifter/ShapeshifterCompactView.swift): процедурный Canvas для других действий; idle-ветка в BotCanvasView использует атлас v2 |
 | macOS, крупный маскот | [ShapeshifterExpandedView.swift](../NotchBuddy/Sources/CoucouKit/Mascots/Shapeshifter/ShapeshifterExpandedView.swift): попытка загрузки полосы кадров, иначе процедурный fallback |
 | macOS, Hub | [FlowHubMochis.swift](../NotchBuddy/Sources/App/FlowHubMochis.swift): `HubLiveMascot` и hero Shapeshifter только у TunnelGuard; прочие сцены могут оставаться Mochi |
 | macOS, рабочий стол | [DesktopMochi.swift](../NotchBuddy/Sources/App/DesktopMochi.swift): отдельный BotEngine, не автоматически новый маскот |

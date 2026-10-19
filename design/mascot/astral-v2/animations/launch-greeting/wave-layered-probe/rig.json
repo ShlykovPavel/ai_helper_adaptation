@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "sourceSpriteCount": 2,
+  "generatedFullPoseFrames": 0,
+  "renderMode": "two immutable PNG layers; continuous rigid paw rotation at a fixed shoulder",
+  "durationMs": 4000,
+  "waveCount": 3,
+  "loop": false,
+  "silent": true,
+  "blinkImplemented": false,
+  "runtimeIntegrated": false,
+  "artisticApproval": false,
+  "body": {
+    "file": "assets/body-generated.png",
+    "sha256": "f0d09950e1f780959c28a09822ab6eeb8718ddf1ab1bdcd73c6ebc992a6124f9",
+    "sizePx": [
+      1254,
+      1254
+    ],
+    "crop": [
+      228,
+      129,
+      1090,
+      1199
+    ],
+    "headCenterX": 638.7169811320755,
+    "shoulder": [
+      275,
+      750
+    ]
+  },
+  "paw": {
+    "file": "assets/paw-generated.png",
+    "sha256": "19b623c5ffef1bdb8f24aae431e0a68435e21f4571b887f1f1211e38c224ca92",
+    "sizePx": [
+      1254,
+      1254
+    ],
+    "crop": [
+      280,
+      96,
+      979,
+      1174
+    ],
+    "pivot": [
+      690,
+      1095
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "candidate": "D",
+  "sourceSHA": "343a870263f7f84b110511e9b8c8808da34541ebd094f684bf9b3aaa24439a86",
+  "status": "lowering-improved-identity-and-attachment-not-approved",
+  "artisticApproval": false,
+  "selectedAsReplacementForB": false,
+  "runtimeIntegrated": false,
+  "reviewer": "root and independent wave_d_review",
+  "methods": [
+    "Saved-source B/D visual review",
+    "Independent read-only review",
+    "Browser1x single pass/stop16,0.25x lowering,seek14,dark/light,26/64px",
+    "Read-only exact reconstruction,atlas and17provenance records"
+  ],
+  "improvements": [
+    "Lowering starts at11 instead of holding then jumping at12.",
+    "10–14 descend without an extra upward reversal."
+  ],
+  "limitations": [
+    "Attachment remains an oval at the cheek, not a fixed anatomical shoulder.",
+    "14→15 visibly changes oval shape into folded paw.",
+    "11→12 is comparatively small; rhythm remains uneven.",
+    "Final silhouette ratio D0.9153 vsB0.8313: approximately10.1% broader. No per-frame scaling was used to hide drift.",
+    "RawD1266×1242 instead of requested1254square, preserved without distortion.",
+    "One common16sourcepx extra extent padding prevents outward-paw clipping.",
+    "16drawings/12unique-per-second motion study, not final24uniqueFPS."
+  ],
+  "diagnostics": {
+    "C": "candidate-c-lowering-diagnostic.json",
+    "D": "candidate-d-lowering-diagnostic.json",
+    "methodLimit": "MeanY of alpha32 leftmost4px is approximate contour diagnostic, not joint tracking. B/D have different common canvas margins/scales.",
+    "bLargestStepPx": 37.52,
+    "bFinalHeightPx": 320,
+    "dLargestStepPx": 25.88,
+    "dFinalHeightPx": 295
+  },
+  "decision": "Keep B as pose-direction baseline. Preserve D as improved-lowering study; fix attachment, B proportions and final paw fold before expanding full greeting."
+}

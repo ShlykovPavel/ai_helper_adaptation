@@ -1,0 +1,27 @@
+Use case: precise-object-edit
+Asset type: transparent 4 by 4 sequential animation sprite sheet, 16 genuinely distinct drawings; motion study for Astral launch greeting.
+Primary request: EDIT Image 1, the approved candidate B sheet. Preserve its high raised-paw greeting direction, paw size and shape, character identity, body proportions, material, calm opposite paw, camera and layout. Correct only the moving paw's shoulder connection and the sequence of motion, particularly the gradual lowering in phases 10 through 15. Image 2 is the canonical identity reference, not a replacement composition.
+Input images in exact order: Image 1 EDIT TARGET = wave-candidate-b.png, the 4x4 sheet. Image 2 IDENTITY REFERENCE = astral-idle-master.png, the single canonical idle mascot.
+Output: exactly 1254 x 1254 pixels, PNG RGBA with a genuinely transparent background. Exactly sixteen separate full-body poses arranged in four equal rows and four equal columns. Read phases left-to-right then top-to-bottom, numbered 0 through 15 conceptually; do not render any numbers, labels, grid lines or text. Keep generous fully transparent corridors and outer padding; no overlap or clipping of paws or glow.
+Subject and invariants: the same softly domed pearlescent translucent icy silver-blue ghost, subtle cyan and lilac edges, two white glowing OPEN vertical oval eyes in every phase, three rounded lower waves, exactly two small soft ghost paws. Keep the other paw (viewer-right) quiet in the same low resting pose throughout. No mouth, no nose, no core, no logo, no pupils, no blink, no music symbols, no added objects. Soft studio light from upper left; nearly frontal orthographic camera. Keep body, scale, position, lower contour, eyes and lighting as stationary and consistent as possible in every cell. Maintain the canonical proportions from Image 2 without redesigning the mascot.
+Moving paw anatomy: viewer-left paw remains the same small rounded soft mitten/paddle form as B, never a human hand, never a detached floating ball. Its BASE is rooted at ONE FIXED spot on the outer shoulder, at the same body-relative height and horizontal position in every phase, as in the idle connection. A short supple visible jelly connection bends/pivots there to allow the tip to rise high beside the eye/cheek. The root must NOT crawl upward onto the cheek as the tip rises; distinguish the fixed root from the moving tip. Preserve B's recognizably HIGH raised paw, do not solve the root issue by lowering the whole gesture. Keep a readable separation of the raised paw silhouette from the head while retaining a connected soft base, without a long human arm.
+Timing and choreography: one single outward-and-back greeting arc, tip reverses direction only at phase 7, then a continuous soft return to idle. This sheet will play once at 12 NEW drawings per second, 16 drawings = 1.333 seconds, not a final 24-drawings-per-second animation.
+Exact phase progression:
+0 calm canonical idle with both paws low.
+1 gentle preparation; moving tip starts lifting.
+2 early lift, base stays fixed at shoulder.
+3 later lift toward eye level, base still fixed.
+4 fully high beside the eye/cheek, preserving approved B's height and paw shape.
+5 first small outward sweep along one clear curved path.
+6 further outward sweep along the SAME arc.
+7 farthest outward tip position and the ONLY wave direction reversal.
+8 smooth first return along that arc.
+9 further smooth return.
+10 returned high next to cheek, ready to lower.
+11 visibly a little lower than 10; begin lowering immediately, do not hold or merely tilt.
+12 lower again by a similar small increment, no teleport from 11.
+13 lower again by another similar increment.
+14 almost back at the initial low paw position.
+15 fully calm low idle matching phase 0 as closely as possible.
+Critical lowering correction: distribute the entire high-to-low tip travel progressively over ALL FIVE transitions 10->11->12->13->14->15, using roughly 20%, 23%, 23%, 20%, 14% of that travel in those successive transitions. Do not hold phases 10 and 11 almost identical then jump at 12; do not drop the whole distance in one transition. Every successive tip is lower, with no upward reversal. Keep root fixed and paw silhouette stable while the short soft connector bends. This is the main defect to fix.
+Preserve: B's high gesture direction, the small paw's size and identity, the opposite resting paw, open eyes, three lower waves, material, light, camera, transparent margins. No transformation into a blob, no extra wave cycles, no body bobbing, no eye animation, no checkerboard drawn into the alpha, no cropping.

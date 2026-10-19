@@ -1,0 +1,11 @@
+{
+  "candidate": "C",
+  "sourceSHA": "a8bbe2cd8829c62bec7ea7ae69c8e92d26e3e41288a751e5f16ba55462b68f60",
+  "status": "rejected-as-lowering-fix",
+  "artisticApproval": false,
+  "reviewer": "root",
+  "method": "Saved-source visual review plus diagnostic of alpha32 leftmost4px contour after common placement; no assertion of exact limb/joint tracking.",
+  "conclusion": "Raised pose retained, but attachment near cheek and uneven lowering remain.11→12 diagnostic jump38.23px versus37.52px inB. No clear improvement.",
+  "diagnostic": "candidate-c-lowering-diagnostic.json",
+  "nextAttempt": "Generate D from isolated raised, outward and idle references instead of feeding the entire defective4x4sheet."
+}

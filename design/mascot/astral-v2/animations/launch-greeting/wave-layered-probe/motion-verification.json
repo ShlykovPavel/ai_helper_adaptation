@@ -1,0 +1,11 @@
+{
+  "checks": "passed",
+  "sampledPoses": 401,
+  "angleSamples": 4001,
+  "waveCount": 3,
+  "maximumAngleStepDegreesPerMs": 0.4056782419375651,
+  "bodyDrawUnchanged": true,
+  "shoulderFixed": true,
+  "pawCropNeverClipped": true,
+  "durationMs": 4000
+}

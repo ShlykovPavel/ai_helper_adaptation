@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		00089CAE7DCB2E61E3824715 /* TelegramPolling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2857DB36F5179E97A5FC7BB3 /* TelegramPolling.swift */; };
+		00AF866F31F341EBCB0C31F2 /* AstralIdleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B9C0E4B6173CC56EEA4C3B /* AstralIdleView.swift */; };
 		01B96F947DF2BDC352E8526D /* WeeklyRecapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 888B3E1420BCB6292BDC8117 /* WeeklyRecapView.swift */; };
 		0325A44358904B44C2237CCE /* ApprovalQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BAE224C1C435C9FFD05BF65 /* ApprovalQueue.swift */; };
 		0393CA5466F52252378F0346 /* ServiceSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84ECC59BE7CDDEE348FC7096 /* ServiceSnapshot.swift */; };
@@ -64,6 +65,7 @@
 		2AF922F3E1EDCC1DDCE26B4A /* ShapeshifterHostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19365A874F605CAFD8C65A17 /* ShapeshifterHostView.swift */; };
 		2C798C3837A63B9BB561A1A0 /* HookServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79D8DD79C3DD9BBC584B3CB2 /* HookServer.swift */; };
 		2DEB459FBD0BA3CEAAA5FDE9 /* ClaudeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A83D5410BD030B243ADDCFF4 /* ClaudeService.swift */; };
+		2EA4995CAADF69C40ED52CDA /* AstralIdleAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 437F5C20D3BB0DBD94809944 /* AstralIdleAnimation.swift */; };
 		2F36E3C6C073E968A682AFA4 /* NotionPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE03E03D1804B0B92C5C2DAD /* NotionPoller.swift */; };
 		326971DDA23F331116E5A628 /* VoiceBrain.swift in Sources */ = {isa = PBXBuildFile; fileRef = C563E55884A7750B40EC9A01 /* VoiceBrain.swift */; };
 		3459AB610B3470BC49F36265 /* ShapeshifterExpandedRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3333028EA70549EDF7A1D74D /* ShapeshifterExpandedRenderer.swift */; };
@@ -99,6 +101,7 @@
 		541AF30CF808CC0FC1B8D97D /* ElevenLabsTTS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046F9CD91704C34AE5BE9393 /* ElevenLabsTTS.swift */; };
 		56BE8C733F10A030A638FB60 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1A7D5CBE2AC084A10C5FF3 /* SettingsView.swift */; };
 		56E12FFCAAB2C4F31600B0F8 /* FlowHubHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 982CBB722685931BB8958162 /* FlowHubHome.swift */; };
+		58BEB731E754E3871D15CDCB /* AstralGreetingAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B58BD48D0FCBBD80C503F683 /* AstralGreetingAnimation.swift */; };
 		59FABCC0B6794FE95319825C /* CoucouNotificationContent.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D6DF93125491729E14636AD8 /* CoucouNotificationContent.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5B9A00AFB0837731FA678E4E /* IslandStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8212018F09EA1E96FBD63CD /* IslandStateMachine.swift */; };
 		5BD7EF71335E0627622124C8 /* SpriteSheetAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40C388C4AD861CB70DEE8421 /* SpriteSheetAnimator.swift */; };
@@ -246,6 +249,7 @@
 		D1C243401794E8BB087D8B10 /* FlowText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 324FEF6CF23F9D4A95799431 /* FlowText.swift */; };
 		D20B2B175A5C1D9B410B51C0 /* PillCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C64C4C5D705CE486221B74 /* PillCatalog.swift */; };
 		D2746E6D92F2E4C46892D5AA /* ServiceDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F64746B2740D5FE26B7E5A /* ServiceDetail.swift */; };
+		D2A6DEC745F505884EC7865C /* Mascots in Resources */ = {isa = PBXBuildFile; fileRef = 44997FA2E1F840D7601BDD7E /* Mascots */; };
 		D2C4A881C6A79B259778621B /* TunnelGuardAppHunter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7965084BFC1EBAF33F3947C4 /* TunnelGuardAppHunter.swift */; };
 		D34D31C27D97D23C0441D1BE /* MochiActivityState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE18399D1CD69468CCF57966 /* MochiActivityState.swift */; };
 		D45D9C8EAF67FC2F46E9F352 /* CloudProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28323DC20034A281F6829884 /* CloudProbe.swift */; };
@@ -285,6 +289,7 @@
 		F25EB7EF3662AFF99AA1C8A1 /* TeamConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8C1BB0DF7770A6B263995E6 /* TeamConfiguration.swift */; };
 		F5D6F8E2CA65AB16B487DDD0 /* IslandScreenGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9466FDE02C9B3FB4EF01DFF8 /* IslandScreenGeometry.swift */; };
 		F6CA56F362902839EF9A3E2E /* PhoneAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 60401D1023D17C3FD30D7113 /* PhoneAssets.xcassets */; };
+		F826296BAECE53399708119F /* AstralGreetingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FD9D9AA2B71CE3D9DE9BFF5 /* AstralGreetingView.swift */; };
 		F8F95EAD88F70E0A147D1662 /* MacDictation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6544ED02D945CF9F00647AD1 /* MacDictation.swift */; };
 		F9445A71BBF9E4D20224238E /* QuestionPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C6993B34A0FFF8E3D454ADC /* QuestionPayload.swift */; };
 		FAD78D74C6906D4EC8AA4101 /* UploadSequenceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FD65943C32E150F1CD65C31 /* UploadSequenceEngine.swift */; };
@@ -381,7 +386,9 @@
 		3B238F6E7B20EFDED5CD3E8E /* ClaudeSettingsFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeSettingsFile.swift; sourceTree = "<group>"; };
 		3EA620656D7BCA9C22A4D4D4 /* TelegramSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramSettingsStore.swift; sourceTree = "<group>"; };
 		40C388C4AD861CB70DEE8421 /* SpriteSheetAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteSheetAnimator.swift; sourceTree = "<group>"; };
+		437F5C20D3BB0DBD94809944 /* AstralIdleAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AstralIdleAnimation.swift; sourceTree = "<group>"; };
 		444604C7E2C530B664849EF9 /* ClaudeResponseText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeResponseText.swift; sourceTree = "<group>"; };
+		44997FA2E1F840D7601BDD7E /* Mascots */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Mascots; path = Resources/Mascots; sourceTree = SOURCE_ROOT; };
 		46C013F6F6C704EC31EB2997 /* TelegramBotController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramBotController.swift; sourceTree = "<group>"; };
 		495865DD96ABDF1BCAF54ACB /* TelegramModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramModels.swift; sourceTree = "<group>"; };
 		4983B1317913482E61EB344D /* FlowKeyLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowKeyLogic.swift; sourceTree = "<group>"; };
@@ -413,6 +420,7 @@
 		6E5F9E4BB282FDE68D65FE6B /* TurnArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnArchive.swift; sourceTree = "<group>"; };
 		6F0C229BD085D76EB3DD94DF /* ServicePublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicePublisher.swift; sourceTree = "<group>"; };
 		6FD65943C32E150F1CD65C31 /* UploadSequenceEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadSequenceEngine.swift; sourceTree = "<group>"; };
+		6FD9D9AA2B71CE3D9DE9BFF5 /* AstralGreetingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AstralGreetingView.swift; sourceTree = "<group>"; };
 		708E1FD9894461B4AD727DB1 /* CoucouIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoucouIntents.swift; sourceTree = "<group>"; };
 		71718D1B87A39A4879DD2A9D /* VercelPoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VercelPoller.swift; sourceTree = "<group>"; };
 		73DF398C822D98F541B62F89 /* CryptoController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoController.swift; sourceTree = "<group>"; };
@@ -473,6 +481,7 @@
 		B328028D18F590D6680B8A2B /* VoiceEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceEngine.swift; sourceTree = "<group>"; };
 		B32FB972D02162720E566674 /* DiffEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffEngine.swift; sourceTree = "<group>"; };
 		B53E4CAD2BCC77B280689B0F /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		B58BD48D0FCBBD80C503F683 /* AstralGreetingAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AstralGreetingAnimation.swift; sourceTree = "<group>"; };
 		B59DD402B4D54D4A7DD36AB2 /* CryptoViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoViews.swift; sourceTree = "<group>"; };
 		B6723392BE01AF210E484316 /* CoucouWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoucouWidgets.swift; sourceTree = "<group>"; };
 		B89DA1A0C21AE3535A1760BB /* N8nPoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = N8nPoller.swift; sourceTree = "<group>"; };
@@ -508,6 +517,7 @@
 		DE18399D1CD69468CCF57966 /* MochiActivityState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MochiActivityState.swift; sourceTree = "<group>"; };
 		DE925A6844FE3E3C09131CE0 /* VoiceTranscriptHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceTranscriptHistory.swift; sourceTree = "<group>"; };
 		E18E74B3586BC0861C69E70A /* InstructionComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstructionComposer.swift; sourceTree = "<group>"; };
+		E3B9C0E4B6173CC56EEA4C3B /* AstralIdleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AstralIdleView.swift; sourceTree = "<group>"; };
 		E4162B4B5D5776EC9FD0866F /* QuestionQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionQueue.swift; sourceTree = "<group>"; };
 		E6AAC67875F84A862BC2A9AF /* ServiceDetailRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceDetailRunner.swift; sourceTree = "<group>"; };
 		E848AC596954B282C2F70089 /* SettingsInfoTip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsInfoTip.swift; sourceTree = "<group>"; };
@@ -572,6 +582,10 @@
 				1BAE224C1C435C9FFD05BF65 /* ApprovalQueue.swift */,
 				C2E4F18AA940EFF7E047B9F7 /* AppState.swift */,
 				EBB84A66045EB20CAC93A8A6 /* AskQuestion.swift */,
+				B58BD48D0FCBBD80C503F683 /* AstralGreetingAnimation.swift */,
+				6FD9D9AA2B71CE3D9DE9BFF5 /* AstralGreetingView.swift */,
+				437F5C20D3BB0DBD94809944 /* AstralIdleAnimation.swift */,
+				E3B9C0E4B6173CC56EEA4C3B /* AstralIdleView.swift */,
 				A29F4C0B02BE91654D02AA0C /* BotCanvasView.swift */,
 				3104222B3F17BA5E8DEA5277 /* CalcomPoller.swift */,
 				D797CC384B5BC70D34F121BC /* ChatMarkdown.swift */,
@@ -767,6 +781,7 @@
 			isa = PBXGroup;
 			children = (
 				B2AA83D80260660475FAB052 /* Localizable.xcstrings */,
+				44997FA2E1F840D7601BDD7E /* Mascots */,
 				C066E2B991AA4F56B2724263 /* sounds */,
 				061D81F5DBAB8DB3ADFD0CB8 /* sounds */,
 			);
@@ -1010,6 +1025,7 @@
 			files = (
 				DCAC390FF9EC65B945A15B24 /* Assets.xcassets in Resources */,
 				7AEED9FBB924F0DD1D07E1A5 /* Localizable.xcstrings in Resources */,
+				D2A6DEC745F505884EC7865C /* Mascots in Resources */,
 				F06EE0A97CB77096A337AA8B /* sounds in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1065,6 +1081,10 @@
 				0325A44358904B44C2237CCE /* ApprovalQueue.swift in Sources */,
 				23BFB915C12B0BC4E9B50AAA /* ApprovalRelay.swift in Sources */,
 				7C75CCB3DC0116D8D3B12313 /* AskQuestion.swift in Sources */,
+				58BEB731E754E3871D15CDCB /* AstralGreetingAnimation.swift in Sources */,
+				F826296BAECE53399708119F /* AstralGreetingView.swift in Sources */,
+				2EA4995CAADF69C40ED52CDA /* AstralIdleAnimation.swift in Sources */,
+				00AF866F31F341EBCB0C31F2 /* AstralIdleView.swift in Sources */,
 				CD8DECA66B9E09C97E469DB9 /* BotCanvasView.swift in Sources */,
 				845D762E9F4F0AD0D5FCEDF4 /* BotEngine.swift in Sources */,
 				4F1E0B3C838DA3CD6F864BC0 /* CalcomPoller.swift in Sources */,

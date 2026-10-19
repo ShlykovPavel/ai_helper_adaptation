@@ -1,0 +1,32 @@
+Use case: stylized-concept
+Asset type: freshly generated transparent animation sprite sheet, 16 sequential drawings in a 4x4 grid.
+Primary request: create NEW candidate D for Astral's single high-paw greeting from three separate key poses and one identity master. Do not copy an existing sprite-sheet sequence. The main task is a visibly progressive five-step paw descent in phases 10,11,12,13,14,15, with equal small steps rather than a hold then a drop.
+Reference roles and exact input order:
+Image 1 wave-extreme-c.png: single outward extreme pose, reference for phase 7 only.
+Image 2 return-raised-c.png: single high returned paw pose, reference for phase 10 and the height of phase 4.
+Image 3 idle-c.png: single low resting pose, reference for phases 0 and 15.
+Image 4 astral-idle-master.png: canonical character identity, material and proportions.
+All four are reference images, none is an edit target. The first three are individual cropped reference canvases; do NOT copy their 384-pixel canvas scale literally into smaller grid cells.
+Output: exactly 1254x1254 PNG RGBA, genuine transparent alpha background, exactly sixteen full mascot drawings, four rows and four columns, chronological order LEFT TO RIGHT then TOP TO BOTTOM. Each cell is approximately 313.5px. Body optical height about 260 source pixels in each cell. Identical scale and body-relative placement in all cells. Leave fully transparent corridors between all silhouettes and generous safe outer padding, including the high/outward paw; do not crop any glow or body. No labels, no numbers, no grid lines or visible background.
+Character invariants: identical soft pearlescent translucent icy silver-blue ghost, lilac/cyan edge tint, domed head, exactly two small soft rounded ghost paws, exactly three rounded lower waves. Exactly two glowing white vertical oval eyes, BOTH OPEN in all sixteen drawings. Keep the viewer-right paw calmly low and still in every phase. No mouth, nose, core, pupils, logo, blink, music symbols or extra objects. Nearly frontal orthographic camera, fixed soft upper-left studio light; body, scale, face and lighting as stationary as possible. Preserve the high raised greeting beside eye/cheek from reference 2, not a low wrist twitch.
+Paw anatomy and motion: only the viewer-left paw moves. Preserve its small rounded mitten-like shape and size in every phase, never a human hand or detached ball. Its root stays attached at one FIXED outer-shoulder spot relative to the torso. A SHORT soft connection bends smoothly to lift and lower the paw; the root must not travel up onto the cheek. Do not make a long human arm. The tip sweeps one readable curved outward-and-back arc with exactly one direction reversal at phase 7, then lowers gently without any upward reversal.
+Sixteen phases:
+0: low calm idle from reference 3.
+1: preparation, tip starts moving up.
+2: early smooth lift.
+3: later smooth lift.
+4: fully raised high beside eye/cheek like reference 2.
+5: starts sweeping outward along one arc.
+6: further outward along the same arc.
+7: outermost extreme like reference 1; the only wave reversal.
+8: first return along the same arc.
+9: further return toward cheek.
+10: returned HIGH next to cheek like reference 2. This is the LAST high pose.
+11: immediately visibly LOWER than 10, already about one fifth of the way to low idle; NOT another held high pose or mere tilt.
+12: another similarly sized downward step, only about two fifths of the total descent; NOT already at the low position.
+13: another similarly sized downward step, about three fifths down.
+14: another similarly sized downward step, about four fifths down and almost at rest.
+15: fully low calm idle like reference 3 and phase 0.
+CRITICAL DRAWING SPACING for the final six phases: using a body height of 260 source pixels, approximate moving-paw tip-center Y measured DOWN FROM THE TOP OF THE BODY is phase10=95px, phase11=110px, phase12=126px, phase13=142px, phase14=157px, phase15=169px. These are drawing guides, not text to render. This means descent increments of about 15,16,16,15,12px across ALL FIVE adjacent transitions. Keep each final pose visibly distinct in height. No hold at 10->11, no large drop at 11->12, no second hold at 12->13. The whole descent is a continuous sequence of SMALL approximately equal downward steps, while the paw root remains on the same shoulder.
+Motion study timing: 16 genuinely drawn poses at 12 new drawings/second, 1.333 seconds, played once. This is not final 24fps production animation. No repeated drawings to imitate extra frames.
+Avoid: body bobbing or squash/stretch, eye motion, lighting flicker, extra wave cycles, moving shoulder root, changing paw shape/size, human arm, floating disconnected ball, background checkerboard, text, watermark, cropped edges.

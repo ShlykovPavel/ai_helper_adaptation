@@ -1,0 +1,152 @@
+[
+  {
+    "milliseconds": -100,
+    "angle": -125,
+    "opacity": 0,
+    "phase": "Появление"
+  },
+  {
+    "milliseconds": 0,
+    "angle": -125,
+    "opacity": 0,
+    "phase": "Появление"
+  },
+  {
+    "milliseconds": 100,
+    "angle": -125,
+    "opacity": 0.103515625,
+    "phase": "Появление"
+  },
+  {
+    "milliseconds": 200,
+    "angle": -125,
+    "opacity": 0.5,
+    "phase": "Появление"
+  },
+  {
+    "milliseconds": 400,
+    "angle": -125,
+    "opacity": 1,
+    "phase": "Появление"
+  },
+  {
+    "milliseconds": 650,
+    "angle": -125,
+    "opacity": 1,
+    "phase": "Поднимает лапку"
+  },
+  {
+    "milliseconds": 800,
+    "angle": -109.65829457749409,
+    "opacity": 1,
+    "phase": "Поднимает лапку"
+  },
+  {
+    "milliseconds": 1000,
+    "angle": -36.54893170486369,
+    "opacity": 1,
+    "phase": "Поднимает лапку"
+  },
+  {
+    "milliseconds": 1199,
+    "angle": -6.000007133024255,
+    "opacity": 1,
+    "phase": "Поднимает лапку"
+  },
+  {
+    "milliseconds": 1200,
+    "angle": -6,
+    "opacity": 1,
+    "phase": "Взмах 1 из 3"
+  },
+  {
+    "milliseconds": 1417,
+    "angle": -40.99979560030675,
+    "opacity": 1,
+    "phase": "Взмах 1 из 3"
+  },
+  {
+    "milliseconds": 1633.3333333,
+    "angle": -6,
+    "opacity": 1,
+    "phase": "Взмах 1 из 3"
+  },
+  {
+    "milliseconds": 1700,
+    "angle": -12.47902879903267,
+    "opacity": 1,
+    "phase": "Взмах 2 из 3"
+  },
+  {
+    "milliseconds": 1850,
+    "angle": -36,
+    "opacity": 1,
+    "phase": "Взмах 2 из 3"
+  },
+  {
+    "milliseconds": 2066.6666667,
+    "angle": -6,
+    "opacity": 1,
+    "phase": "Взмах 3 из 3"
+  },
+  {
+    "milliseconds": 2200,
+    "angle": -22.93256108803171,
+    "opacity": 1,
+    "phase": "Взмах 3 из 3"
+  },
+  {
+    "milliseconds": 2499,
+    "angle": -6.001313977564804,
+    "opacity": 1,
+    "phase": "Взмах 3 из 3"
+  },
+  {
+    "milliseconds": 2500,
+    "angle": -6,
+    "opacity": 1,
+    "phase": "Мягко опускает лапку"
+  },
+  {
+    "milliseconds": 2750,
+    "angle": -20.027357145251457,
+    "opacity": 1,
+    "phase": "Мягко опускает лапку"
+  },
+  {
+    "milliseconds": 3000,
+    "angle": -71.36087612005821,
+    "opacity": 1,
+    "phase": "Мягко опускает лапку"
+  },
+  {
+    "milliseconds": 3200,
+    "angle": -110.97264285474853,
+    "opacity": 1,
+    "phase": "Мягко опускает лапку"
+  },
+  {
+    "milliseconds": 3449,
+    "angle": -124.99999861423312,
+    "opacity": 1,
+    "phase": "Мягко опускает лапку"
+  },
+  {
+    "milliseconds": 3450,
+    "angle": -125,
+    "opacity": 1,
+    "phase": "Спокойная поза"
+  },
+  {
+    "milliseconds": 4000,
+    "angle": -125,
+    "opacity": 1,
+    "phase": "Спокойная поза"
+  },
+  {
+    "milliseconds": 10000,
+    "angle": -125,
+    "opacity": 1,
+    "phase": "Спокойная поза"
+  }
+]

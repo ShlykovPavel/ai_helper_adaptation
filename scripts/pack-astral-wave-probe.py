@@ -24,7 +24,10 @@ def prepare():
         sheet = image.copy()
     xs, ys = pack.grid_splits(sheet, 0), pack.grid_splits(sheet, 1)
     boxes = [[xs[c], ys[r], xs[c + 1], ys[r + 1]] for r in range(4) for c in range(4)]
-    extent = max(max(b[2] - b[0], b[3] - b[1]) for b in boxes)
+    # The newer outward pose extends farther left. Add the same transparent
+    # padding to every cell, preserving one shared scale and visible anatomy.
+    safe_padding = 0 if DIRECTORY.name == 'wave-redraw-probe' else 16
+    extent = max(max(b[2] - b[0], b[3] - b[1]) for b in boxes) + safe_padding
     frames, records = [], []
     for i, box in enumerate(boxes):
         crop = sheet.crop(box)
@@ -61,6 +64,9 @@ def prepare():
             'normalization': 'Transparent corridors, common square padding and uniform resize; integer translation only. Upper-head X (10–20% bbox height) to192, topY to40. No pose edits, per-frame scaling, rotation or interpolation.',
             'generationSHA': pack.digest((DIRECTORY / 'generation.json').read_bytes()),
             'frames': records, 'adjacentMetrics': pack.transitions(frames)}
+    if safe_padding:
+        meta['commonSafePaddingSourcePx'] = safe_padding
+        meta['normalization'] += f' Common cell extent includes {safe_padding}px of extra transparent padding, shared by all16 drawings.'
     return meta, frames, atlas
 
 
@@ -75,6 +81,10 @@ def html(meta):
     template = re.sub(r"\$\('badge'\)\.textContent=.*?;", "$('badge').textContent='Один взмах · отдельная проба';", template)
     template = re.sub(r'<details open>.*?</details>', '<details><summary>Исходные 16 рисунков</summary><p id="storyboard-note">Исходный лист в порядке слева направо, сверху вниз.</p><img id="storyboard" src="wave-source.png" alt="Исходные рисунки пробы взмаха"></details>', template, flags=re.S)
     template = template.replace('<footer>', '<footer><a href="../index.html">Предыдущий черновик для сравнения</a> · ')
+    if DIRECTORY.name != 'wave-redraw-probe':
+        template = template.replace('Проба одного взмаха', 'Правка приветственного взмаха')
+        template = template.replace('Один взмах · отдельная проба', 'Продолжение пробы B')
+        template = template.replace('<footer>', '<footer><a href="../wave-redraw-probe/index.html">Проба B для сравнения</a> · ')
     return template.replace('__GREETING_METADATA__', json.dumps(meta, ensure_ascii=False).replace('</', '<\\/'))
 
 
@@ -95,9 +105,12 @@ def check(prepared=None):
 
 
 def main():
+    global DIRECTORY
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--directory', type=Path, default=DIRECTORY, help='Directory containing wave-source.png and generation.json')
     parser.add_argument('--check', action='store_true', help='Verify without writing files')
     args = parser.parse_args()
+    DIRECTORY = args.directory.resolve()
     if args.check:
         print(pack.encode_json(check()))
         return

@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "candidate": "D",
+  "created_at_utc": "2026-10-17T17:26:11.778824+00:00",
+  "status": "generated-candidate-D-motion-review-pending-size-nonconforming",
+  "tool": "built-in image_gen.imagegen",
+  "intent": "generate",
+  "use_case": "stylized-concept",
+  "imagegen_call_count_this_attempt": 1,
+  "imagegen_call_count_C_plus_D": 2,
+  "transparent_background": true,
+  "references": [
+    {
+      "order": 1,
+      "role": "outward-extreme-phase-7-reference",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/refs/wave-extreme-c.png",
+      "sha256": "ba29c323f9e813b80a27d920449c548a9126e9cf7af3a94ba190d5c34e21ce81"
+    },
+    {
+      "order": 2,
+      "role": "high-raised-phase-4-and-10-reference",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/refs/return-raised-c.png",
+      "sha256": "4acc931a6ddc5f2f6ce7f3ce09da649b4bd623343c72e7f5a9b35be4970aecac"
+    },
+    {
+      "order": 3,
+      "role": "idle-phase-0-and-15-reference",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/refs/idle-c.png",
+      "sha256": "e80284c54cc06345b97f1d633e3108458a62b420483cb556d57f01a082640773"
+    },
+    {
+      "order": 4,
+      "role": "canonical-identity-reference",
+      "path": "design/mascot/astral-v2/astral-idle-master.png",
+      "sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b"
+    }
+  ],
+  "excluded_image_inputs": [
+    "Full B sprite sheet",
+    "Full C sprite sheet"
+  ],
+  "prompt_path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/prompt.txt",
+  "prompt_sha256": "aed91aed8ac36d500b522dcdebf7a3ebc273bae5542b366dcb34a665e053fcb0",
+  "exact_prompt": "Use case: stylized-concept\nAsset type: freshly generated transparent animation sprite sheet, 16 sequential drawings in a 4x4 grid.\nPrimary request: create NEW candidate D for Astral's single high-paw greeting from three separate key poses and one identity master. Do not copy an existing sprite-sheet sequence. The main task is a visibly progressive five-step paw descent in phases 10,11,12,13,14,15, with equal small steps rather than a hold then a drop.\nReference roles and exact input order:\nImage 1 wave-extreme-c.png: single outward extreme pose, reference for phase 7 only.\nImage 2 return-raised-c.png: single high returned paw pose, reference for phase 10 and the height of phase 4.\nImage 3 idle-c.png: single low resting pose, reference for phases 0 and 15.\nImage 4 astral-idle-master.png: canonical character identity, material and proportions.\nAll four are reference images, none is an edit target. The first three are individual cropped reference canvases; do NOT copy their 384-pixel canvas scale literally into smaller grid cells.\nOutput: exactly 1254x1254 PNG RGBA, genuine transparent alpha background, exactly sixteen full mascot drawings, four rows and four columns, chronological order LEFT TO RIGHT then TOP TO BOTTOM. Each cell is approximately 313.5px. Body optical height about 260 source pixels in each cell. Identical scale and body-relative placement in all cells. Leave fully transparent corridors between all silhouettes and generous safe outer padding, including the high/outward paw; do not crop any glow or body. No labels, no numbers, no grid lines or visible background.\nCharacter invariants: identical soft pearlescent translucent icy silver-blue ghost, lilac/cyan edge tint, domed head, exactly two small soft rounded ghost paws, exactly three rounded lower waves. Exactly two glowing white vertical oval eyes, BOTH OPEN in all sixteen drawings. Keep the viewer-right paw calmly low and still in every phase. No mouth, nose, core, pupils, logo, blink, music symbols or extra objects. Nearly frontal orthographic camera, fixed soft upper-left studio light; body, scale, face and lighting as stationary as possible. Preserve the high raised greeting beside eye/cheek from reference 2, not a low wrist twitch.\nPaw anatomy and motion: only the viewer-left paw moves. Preserve its small rounded mitten-like shape and size in every phase, never a human hand or detached ball. Its root stays attached at one FIXED outer-shoulder spot relative to the torso. A SHORT soft connection bends smoothly to lift and lower the paw; the root must not travel up onto the cheek. Do not make a long human arm. The tip sweeps one readable curved outward-and-back arc with exactly one direction reversal at phase 7, then lowers gently without any upward reversal.\nSixteen phases:\n0: low calm idle from reference 3.\n1: preparation, tip starts moving up.\n2: early smooth lift.\n3: later smooth lift.\n4: fully raised high beside eye/cheek like reference 2.\n5: starts sweeping outward along one arc.\n6: further outward along the same arc.\n7: outermost extreme like reference 1; the only wave reversal.\n8: first return along the same arc.\n9: further return toward cheek.\n10: returned HIGH next to cheek like reference 2. This is the LAST high pose.\n11: immediately visibly LOWER than 10, already about one fifth of the way to low idle; NOT another held high pose or mere tilt.\n12: another similarly sized downward step, only about two fifths of the total descent; NOT already at the low position.\n13: another similarly sized downward step, about three fifths down.\n14: another similarly sized downward step, about four fifths down and almost at rest.\n15: fully low calm idle like reference 3 and phase 0.\nCRITICAL DRAWING SPACING for the final six phases: using a body height of 260 source pixels, approximate moving-paw tip-center Y measured DOWN FROM THE TOP OF THE BODY is phase10=95px, phase11=110px, phase12=126px, phase13=142px, phase14=157px, phase15=169px. These are drawing guides, not text to render. This means descent increments of about 15,16,16,15,12px across ALL FIVE adjacent transitions. Keep each final pose visibly distinct in height. No hold at 10->11, no large drop at 11->12, no second hold at 12->13. The whole descent is a continuous sequence of SMALL approximately equal downward steps, while the paw root remains on the same shoulder.\nMotion study timing: 16 genuinely drawn poses at 12 new drawings/second, 1.333 seconds, played once. This is not final 24fps production animation. No repeated drawings to imitate extra frames.\nAvoid: body bobbing or squash/stretch, eye motion, lighting flicker, extra wave cycles, moving shoulder root, changing paw shape/size, human arm, floating disconnected ball, background checkerboard, text, watermark, cropped edges.\n",
+  "source_output_path": "/Users/pavel/.codex/generated_images/01a14acf-fbfd-73f3-b2ac-e2a14ba6957a/exec-0fbe5f34-921e-4aea-b557-d0368d1c669e.png",
+  "path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/wave-source.png",
+  "sha256": "343a870263f7f84b110511e9b8c8808da34541ebd094f684bf9b3aaa24439a86",
+  "output": {
+    "path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/wave-source.png",
+    "sha256": "343a870263f7f84b110511e9b8c8808da34541ebd094f684bf9b3aaa24439a86",
+    "candidate_path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/wave-candidate-d.png",
+    "candidate_sha256": "343a870263f7f84b110511e9b8c8808da34541ebd094f684bf9b3aaa24439a86",
+    "width": 1266,
+    "height": 1242,
+    "mode": "RGBA",
+    "format": "PNG",
+    "requested_width": 1254,
+    "requested_height": 1254,
+    "requested_dimensions_met": false,
+    "layout": {
+      "rows": 4,
+      "columns": 4,
+      "drawing_count": 16,
+      "order": "left-to-right, top-to-bottom, conceptual phases 0..15"
+    },
+    "alpha_zero_pixels": 749370,
+    "alpha_intermediate_pixels": 820733,
+    "copied_without_pixel_changes": true,
+    "post_generation_pixel_processing": "none; raw generator output retained despite size mismatch"
+  },
+  "playback_intent": {
+    "new_drawings_per_second": 12,
+    "drawing_count": 16,
+    "duration_seconds": 1.3333333333333333,
+    "play_once": true,
+    "production_24_unique_drawings_per_second": false
+  },
+  "visual_review": {
+    "reviewer": "astral_wave_refine_c subagent",
+    "method": [
+      "Viewed all four individual reference images with view_image before generation.",
+      "Viewed saved raw D sheet with view_image after generation.",
+      "Static sequential pose inspection only; no playback or small-size review performed by worker."
+    ],
+    "artistic_approval": false,
+    "high_raised_pose_preserved": true,
+    "lowering_10_to_15_appears_more_progressive_in_static_sheet": true,
+    "lowering_10_to_15_playback_smoothness_verified": false,
+    "shoulder_attachment_fixed": false,
+    "observations": [
+      "Phase11 is visibly lower than10, and12 remains an intermediate-height pose rather than abruptly reaching low idle. Phases13 and14 continue downward toward15; this appears more progressive than C on the static sheet.",
+      "High raised and outward greeting poses remain recognizable.",
+      "The root still appears attached high beside the cheek in raised poses; fixed shoulder attachment is not established.",
+      "Paw orientation/silhouette still changes, especially from near-upright returned pose to lower horizontal poses; assess whether this remains recognizable in playback.",
+      "Body/material variation remains. Grid spacing is not perfectly uniform; packaging requires careful cell separation and alignment.",
+      "Generator returned1266x1242 rather than the explicitly requested1254x1254. Original pixels have been preserved; technical size requirement is not met."
+    ],
+    "pending_root_review": [
+      "Package D using actual raw source dimensions; inspect detected transparent corridors and alignment.",
+      "Play once at1x and0.25x, 26px and64px, dark/light backgrounds.",
+      "Compare descent10..15 against B/C using aligned real frames.",
+      "Assess shoulder connection and whether paw silhouette/orientation changes distract.",
+      "Resolve exact canvas dimension requirement without misreporting generated size."
+    ],
+    "decision": "Stop after this single D generation. D is an unapproved candidate with a source-size mismatch; root review required."
+  },
+  "candidates": [
+    {
+      "candidate": "C",
+      "status": "rejected-as-lowering-fix",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/wave-candidate-c.png",
+      "sha256": "a8bbe2cd8829c62bec7ea7ae69c8e92d26e3e41288a751e5f16ba55462b68f60",
+      "prompt_path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/prompt-candidate-c.txt",
+      "prompt_sha256": "68614ce6529c18b0751fbb57dfe76fb75d3b22286eda549e0059d12bfd3f71ed",
+      "generation_path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/generation-candidate-c.json",
+      "generation_sha256": "feccaba0c39e75bd1693ffa81ba88c2757eaf82ee068e690f40fc666d4fbf6e0",
+      "exact_prompt": "Use case: precise-object-edit\nAsset type: transparent 4 by 4 sequential animation sprite sheet, 16 genuinely distinct drawings; motion study for Astral launch greeting.\nPrimary request: EDIT Image 1, the approved candidate B sheet. Preserve its high raised-paw greeting direction, paw size and shape, character identity, body proportions, material, calm opposite paw, camera and layout. Correct only the moving paw's shoulder connection and the sequence of motion, particularly the gradual lowering in phases 10 through 15. Image 2 is the canonical identity reference, not a replacement composition.\nInput images in exact order: Image 1 EDIT TARGET = wave-candidate-b.png, the 4x4 sheet. Image 2 IDENTITY REFERENCE = astral-idle-master.png, the single canonical idle mascot.\nOutput: exactly 1254 x 1254 pixels, PNG RGBA with a genuinely transparent background. Exactly sixteen separate full-body poses arranged in four equal rows and four equal columns. Read phases left-to-right then top-to-bottom, numbered 0 through 15 conceptually; do not render any numbers, labels, grid lines or text. Keep generous fully transparent corridors and outer padding; no overlap or clipping of paws or glow.\nSubject and invariants: the same softly domed pearlescent translucent icy silver-blue ghost, subtle cyan and lilac edges, two white glowing OPEN vertical oval eyes in every phase, three rounded lower waves, exactly two small soft ghost paws. Keep the other paw (viewer-right) quiet in the same low resting pose throughout. No mouth, no nose, no core, no logo, no pupils, no blink, no music symbols, no added objects. Soft studio light from upper left; nearly frontal orthographic camera. Keep body, scale, position, lower contour, eyes and lighting as stationary and consistent as possible in every cell. Maintain the canonical proportions from Image 2 without redesigning the mascot.\nMoving paw anatomy: viewer-left paw remains the same small rounded soft mitten/paddle form as B, never a human hand, never a detached floating ball. Its BASE is rooted at ONE FIXED spot on the outer shoulder, at the same body-relative height and horizontal position in every phase, as in the idle connection. A short supple visible jelly connection bends/pivots there to allow the tip to rise high beside the eye/cheek. The root must NOT crawl upward onto the cheek as the tip rises; distinguish the fixed root from the moving tip. Preserve B's recognizably HIGH raised paw, do not solve the root issue by lowering the whole gesture. Keep a readable separation of the raised paw silhouette from the head while retaining a connected soft base, without a long human arm.\nTiming and choreography: one single outward-and-back greeting arc, tip reverses direction only at phase 7, then a continuous soft return to idle. This sheet will play once at 12 NEW drawings per second, 16 drawings = 1.333 seconds, not a final 24-drawings-per-second animation.\nExact phase progression:\n0 calm canonical idle with both paws low.\n1 gentle preparation; moving tip starts lifting.\n2 early lift, base stays fixed at shoulder.\n3 later lift toward eye level, base still fixed.\n4 fully high beside the eye/cheek, preserving approved B's height and paw shape.\n5 first small outward sweep along one clear curved path.\n6 further outward sweep along the SAME arc.\n7 farthest outward tip position and the ONLY wave direction reversal.\n8 smooth first return along that arc.\n9 further smooth return.\n10 returned high next to cheek, ready to lower.\n11 visibly a little lower than 10; begin lowering immediately, do not hold or merely tilt.\n12 lower again by a similar small increment, no teleport from 11.\n13 lower again by another similar increment.\n14 almost back at the initial low paw position.\n15 fully calm low idle matching phase 0 as closely as possible.\nCritical lowering correction: distribute the entire high-to-low tip travel progressively over ALL FIVE transitions 10->11->12->13->14->15, using roughly 20%, 23%, 23%, 20%, 14% of that travel in those successive transitions. Do not hold phases 10 and 11 almost identical then jump at 12; do not drop the whole distance in one transition. Every successive tip is lower, with no upward reversal. Keep root fixed and paw silhouette stable while the short soft connector bends. This is the main defect to fix.\nPreserve: B's high gesture direction, the small paw's size and identity, the opposite resting paw, open eyes, three lower waves, material, light, camera, transparent margins. No transformation into a blob, no extra wave cycles, no body bobbing, no eye animation, no checkerboard drawn into the alpha, no cropping.\n",
+      "references": [
+        {
+          "order": 1,
+          "role": "edit-target",
+          "path": "design/mascot/astral-v2/animations/launch-greeting/wave-redraw-probe/wave-candidate-b.png",
+          "sha256": "6314609d4d0395cea6203174a8213a80b9cb469d2eacb2759c642a19b36b2b02"
+        },
+        {
+          "order": 2,
+          "role": "identity-reference",
+          "path": "design/mascot/astral-v2/astral-idle-master.png",
+          "sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b"
+        }
+      ],
+      "source_output_path": "/Users/pavel/.codex/generated_images/01a14acf-fbfd-73f3-b2ac-e2a14ba6957a/exec-4d716427-8978-474e-a6f0-2bf6b2f8e52d.png",
+      "root_review": {
+        "aligned_tipBandY_phases10to15": [
+          155.14,
+          160.5,
+          198.73,
+          204.53,
+          232.17,
+          247.1
+        ],
+        "jump11to12_px": 38.23,
+        "B_jump11to12_px": 37.52,
+        "decision": "Rejected as a lowering fix: main drop remains."
+      }
+    },
+    {
+      "candidate": "D",
+      "status": "current-unapproved-candidate-source-size-nonconforming",
+      "path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/wave-candidate-d.png",
+      "sha256": "343a870263f7f84b110511e9b8c8808da34541ebd094f684bf9b3aaa24439a86",
+      "prompt_path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/prompt.txt",
+      "prompt_sha256": "aed91aed8ac36d500b522dcdebf7a3ebc273bae5542b366dcb34a665e053fcb0",
+      "exact_prompt": "Use case: stylized-concept\nAsset type: freshly generated transparent animation sprite sheet, 16 sequential drawings in a 4x4 grid.\nPrimary request: create NEW candidate D for Astral's single high-paw greeting from three separate key poses and one identity master. Do not copy an existing sprite-sheet sequence. The main task is a visibly progressive five-step paw descent in phases 10,11,12,13,14,15, with equal small steps rather than a hold then a drop.\nReference roles and exact input order:\nImage 1 wave-extreme-c.png: single outward extreme pose, reference for phase 7 only.\nImage 2 return-raised-c.png: single high returned paw pose, reference for phase 10 and the height of phase 4.\nImage 3 idle-c.png: single low resting pose, reference for phases 0 and 15.\nImage 4 astral-idle-master.png: canonical character identity, material and proportions.\nAll four are reference images, none is an edit target. The first three are individual cropped reference canvases; do NOT copy their 384-pixel canvas scale literally into smaller grid cells.\nOutput: exactly 1254x1254 PNG RGBA, genuine transparent alpha background, exactly sixteen full mascot drawings, four rows and four columns, chronological order LEFT TO RIGHT then TOP TO BOTTOM. Each cell is approximately 313.5px. Body optical height about 260 source pixels in each cell. Identical scale and body-relative placement in all cells. Leave fully transparent corridors between all silhouettes and generous safe outer padding, including the high/outward paw; do not crop any glow or body. No labels, no numbers, no grid lines or visible background.\nCharacter invariants: identical soft pearlescent translucent icy silver-blue ghost, lilac/cyan edge tint, domed head, exactly two small soft rounded ghost paws, exactly three rounded lower waves. Exactly two glowing white vertical oval eyes, BOTH OPEN in all sixteen drawings. Keep the viewer-right paw calmly low and still in every phase. No mouth, nose, core, pupils, logo, blink, music symbols or extra objects. Nearly frontal orthographic camera, fixed soft upper-left studio light; body, scale, face and lighting as stationary as possible. Preserve the high raised greeting beside eye/cheek from reference 2, not a low wrist twitch.\nPaw anatomy and motion: only the viewer-left paw moves. Preserve its small rounded mitten-like shape and size in every phase, never a human hand or detached ball. Its root stays attached at one FIXED outer-shoulder spot relative to the torso. A SHORT soft connection bends smoothly to lift and lower the paw; the root must not travel up onto the cheek. Do not make a long human arm. The tip sweeps one readable curved outward-and-back arc with exactly one direction reversal at phase 7, then lowers gently without any upward reversal.\nSixteen phases:\n0: low calm idle from reference 3.\n1: preparation, tip starts moving up.\n2: early smooth lift.\n3: later smooth lift.\n4: fully raised high beside eye/cheek like reference 2.\n5: starts sweeping outward along one arc.\n6: further outward along the same arc.\n7: outermost extreme like reference 1; the only wave reversal.\n8: first return along the same arc.\n9: further return toward cheek.\n10: returned HIGH next to cheek like reference 2. This is the LAST high pose.\n11: immediately visibly LOWER than 10, already about one fifth of the way to low idle; NOT another held high pose or mere tilt.\n12: another similarly sized downward step, only about two fifths of the total descent; NOT already at the low position.\n13: another similarly sized downward step, about three fifths down.\n14: another similarly sized downward step, about four fifths down and almost at rest.\n15: fully low calm idle like reference 3 and phase 0.\nCRITICAL DRAWING SPACING for the final six phases: using a body height of 260 source pixels, approximate moving-paw tip-center Y measured DOWN FROM THE TOP OF THE BODY is phase10=95px, phase11=110px, phase12=126px, phase13=142px, phase14=157px, phase15=169px. These are drawing guides, not text to render. This means descent increments of about 15,16,16,15,12px across ALL FIVE adjacent transitions. Keep each final pose visibly distinct in height. No hold at 10->11, no large drop at 11->12, no second hold at 12->13. The whole descent is a continuous sequence of SMALL approximately equal downward steps, while the paw root remains on the same shoulder.\nMotion study timing: 16 genuinely drawn poses at 12 new drawings/second, 1.333 seconds, played once. This is not final 24fps production animation. No repeated drawings to imitate extra frames.\nAvoid: body bobbing or squash/stretch, eye motion, lighting flicker, extra wave cycles, moving shoulder root, changing paw shape/size, human arm, floating disconnected ball, background checkerboard, text, watermark, cropped edges.\n",
+      "references": [
+        {
+          "order": 1,
+          "role": "outward-extreme-phase-7-reference",
+          "path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/refs/wave-extreme-c.png",
+          "sha256": "ba29c323f9e813b80a27d920449c548a9126e9cf7af3a94ba190d5c34e21ce81"
+        },
+        {
+          "order": 2,
+          "role": "high-raised-phase-4-and-10-reference",
+          "path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/refs/return-raised-c.png",
+          "sha256": "4acc931a6ddc5f2f6ce7f3ce09da649b4bd623343c72e7f5a9b35be4970aecac"
+        },
+        {
+          "order": 3,
+          "role": "idle-phase-0-and-15-reference",
+          "path": "design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/refs/idle-c.png",
+          "sha256": "e80284c54cc06345b97f1d633e3108458a62b420483cb556d57f01a082640773"
+        },
+        {
+          "order": 4,
+          "role": "canonical-identity-reference",
+          "path": "design/mascot/astral-v2/astral-idle-master.png",
+          "sha256": "68a65d7b867dea1a935f074efeb1fc8c9dccce68560782835fe5e83ce070595b"
+        }
+      ],
+      "source_output_path": "/Users/pavel/.codex/generated_images/01a14acf-fbfd-73f3-b2ac-e2a14ba6957a/exec-0fbe5f34-921e-4aea-b557-d0368d1c669e.png"
+    }
+  ],
+  "original_B_modified": false,
+  "original_96_drawing_greeting_modified": false,
+  "runtime_integrated": false,
+  "existing_frames_atlas_player_review_not_modified_by_worker": true,
+  "existing_packaged_artifacts_require_root_repack_for_D": true
+}

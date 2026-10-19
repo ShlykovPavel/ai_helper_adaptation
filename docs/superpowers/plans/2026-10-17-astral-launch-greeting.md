@@ -124,6 +124,15 @@ python3 scripts/pack-astral-greeting.py --check
 
 **Files:** `launch-greeting/wave-redraw-probe/`, `scripts/pack-astral-wave-probe.py`.
 
+**Продолжение C/D:** в `launch-greeting/wave-refinement-v2/` созданы EDIT C
+и новый D по отдельным опорным PNG. C отклонён: скачок спуска не исправился.
+D улучшил последовательность 10–14, но крепление у щеки, сгиб 14→15 и
+расширение корпуса относительно B остались; замена B не принята. Root и
+независимый reviewer осмотрели рисунки, root проверил плеер и техническую
+целостность. Упаковщик принимает `--directory`, старые B/96 не меняются.
+Следующий шаг — стабильное крепление, пропорции B и промежуточный сгиб.
+Детали и ограничения: [README C/D](../../../design/mascot/astral-v2/animations/launch-greeting/wave-refinement-v2/README.md).
+
 - [x] Сабагентом созданы 16 фаз A и одна точечная коррекция B; оба исходника,
   промпты, референсы и SHA сохранены.
 - [x] Root осмотрел A/B, упаковал B, проверил один проход и фазы 7/11/12,
@@ -140,3 +149,21 @@ python3 scripts/pack-astral-greeting.py --check
 
 Подробная последовательность продолжения — в разделе «Актуальный план»
 [плана сценки](../../../design/mascot/astral-v2/animations/launch-greeting/plan.md).
+
+
+### Task 7 — Native macOS, 19 октября 2026
+
+Пользователь принял двухслойную пробу и явно поручил подключение.
+
+- [x] Скопировать принятые два PNG и rig в native resources без изменений.
+- [x] Перенести движение в Swift и сверить с независимыми позами HTML-плеера.
+- [x] Подключить к стартовой сценке для Astral, без музыки.
+- [x] Сохранить однократное завершение, отмену при прерывании и существующий FSM.
+- [x] Завершить полную сборку и сверить bundle-ресурсы.
+- [x] Независимое ревью native-кода.
+
+Общий mascot-suite имеет старую ошибку standalone-фикстур (AskQuestion/TelegramEvent
+не входят в compile-list test-facade.sh); это не ошибка нового плеера.
+
+Debug build — BUILD SUCCEEDED. Готовый app: `NotchBuddy/build/Build/Products/Debug/Coucou.app`.
+Отчёт с известными сбоями других тестов: `wave-layered-probe/native-integration.json`.

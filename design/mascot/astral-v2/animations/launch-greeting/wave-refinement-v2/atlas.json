@@ -1,0 +1,1023 @@
+{
+  "schema": 1,
+  "status": "motion-study-unapproved",
+  "uniqueDrawings": 16,
+  "displayFps": 12,
+  "availableDurationMs": 1333.3333333333333,
+  "loop": false,
+  "artisticApproval": false,
+  "runtimeIntegrated": false,
+  "silent": true,
+  "frameSizePx": [
+    384,
+    384
+  ],
+  "atlas": "atlas.png",
+  "atlasSizePx": [
+    1536,
+    1536
+  ],
+  "sourceSHA": "343a870263f7f84b110511e9b8c8808da34541ebd094f684bf9b3aaa24439a86",
+  "cellExtent": 341,
+  "normalization": "Transparent corridors, common square padding and uniform resize; integer translation only. Upper-head X (10–20% bbox height) to192, topY to40. No pose edits, per-frame scaling, rotation or interpolation. Common cell extent includes 16px of extra transparent padding, shared by all16 drawings.",
+  "generationSHA": "35309bd03659c8cd79ee04d974b08717029cd493b66e7d9100bf9340346509db",
+  "frames": [
+    {
+      "id": 0,
+      "sourceCrop": [
+        0,
+        0,
+        316,
+        310
+      ],
+      "cellOffset": [
+        12,
+        15
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-000.png",
+      "atlasRect": [
+        0,
+        0,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        97,
+        126
+      ],
+      "anchorX": 199.94827586206895,
+      "sourceTopY": 67,
+      "translationPx": [
+        -8,
+        -27
+      ],
+      "rgbaSHA": "d5cb9c46de927e9f4065b1c9164d50175635d2e62eb3fa58f8352c35948b1174",
+      "frameSHA": "7e6f9a578021d5cc20aa52a7912a5c8572fc4aeea1a5b770efecfafbbae80ee3",
+      "boundsAlpha32": [
+        60,
+        40,
+        324,
+        331
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 1,
+      "sourceCrop": [
+        316,
+        0,
+        633,
+        310
+      ],
+      "cellOffset": [
+        12,
+        15
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-001.png",
+      "atlasRect": [
+        384,
+        0,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        97,
+        126
+      ],
+      "anchorX": 205.55172413793105,
+      "sourceTopY": 67,
+      "translationPx": [
+        -14,
+        -27
+      ],
+      "rgbaSHA": "3d118fd9ecf899323310a486531fd8d7b00b76d2416b4b70dbfcfdfcd71a87df",
+      "frameSHA": "050d9e9d50791239fa3be1e035cf748f30e565be4000b3f6e41b8b0daeb0d7ac",
+      "boundsAlpha32": [
+        53,
+        40,
+        324,
+        331
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 2,
+      "sourceCrop": [
+        633,
+        0,
+        950,
+        310
+      ],
+      "cellOffset": [
+        12,
+        15
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-002.png",
+      "atlasRect": [
+        768,
+        0,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        97,
+        126
+      ],
+      "anchorX": 207.0344827586207,
+      "sourceTopY": 67,
+      "translationPx": [
+        -15,
+        -27
+      ],
+      "rgbaSHA": "2447b909d4615057b097aa6e3c0606da36414f3fc45c3c11561c6df27f6acad2",
+      "frameSHA": "974d9bdd1f40d4510c78e61e972f75a00262408f5891c83445c3d41495d9388d",
+      "boundsAlpha32": [
+        35,
+        40,
+        324,
+        331
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 3,
+      "sourceCrop": [
+        950,
+        0,
+        1266,
+        310
+      ],
+      "cellOffset": [
+        12,
+        15
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-003.png",
+      "atlasRect": [
+        1152,
+        0,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        97,
+        126
+      ],
+      "anchorX": 207.89655172413794,
+      "sourceTopY": 67,
+      "translationPx": [
+        -16,
+        -27
+      ],
+      "rgbaSHA": "c82d9548318d0019dd935b2fb2d5b5b5548e5b63d27e1df8ec9f48abf05f469e",
+      "frameSHA": "fa70e197165110618a1ee00b87643f2296495469fba5648ae8c952ce964ffd82",
+      "boundsAlpha32": [
+        36,
+        40,
+        324,
+        331
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 4,
+      "sourceCrop": [
+        0,
+        310,
+        316,
+        621
+      ],
+      "cellOffset": [
+        12,
+        15
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-004.png",
+      "atlasRect": [
+        0,
+        384,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        75,
+        104
+      ],
+      "anchorX": 202.32758620689654,
+      "sourceTopY": 45,
+      "translationPx": [
+        -10,
+        -5
+      ],
+      "rgbaSHA": "73bedce65150362a7bc87733e0d46157036b6fc4db3da6ed8cb0dc9fa8f4b5ac",
+      "frameSHA": "237d435ecf09341eb97909ea584528cb1fb94935a49309e6275820a5596c314c",
+      "boundsAlpha32": [
+        44,
+        40,
+        326,
+        335
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 5,
+      "sourceCrop": [
+        316,
+        310,
+        633,
+        621
+      ],
+      "cellOffset": [
+        12,
+        15
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-005.png",
+      "atlasRect": [
+        384,
+        384,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        76,
+        105
+      ],
+      "anchorX": 203.77586206896552,
+      "sourceTopY": 46,
+      "translationPx": [
+        -12,
+        -6
+      ],
+      "rgbaSHA": "99dd93da7fcd2890b286329ef9426a806c3c9f1c460f09e20132ad4e51589603",
+      "frameSHA": "3e55525d7ccc53c5a40b1ba828da5653534d511ab528d5e2e835d9dc1a56a3b7",
+      "boundsAlpha32": [
+        28,
+        40,
+        328,
+        333
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 6,
+      "sourceCrop": [
+        633,
+        310,
+        950,
+        621
+      ],
+      "cellOffset": [
+        12,
+        15
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-006.png",
+      "atlasRect": [
+        768,
+        384,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        76,
+        105
+      ],
+      "anchorX": 207.13793103448276,
+      "sourceTopY": 46,
+      "translationPx": [
+        -15,
+        -6
+      ],
+      "rgbaSHA": "96f9794ed046ec92a1c59230b49b88b31c06da6c262cb210b291eac98c014a64",
+      "frameSHA": "c2d49473be2dbb92fd5c3333b0c02aeb7daf383e198fc339454e29a310a0403a",
+      "boundsAlpha32": [
+        12,
+        40,
+        325,
+        333
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 7,
+      "sourceCrop": [
+        950,
+        310,
+        1266,
+        621
+      ],
+      "cellOffset": [
+        12,
+        15
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-007.png",
+      "atlasRect": [
+        1152,
+        384,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        76,
+        105
+      ],
+      "anchorX": 207.89655172413794,
+      "sourceTopY": 46,
+      "translationPx": [
+        -16,
+        -6
+      ],
+      "rgbaSHA": "25d23ca7bc31d2a6cc320661ab37d07f4a06f6bc5a2a36c1652ab0ec0d77589c",
+      "frameSHA": "67b37b9187cee6aa825c734a2e03bde8527d9fd12ce6e66d76565664188cdb8e",
+      "boundsAlpha32": [
+        6,
+        40,
+        325,
+        333
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 8,
+      "sourceCrop": [
+        0,
+        621,
+        316,
+        917
+      ],
+      "cellOffset": [
+        12,
+        22
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-008.png",
+      "atlasRect": [
+        0,
+        768,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        63,
+        92
+      ],
+      "anchorX": 202.32758620689654,
+      "sourceTopY": 33,
+      "translationPx": [
+        -10,
+        7
+      ],
+      "rgbaSHA": "dd357bf8d0a56cea2521dbbe29311b025dce9851584934c0cf35a48c23d5e7b6",
+      "frameSHA": "1fafee91c04a59129b835fa8baf28aef50eca8de206903c5cbd46c03b024d8fe",
+      "boundsAlpha32": [
+        44,
+        40,
+        326,
+        333
+      ],
+      "edgeMaxAlpha": 0
+    },
+    {
+      "id": 9,
+      "sourceCrop": [
+        316,
+        621,
+        633,
+        917
+      ],
+      "cellOffset": [
+        12,
+        22
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-009.png",
+      "atlasRect": [
+        384,
+        768,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        62,
+        91
+      ],
+      "anchorX": 206.43103448275863,
+      "sourceTopY": 32,
+      "translationPx": [
+        -14,
+        8
+      ],
+      "rgbaSHA": "7fc03a7fa9718070a75b8bc40d42d8c8ca5d83ccbf513d1f3c81266022897179",
+      "frameSHA": "eea949c08da0f6b09f753eb02e7d73414199db3a1d54e23d7b7942fb6be68a47",
+      "boundsAlpha32": [
+        54,
+        40,
+        326,
+        334
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 10,
+      "sourceCrop": [
+        633,
+        621,
+        950,
+        917
+      ],
+      "cellOffset": [
+        12,
+        22
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-010.png",
+      "atlasRect": [
+        768,
+        768,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        62,
+        91
+      ],
+      "anchorX": 206.86206896551724,
+      "sourceTopY": 32,
+      "translationPx": [
+        -15,
+        8
+      ],
+      "rgbaSHA": "c34ca71715e56892a774875351c0fd8fc670037bcc44ecea1473e3dfd5dfa8bd",
+      "frameSHA": "c1ad1a3bce322f2ca603f4a7672c2d89ec80a9de63c0e08d6404c168c434a6a3",
+      "boundsAlpha32": [
+        52,
+        40,
+        325,
+        334
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 11,
+      "sourceCrop": [
+        950,
+        621,
+        1266,
+        917
+      ],
+      "cellOffset": [
+        12,
+        22
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-011.png",
+      "atlasRect": [
+        1152,
+        768,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        62,
+        91
+      ],
+      "anchorX": 207.9655172413793,
+      "sourceTopY": 32,
+      "translationPx": [
+        -16,
+        8
+      ],
+      "rgbaSHA": "f715954a4e86641668b5cc71051a0a3f2538581a0881f8b1a3f6da6b4ab1bbee",
+      "frameSHA": "dbd60cdac95079616ea1b1a4e478d87e2867a4a67b07e7a5b2f85b951c0c98bc",
+      "boundsAlpha32": [
+        50,
+        40,
+        325,
+        334
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 12,
+      "sourceCrop": [
+        0,
+        917,
+        316,
+        1242
+      ],
+      "cellOffset": [
+        12,
+        8
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-012.png",
+      "atlasRect": [
+        0,
+        1152,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        40,
+        69
+      ],
+      "anchorX": 204.08620689655172,
+      "sourceTopY": 10,
+      "translationPx": [
+        -12,
+        30
+      ],
+      "rgbaSHA": "a4d0c587bbf76ce569bf2bf6f31e7d3943615ef9fba596f2467d07dc03d5167d",
+      "frameSHA": "c0e1f5007927010436f4b1e167e7cae3c49277eeb7eba6639bcaff093fd8aea2",
+      "boundsAlpha32": [
+        53,
+        40,
+        325,
+        335
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 13,
+      "sourceCrop": [
+        316,
+        917,
+        633,
+        1242
+      ],
+      "cellOffset": [
+        12,
+        8
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-013.png",
+      "atlasRect": [
+        384,
+        1152,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        40,
+        69
+      ],
+      "anchorX": 206.29310344827587,
+      "sourceTopY": 10,
+      "translationPx": [
+        -14,
+        30
+      ],
+      "rgbaSHA": "241bcaa5765754c185f89e71ec2b817d83a05fa3d727964080b4e92d7a3a3269",
+      "frameSHA": "407c7d274fc0a7809491af388a1048e0300f953224c85e906add1281d87c460d",
+      "boundsAlpha32": [
+        52,
+        40,
+        325,
+        335
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 14,
+      "sourceCrop": [
+        633,
+        917,
+        950,
+        1242
+      ],
+      "cellOffset": [
+        12,
+        8
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-014.png",
+      "atlasRect": [
+        768,
+        1152,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        40,
+        69
+      ],
+      "anchorX": 206.68965517241378,
+      "sourceTopY": 10,
+      "translationPx": [
+        -15,
+        30
+      ],
+      "rgbaSHA": "d9c5947aa644ab4ae053c6c0619e37ac5e020242a77e495808a3fcfd0c52b1b7",
+      "frameSHA": "5306c7d5d55b94ab39910ff840c383b3893f535bf01c7dad9df7f87bec09a186",
+      "boundsAlpha32": [
+        52,
+        40,
+        325,
+        335
+      ],
+      "edgeMaxAlpha": 1
+    },
+    {
+      "id": 15,
+      "sourceCrop": [
+        950,
+        917,
+        1266,
+        1242
+      ],
+      "cellOffset": [
+        12,
+        8
+      ],
+      "uniformScale": 1.1260997067448681,
+      "file": "frames/frame-015.png",
+      "atlasRect": [
+        1152,
+        1152,
+        384,
+        384
+      ],
+      "anchorBandRows": [
+        40,
+        69
+      ],
+      "anchorX": 208.25862068965517,
+      "sourceTopY": 10,
+      "translationPx": [
+        -16,
+        30
+      ],
+      "rgbaSHA": "44b9ddd161867aaea65fd64ae3f26f086aeae69469714ee6d3f4a3360e7ab67d",
+      "frameSHA": "33a923325dbf40ed6a8389f6bb5a00f18ee1fc0710f8f691fd6c478b1ddd36df",
+      "boundsAlpha32": [
+        56,
+        40,
+        326,
+        335
+      ],
+      "edgeMaxAlpha": 1
+    }
+  ],
+  "adjacentMetrics": {
+    "alphaThreshold": 32,
+    "includesLoopSeam": false,
+    "measurements": [
+      {
+        "boundsAlpha32": [
+          60,
+          40,
+          324,
+          331
+        ],
+        "width": 264,
+        "height": 291,
+        "centroidAlphaPx": [
+          191.62902116094133,
+          193.56026492971088
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          53,
+          40,
+          324,
+          331
+        ],
+        "width": 271,
+        "height": 291,
+        "centroidAlphaPx": [
+          189.86987796592715,
+          192.71463765549257
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          35,
+          40,
+          324,
+          331
+        ],
+        "width": 289,
+        "height": 291,
+        "centroidAlphaPx": [
+          187.45928444281085,
+          191.40882108198133
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          36,
+          40,
+          324,
+          331
+        ],
+        "width": 288,
+        "height": 291,
+        "centroidAlphaPx": [
+          187.50311146957458,
+          190.825889244124
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          44,
+          40,
+          326,
+          335
+        ],
+        "width": 282,
+        "height": 295,
+        "centroidAlphaPx": [
+          188.09245354023355,
+          192.06354934318523
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          28,
+          40,
+          328,
+          333
+        ],
+        "width": 300,
+        "height": 293,
+        "centroidAlphaPx": [
+          187.7601419223738,
+          190.3771749237013
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          12,
+          40,
+          325,
+          333
+        ],
+        "width": 313,
+        "height": 293,
+        "centroidAlphaPx": [
+          184.06880765782645,
+          190.1731472991741
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          6,
+          40,
+          325,
+          333
+        ],
+        "width": 319,
+        "height": 293,
+        "centroidAlphaPx": [
+          183.4435931704871,
+          190.45410529967785
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          44,
+          40,
+          326,
+          333
+        ],
+        "width": 282,
+        "height": 293,
+        "centroidAlphaPx": [
+          188.52691192903023,
+          192.02261665393172
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          54,
+          40,
+          326,
+          334
+        ],
+        "width": 272,
+        "height": 294,
+        "centroidAlphaPx": [
+          189.60883573428254,
+          193.52646147570374
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          52,
+          40,
+          325,
+          334
+        ],
+        "width": 273,
+        "height": 294,
+        "centroidAlphaPx": [
+          189.56136228935475,
+          193.17980878347745
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          50,
+          40,
+          325,
+          334
+        ],
+        "width": 275,
+        "height": 294,
+        "centroidAlphaPx": [
+          189.4826450020826,
+          193.55590751549715
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          53,
+          40,
+          325,
+          335
+        ],
+        "width": 272,
+        "height": 295,
+        "centroidAlphaPx": [
+          189.71599675128346,
+          194.4556650686572
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          52,
+          40,
+          325,
+          335
+        ],
+        "width": 273,
+        "height": 295,
+        "centroidAlphaPx": [
+          190.2577776906023,
+          194.75167483528304
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          52,
+          40,
+          325,
+          335
+        ],
+        "width": 273,
+        "height": 295,
+        "centroidAlphaPx": [
+          190.21212528159933,
+          194.95926713904927
+        ]
+      },
+      {
+        "boundsAlpha32": [
+          56,
+          40,
+          326,
+          335
+        ],
+        "width": 270,
+        "height": 295,
+        "centroidAlphaPx": [
+          191.41360273824307,
+          195.24197964023816
+        ]
+      }
+    ],
+    "allAdjacentPairs": [
+      {
+        "from": 0,
+        "to": 1,
+        "widthChangePct": 2.6515151515151514,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 1.951837664219704,
+        "silhouetteIoUAlpha32": 0.9734304004864618
+      },
+      {
+        "from": 1,
+        "to": 2,
+        "widthChangePct": 6.642066420664207,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 2.741553949377403,
+        "silhouetteIoUAlpha32": 0.9451257297544111
+      },
+      {
+        "from": 2,
+        "to": 3,
+        "widthChangePct": 0.34602076124567477,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.5845770572496607,
+        "silhouetteIoUAlpha32": 0.9771876787319226
+      },
+      {
+        "from": 3,
+        "to": 4,
+        "widthChangePct": 2.083333333333333,
+        "heightChangePct": 1.3745704467353952,
+        "centroidDistancePx": 1.370812385797874,
+        "silhouetteIoUAlpha32": 0.9439707286032453
+      },
+      {
+        "from": 4,
+        "to": 5,
+        "widthChangePct": 6.382978723404255,
+        "heightChangePct": 0.6779661016949152,
+        "centroidDistancePx": 1.7188047283081216,
+        "silhouetteIoUAlpha32": 0.9599866991797827
+      },
+      {
+        "from": 5,
+        "to": 6,
+        "widthChangePct": 4.333333333333334,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 3.696968477576126,
+        "silhouetteIoUAlpha32": 0.9473815851180241
+      },
+      {
+        "from": 6,
+        "to": 7,
+        "widthChangePct": 1.9169329073482428,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.6854418671383207,
+        "silhouetteIoUAlpha32": 0.9748168498168498
+      },
+      {
+        "from": 7,
+        "to": 8,
+        "widthChangePct": 11.598746081504702,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 5.319808029372843,
+        "silhouetteIoUAlpha32": 0.9467767655556784
+      },
+      {
+        "from": 8,
+        "to": 9,
+        "widthChangePct": 3.546099290780142,
+        "heightChangePct": 0.3412969283276451,
+        "centroidDistancePx": 1.85259503625108,
+        "silhouetteIoUAlpha32": 0.972742344450946
+      },
+      {
+        "from": 9,
+        "to": 10,
+        "widthChangePct": 0.3676470588235294,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.3498882921748652,
+        "silhouetteIoUAlpha32": 0.9871714848883049
+      },
+      {
+        "from": 10,
+        "to": 11,
+        "widthChangePct": 0.7326007326007326,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.38424818482630774,
+        "silhouetteIoUAlpha32": 0.9785504776574303
+      },
+      {
+        "from": 11,
+        "to": 12,
+        "widthChangePct": 1.090909090909091,
+        "heightChangePct": 0.3401360544217687,
+        "centroidDistancePx": 0.9295249826248086,
+        "silhouetteIoUAlpha32": 0.9825985698353342
+      },
+      {
+        "from": 12,
+        "to": 13,
+        "widthChangePct": 0.3676470588235294,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.617372147207089,
+        "silhouetteIoUAlpha32": 0.9743539417729801
+      },
+      {
+        "from": 13,
+        "to": 14,
+        "widthChangePct": 0.0,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 0.21255283350439372,
+        "silhouetteIoUAlpha32": 0.9814257275883059
+      },
+      {
+        "from": 14,
+        "to": 15,
+        "widthChangePct": 1.098901098901099,
+        "heightChangePct": 0.0,
+        "centroidDistancePx": 1.234291066625532,
+        "silhouetteIoUAlpha32": 0.9748011265378724
+      }
+    ],
+    "maxWidthChangePct": 11.598746081504702,
+    "maxHeightChangePct": 1.3745704467353952,
+    "maxCentroidDistancePx": 5.319808029372843,
+    "minSilhouetteIoUAlpha32": 0.9439707286032453
+  },
+  "commonSafePaddingSourcePx": 16
+}

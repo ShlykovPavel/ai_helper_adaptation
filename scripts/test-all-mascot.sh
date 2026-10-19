@@ -6,6 +6,12 @@ echo "=========================================================="
 echo "      Astral Morph Mascot Full Verification Suite        "
 echo "=========================================================="
 
+echo "[0/7] Running Native Astral Idle Tests..."
+bash scripts/test-astral-idle.sh
+
+echo "[0/7] Running Native Astral Greeting Tests..."
+bash scripts/test-astral-greeting.sh
+
 echo "[1/7] Running Geometry & Notch Anchoring Tests..."
 bash scripts/test-geometry.sh
 

@@ -633,6 +633,7 @@ private func drawGreeting(_ ctx: CGContext, size: CGSize, t: Double,
 
 struct GreetingCanvasView: View {
     @ObservedObject var state: AppState
+    var soundEnabled = true
 
     @State private var startDate = Date()
     @State private var tc: Double = .infinity
@@ -658,7 +659,7 @@ struct GreetingCanvasView: View {
             tc = .infinity
             greetFired = false
             // Original score plays from the start; greet.wav and blip.wav kept for other uses
-            SoundEngine.shared.play("greeting")
+            if soundEnabled { SoundEngine.shared.play("greeting") }
             // Safety fallback: fire done if timeline onChange misses it
             let item = DispatchWorkItem { fireGreetComplete() }
             doneWork = item
@@ -666,7 +667,7 @@ struct GreetingCanvasView: View {
         }
         .onDisappear {
             doneWork?.cancel(); doneWork = nil
-            SoundEngine.shared.fadeOut("greeting", duration: 0.2)
+            if soundEnabled { SoundEngine.shared.fadeOut("greeting", duration: 0.2) }
         }
         .onReceive(NotificationCenter.default.publisher(for: .greetingHover)) { _ in
             if tc >= GT.autoLeave { tc = .infinity }
@@ -675,7 +676,7 @@ struct GreetingCanvasView: View {
             let t = Date().timeIntervalSince(startDate)
             if tc.isInfinite || tc > t { tc = t }
             doneWork?.cancel(); doneWork = nil
-            SoundEngine.shared.fadeOut("greeting", duration: 0.25)
+            if soundEnabled { SoundEngine.shared.fadeOut("greeting", duration: 0.25) }
         }
     }
 

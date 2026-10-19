@@ -1,0 +1,35 @@
+{
+  "method": "Alpha32 leftmost4px contour meanY; rough tip-band diagnostic, not tracking joint",
+  "frames": [
+    {
+      "frame": 10,
+      "tipBandMeanY": 155.14,
+      "deltaY": null
+    },
+    {
+      "frame": 11,
+      "tipBandMeanY": 160.5,
+      "deltaY": 5.36
+    },
+    {
+      "frame": 12,
+      "tipBandMeanY": 198.73,
+      "deltaY": 38.23
+    },
+    {
+      "frame": 13,
+      "tipBandMeanY": 204.53,
+      "deltaY": 5.8
+    },
+    {
+      "frame": 14,
+      "tipBandMeanY": 232.17,
+      "deltaY": 27.64
+    },
+    {
+      "frame": 15,
+      "tipBandMeanY": 247.1,
+      "deltaY": 14.93
+    }
+  ]
+}

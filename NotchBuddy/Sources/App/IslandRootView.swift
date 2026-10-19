@@ -63,7 +63,7 @@ struct IslandContainer: View {
             if state.mode == .expanded {
                 if greetingActive {
                     // Greeting canvas: fixed 640-wide, centered by offset so x=320 aligns with island center
-                    GreetingCanvasView(state: state)
+                    LaunchGreetingView(state: state)
                         .frame(width: IslandConst.expandedWidth, height: 150)
                         .offset(x: (islandWidth - IslandConst.expandedWidth) / 2)
                         .clipShape(IslandShape(width: islandWidth, height: islandHeight,
@@ -96,6 +96,7 @@ struct IslandContainer: View {
             // fire from the current position (e.g. choose at 60,101) when canvas deactivates.
             // Hidden during upload canvas or greeting (both draw their own Mochi).
             BotPlacement(state: state, islandW: islandWidth, islandH: islandHeight)
+                .environment(\.islandViewActive, !uploadActive && !greetingActive)
                 // Keep idle animations inside the resting strip. Expanded views
                 // retain the panel's full height for particles and hands.
                 .mask(alignment: .topLeading) {
