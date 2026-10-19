@@ -18,9 +18,15 @@ struct BotCanvasView: View {
 
     var body: some View {
         if MascotSettings.selectedMascot == .shapeshifter {
-            if state.effectiveState == .idle, let clip = AstralIdleResources.clip {
-                AstralIdleHostView(state: state, clip: clip, particleOverhang: particleOverhang,
-                    paused: paused || !viewActive || state.isDraggingBot)
+            if state.effectiveState == .idle || state.effectiveState == .sleeping {
+                let look = lookXY(state: state)
+                AstralHybridIdleHostView(
+                    state: state,
+                    particleOverhang: particleOverhang,
+                    lookX: look.x,
+                    lookY: look.y,
+                    paused: paused || !viewActive || state.isDraggingBot
+                )
             } else {
                 ShapeshifterHostView(state: state, particleOverhang: particleOverhang, lookOriginOverride: lookOriginOverride, paused: paused)
             }
@@ -282,8 +288,12 @@ struct MiniBotCanvasView: View {
 
     var body: some View {
         if MascotSettings.selectedMascot == .shapeshifter {
-            if task.state == .idle, let clip = AstralIdleResources.clip {
-                AstralIdleView(clip: clip, size: CGSize(width: 18, height: 18), isPaused: !viewActive)
+            if task.state == .idle || task.state == .sleeping {
+                AstralHybridIdleView(
+                    size: CGSize(width: 18, height: 18),
+                    isPaused: !viewActive,
+                    isSleeping: task.state == .sleeping
+                )
             } else {
                 ShapeshifterCompactView(
                     size: CGSize(width: 18, height: 18),
