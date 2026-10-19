@@ -174,7 +174,18 @@ class TestAntigravityHookRelay(unittest.TestCase):
                 "is_multi_select": False
             }
         ]
-        out = {
+        # Antigravity uses 'overwrite' conforming to PreToolHookResult protobuf schema
+        agy_out = {
+            "decision": "allow",
+            "overwrite": {"questions": questions, "answers": answers}
+        }
+        self.assertEqual(agy_out["decision"], "allow")
+        self.assertNotIn("hookSpecificOutput", agy_out)
+        self.assertEqual(agy_out["overwrite"]["answers"]["Which database engine would you like to use?"], "PostgreSQL")
+        self.assertEqual(agy_out["overwrite"]["questions"], questions)
+
+        # Other agents (Claude Code) use hookSpecificOutput
+        claude_out = {
             "decision": "allow",
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
@@ -183,12 +194,9 @@ class TestAntigravityHookRelay(unittest.TestCase):
             },
             "updatedInput": {"questions": questions, "answers": answers}
         }
-        self.assertEqual(out["decision"], "allow")
-        self.assertEqual(out["hookSpecificOutput"]["hookEventName"], "PreToolUse")
-        self.assertEqual(out["hookSpecificOutput"]["permissionDecision"], "allow")
-        self.assertEqual(out["hookSpecificOutput"]["updatedInput"]["answers"]["Which database engine would you like to use?"], "PostgreSQL")
-        self.assertEqual(out["updatedInput"]["answers"]["Which database engine would you like to use?"], "PostgreSQL")
-        self.assertEqual(out["updatedInput"]["questions"], questions)
+        self.assertEqual(claude_out["decision"], "allow")
+        self.assertEqual(claude_out["hookSpecificOutput"]["hookEventName"], "PreToolUse")
+        self.assertEqual(claude_out["hookSpecificOutput"]["permissionDecision"], "allow")
 
     def test_ask_fallback_antigravity(self):
         """Verify that both scripts emit {"decision":"ask"} for Antigravity in --ask mode when unanswered."""
@@ -214,7 +222,7 @@ class TestAntigravityHookRelay(unittest.TestCase):
                 py_code = extract_python_relay(var_name)
                 # Ensure agent parsing appears before '--ask' check
                 pos_agent = py_code.find("agent = ''")
-                pos_ask = py_code.find("if '--ask' in sys.argv[1:]:")
+                pos_ask = py_code.find("if '--ask' in sys.argv[1:] or is_codex_question:")
                 self.assertNotEqual(pos_agent, -1)
                 self.assertNotEqual(pos_ask, -1)
                 self.assertLess(pos_agent, pos_ask, f"agent parsing must precede --ask in {var_name}")

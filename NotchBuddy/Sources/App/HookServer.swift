@@ -2155,6 +2155,22 @@ final class HookServer: @unchecked Sendable {
     private var _pendingCodexData: Data?
     private var _pendingCodexFingerprint: String?
 
+    /// Older installations give PreToolUse only ten seconds, too little for a user answer.
+    static func codexHooksNeedUpdate() -> Bool {
+        guard codexHooksInstalled(),
+              let data = try? Data(contentsOf: codexHooksURL),
+              let root = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+              let hooks = root["hooks"] as? [String: Any] else { return false }
+        let groups = hooks["PreToolUse"] as? [[String: Any]] ?? []
+        return !groups.contains { group in
+            (group["hooks"] as? [[String: Any]] ?? []).contains { hook in
+                let command = hook["command"] as? String ?? ""
+                return command.contains("nb-hook") && command.contains("--agent codex")
+                    && (hook["timeout"] as? Int ?? 0) >= 130
+            }
+        }
+    }
+
     func previewCodexHooks(install: Bool) throws -> String {
         let url = Self.codexHooksURL
         let exists = FileManager.default.fileExists(atPath: url.path)
@@ -2197,7 +2213,7 @@ final class HookServer: @unchecked Sendable {
         let events: [(String, Int, String?)] = [
             ("SessionStart",    10,  nil),
             ("UserPromptSubmit", 10, nil),
-            ("PreToolUse",      10,  nil),
+            ("PreToolUse",     130,  "Waiting for your answer in the notch (Coucou)"),
             ("PermissionRequest", 120, "Waiting for your answer in the notch (Coucou)"),
             ("PostToolUse",     10,  nil),
             ("Stop",            10,  nil),
@@ -3721,11 +3737,17 @@ def main():
                 pass
         return
 
-    # --ask mode: dedicated hook for AskUserQuestion via PreToolUse (Claude Code 2.1.85+)
-    if '--ask' in sys.argv[1:]:
-        normalize_tool_fields(payload)
+    # Codex questions arrive through its existing PreToolUse hook, including async prompts.
+    normalize_tool_fields(payload)
+    is_codex_question = (
+        agent == 'codex'
+        and normalize_event(payload.get('hook_event_name', '')) == 'PreToolUse'
+        and payload.get('tool_name', '').split('.')[-1] in ('request_user_input', 'request_user_input_async')
+    )
+    # --ask remains the dedicated Claude / Antigravity question hook.
+    if '--ask' in sys.argv[1:] or is_codex_question:
         tool = payload.get('tool_name', '')
-        if tool not in ('AskUserQuestion', 'ask_question'):
+        if not is_codex_question and tool not in ('AskUserQuestion', 'ask_question'):
             return  # Not an AskUserQuestion invocation — exit cleanly (no output)
         payload['coucou_kind'] = 'ask_user_question'
         if agent:
@@ -3742,19 +3764,18 @@ def main():
             else:
                 payload['cwd'] = os.getcwd()
         try:
-            s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            s.settimeout(125)
-            s.connect(socket_path)
-            s.sendall((json.dumps(payload) + '\\n').encode())
-            chunks = []
-            while True:
-                chunk = s.recv(4096)
-                if not chunk:
-                    break
-                chunks.append(chunk)
-                if b'\\n' in chunk:
-                    break
-            s.close()
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+                s.settimeout(125)
+                s.connect(socket_path)
+                s.sendall((json.dumps(payload) + '\\n').encode())
+                chunks = []
+                while True:
+                    chunk = s.recv(4096)
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+                    if b'\\n' in chunk:
+                        break
             response = b''.join(chunks).decode().strip()
             if response:
                 try:
@@ -3764,16 +3785,36 @@ def main():
                     decision = ''
                 if decision == 'answer':
                     answers = resp_obj.get('answers', {})
-                    questions = payload.get('tool_input', {}).get('questions', [])
-                    out = {
-                        'decision': 'allow',
-                        'hookSpecificOutput': {
+                    if is_codex_question:
+                        # Codex has no hook result override for request_user_input. Its supported
+                        # PreToolUse deny carries the explicit user answer back as tool feedback,
+                        # skipping the native prompt. Never fabricate updatedInput.answers.
+                        reason = 'The user answered in Coucou: ' + json.dumps(answers, ensure_ascii=False)
+                        reason += '. Use these answers and continue; do not ask the same questions again.'
+                        out = {'hookSpecificOutput': {
                             'hookEventName': 'PreToolUse',
-                            'permissionDecision': 'allow',
+                            'permissionDecision': 'deny',
+                            'permissionDecisionReason': reason,
+                            'additionalContext': reason
+                        }}
+                        print(json.dumps(out, ensure_ascii=False), flush=True)
+                        sys.exit(0)
+                    questions = payload.get('tool_input', {}).get('questions', [])
+                    if agent == 'antigravity' or payload.get('coucou_agent') == 'antigravity':
+                        out = {
+                            'decision': 'allow',
+                            'overwrite': {'questions': questions, 'answers': answers}
+                        }
+                    else:
+                        out = {
+                            'decision': 'allow',
+                            'hookSpecificOutput': {
+                                'hookEventName': 'PreToolUse',
+                                'permissionDecision': 'allow',
+                                'updatedInput': {'questions': questions, 'answers': answers}
+                            },
                             'updatedInput': {'questions': questions, 'answers': answers}
-                        },
-                        'updatedInput': {'questions': questions, 'answers': answers}
-                    }
+                        }
                     print(json.dumps(out), flush=True)
                     sys.exit(0)
                 # 'ask' or unknown: fall through
@@ -4136,11 +4177,17 @@ def main():
                 pass
         return
 
-    # --ask mode: dedicated hook for AskUserQuestion via PreToolUse (Claude Code 2.1.85+)
-    if '--ask' in sys.argv[1:]:
-        normalize_tool_fields(payload)
+    # Codex questions arrive through its existing PreToolUse hook, including async prompts.
+    normalize_tool_fields(payload)
+    is_codex_question = (
+        agent == 'codex'
+        and normalize_event(payload.get('hook_event_name', '')) == 'PreToolUse'
+        and payload.get('tool_name', '').split('.')[-1] in ('request_user_input', 'request_user_input_async')
+    )
+    # --ask remains the dedicated Claude / Antigravity question hook.
+    if '--ask' in sys.argv[1:] or is_codex_question:
         tool = payload.get('tool_name', '')
-        if tool not in ('AskUserQuestion', 'ask_question'):
+        if not is_codex_question and tool not in ('AskUserQuestion', 'ask_question'):
             return  # Not an AskUserQuestion invocation — exit cleanly (no output)
         payload['coucou_kind'] = 'ask_user_question'
         if agent:
@@ -4157,19 +4204,18 @@ def main():
             else:
                 payload['cwd'] = os.getcwd()
         try:
-            s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            s.settimeout(125)
-            s.connect(socket_path)
-            s.sendall((json.dumps(payload) + '\\n').encode())
-            chunks = []
-            while True:
-                chunk = s.recv(4096)
-                if not chunk:
-                    break
-                chunks.append(chunk)
-                if b'\\n' in chunk:
-                    break
-            s.close()
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+                s.settimeout(125)
+                s.connect(socket_path)
+                s.sendall((json.dumps(payload) + '\\n').encode())
+                chunks = []
+                while True:
+                    chunk = s.recv(4096)
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+                    if b'\\n' in chunk:
+                        break
             response = b''.join(chunks).decode().strip()
             if response:
                 try:
@@ -4179,16 +4225,36 @@ def main():
                     decision = ''
                 if decision == 'answer':
                     answers = resp_obj.get('answers', {})
-                    questions = payload.get('tool_input', {}).get('questions', [])
-                    out = {
-                        'decision': 'allow',
-                        'hookSpecificOutput': {
+                    if is_codex_question:
+                        # Codex has no hook result override for request_user_input. Its supported
+                        # PreToolUse deny carries the explicit user answer back as tool feedback,
+                        # skipping the native prompt. Never fabricate updatedInput.answers.
+                        reason = 'The user answered in Coucou: ' + json.dumps(answers, ensure_ascii=False)
+                        reason += '. Use these answers and continue; do not ask the same questions again.'
+                        out = {'hookSpecificOutput': {
                             'hookEventName': 'PreToolUse',
-                            'permissionDecision': 'allow',
+                            'permissionDecision': 'deny',
+                            'permissionDecisionReason': reason,
+                            'additionalContext': reason
+                        }}
+                        print(json.dumps(out, ensure_ascii=False), flush=True)
+                        sys.exit(0)
+                    questions = payload.get('tool_input', {}).get('questions', [])
+                    if agent == 'antigravity' or payload.get('coucou_agent') == 'antigravity':
+                        out = {
+                            'decision': 'allow',
+                            'overwrite': {'questions': questions, 'answers': answers}
+                        }
+                    else:
+                        out = {
+                            'decision': 'allow',
+                            'hookSpecificOutput': {
+                                'hookEventName': 'PreToolUse',
+                                'permissionDecision': 'allow',
+                                'updatedInput': {'questions': questions, 'answers': answers}
+                            },
                             'updatedInput': {'questions': questions, 'answers': answers}
-                        },
-                        'updatedInput': {'questions': questions, 'answers': answers}
-                    }
+                        }
                     sys.stdout.write(json.dumps(out) + '\\n')
                     sys.stdout.flush()
                     sys.exit(0)
