@@ -160,8 +160,8 @@ struct CodexPlanCardView: View {
                     .fixedSize()
             }
             .padding(.top, 6)
-            .padding(.leading, 108)
-            .padding(.trailing, 36)
+            .padding(.leading, 134)
+            .padding(.trailing, 44)
 
             // Gauge rows (2 columns when cross-agent rows are present)
             #if !APPSTORE
@@ -214,8 +214,8 @@ struct CodexPlanCardView: View {
                     #endif
                 }
                 .padding(.top, 8)
-                .padding(.leading, 108)
-                .padding(.trailing, 12)
+                .padding(.leading, 134)
+                .padding(.trailing, 16)
             } else {
                 VStack(alignment: .leading, spacing: 5) {
                     if usage?.fiveHour != nil {
@@ -235,8 +235,8 @@ struct CodexPlanCardView: View {
                     }
                 }
                 .padding(.top, 8)
-                .padding(.leading, 108)
-                .padding(.trailing, 12)
+                .padding(.leading, 134)
+                .padding(.trailing, 16)
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)

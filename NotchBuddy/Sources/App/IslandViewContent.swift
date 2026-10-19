@@ -491,11 +491,14 @@ struct OverviewView: View {
             }
             .frame(width: 322)
 
-            // Right card: agent pills
+            // Right card: agent pills (fixed 288pt, 322 + 10 + 288 = 620pt total)
             CardBackground(wash: nil) {
                 AgentPillsView(state: state)
             }
+            .frame(width: 288)
         }
+        .frame(width: 620)
+        .clipped()
     }
 
     private func openAgentTarget(_ task: AgentTask?) {
