@@ -155,6 +155,14 @@ test("toOneLine", () => {
   assert.equal(toOneLine("\n\nActual content."), "Actual content.");
   // Windows line endings split paragraphs too.
   assert.equal(toOneLine("Fixed `it`.\r\n\r\nDetails"), "Fixed it.");
+  assert.equal(
+    toOneLine("Added [`SettingsInfoTip`](file:///path/to/file.swift) component."),
+    "Added SettingsInfoTip component."
+  );
+  assert.equal(
+    toOneLine("Refactored code. See https://example.com/pr/123 for details."),
+    "Refactored code. See for details."
+  );
 });
 
 test("buildFileDiff — Edit", () => {

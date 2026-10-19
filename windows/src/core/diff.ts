@@ -270,7 +270,13 @@ export function toOneLine(text: string, maxChars = 200): string {
   if (current.length) paragraphs.push(current);
 
   for (const para of paragraphs) {
-    const s = para.join("\n").replaceAll("**", "").replaceAll("__", "").replaceAll("`", "");
+    const s = para
+      .join("\n")
+      .replaceAll("**", "")
+      .replaceAll("__", "")
+      .replaceAll("`", "")
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1")
+      .replace(/(https?|file):\/\/\S+/g, "");
     const processed: string[] = [];
     for (const line of s.split("\n")) {
       let l = trimWS(line.replace(/^#+/, ""));

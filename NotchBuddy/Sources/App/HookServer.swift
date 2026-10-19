@@ -3625,6 +3625,36 @@ def extract_last_user_prompt(t_path):
         pass
     return None
 
+def extract_last_assistant_message(t_path):
+    if not t_path or not os.path.isfile(t_path):
+        return None
+    try:
+        size = os.path.getsize(t_path)
+        read_size = min(size, 262144)  # Read at most trailing 256KB
+        with open(t_path, 'rb') as f:
+            if size > read_size:
+                f.seek(size - read_size)
+            chunk = f.read(read_size)
+        lines = chunk.decode('utf-8', errors='replace').splitlines()
+        for line in reversed(lines):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+                if isinstance(entry, dict) and entry.get('type') == 'PLANNER_RESPONSE' and not entry.get('tool_calls'):
+                    content = entry.get('content')
+                    if isinstance(content, str) and content.strip():
+                        text = content.strip()
+                        if text.startswith('The following is a <SYSTEM_MESSAGE>'):
+                            continue
+                        return text
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return None
+
 def main():
     agent = ''
     args = sys.argv[1:]
@@ -3815,6 +3845,18 @@ def main():
         prompt = extract_last_user_prompt(t_path)
         if prompt:
             payload['prompt'] = prompt
+    if event == 'Stop' and not payload.get('last_assistant_message'):
+        t_path = payload.get('transcriptPath') or payload.get('transcript_path')
+        if t_path:
+            t_path = os.path.expanduser(t_path)
+        if (not t_path or not os.path.isfile(t_path)) and payload.get('session_id'):
+            sid = payload['session_id']
+            cand = os.path.expanduser(f'~/.gemini/antigravity/brain/{sid}/.system_generated/logs/transcript.jsonl')
+            if os.path.isfile(cand):
+                t_path = cand
+        msg = extract_last_assistant_message(t_path)
+        if msg:
+            payload['last_assistant_message'] = msg
     # socket_path is already defined above
 
     if event == 'PermissionRequest':
@@ -3997,6 +4039,36 @@ def extract_last_user_prompt(t_path):
                         text = content.strip()
                         m = re.search(r'<USER_REQUEST>\\s*(.*?)\\s*</USER_REQUEST>', text, re.DOTALL)
                         return m.group(1).strip() if m else text
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return None
+
+def extract_last_assistant_message(t_path):
+    if not t_path or not os.path.isfile(t_path):
+        return None
+    try:
+        size = os.path.getsize(t_path)
+        read_size = min(size, 262144)  # Read at most trailing 256KB
+        with open(t_path, 'rb') as f:
+            if size > read_size:
+                f.seek(size - read_size)
+            chunk = f.read(read_size)
+        lines = chunk.decode('utf-8', errors='replace').splitlines()
+        for line in reversed(lines):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+                if isinstance(entry, dict) and entry.get('type') == 'PLANNER_RESPONSE' and not entry.get('tool_calls'):
+                    content = entry.get('content')
+                    if isinstance(content, str) and content.strip():
+                        text = content.strip()
+                        if text.startswith('The following is a <SYSTEM_MESSAGE>'):
+                            continue
+                        return text
             except Exception:
                 pass
     except Exception:
@@ -4189,6 +4261,18 @@ def main():
         prompt = extract_last_user_prompt(t_path)
         if prompt:
             payload['prompt'] = prompt
+    if event == 'Stop' and not payload.get('last_assistant_message'):
+        t_path = payload.get('transcriptPath') or payload.get('transcript_path')
+        if t_path:
+            t_path = os.path.expanduser(t_path)
+        if (not t_path or not os.path.isfile(t_path)) and payload.get('session_id'):
+            sid = payload['session_id']
+            cand = os.path.expanduser(f'~/.gemini/antigravity/brain/{sid}/.system_generated/logs/transcript.jsonl')
+            if os.path.isfile(cand):
+                t_path = cand
+        msg = extract_last_assistant_message(t_path)
+        if msg:
+            payload['last_assistant_message'] = msg
     # socket_path is already defined above
 
     if event == 'PermissionRequest':

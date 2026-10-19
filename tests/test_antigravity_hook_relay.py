@@ -130,6 +130,40 @@ class TestAntigravityHookRelay(unittest.TestCase):
                     if os.path.exists(tpath):
                         os.remove(tpath)
 
+    def test_extract_last_assistant_message(self):
+        """Test extraction of final assistant message from transcript for Stop event."""
+        for var_name in ("nbHookPythonGitHub", "nbHookPythonAppStore"):
+            with self.subTest(var_name=var_name):
+                py_code = extract_python_relay(var_name)
+                mod = load_relay_module(py_code, f"mod_msg_{var_name}")
+                self.assertTrue(hasattr(mod, "extract_last_assistant_message"))
+
+                with tempfile.NamedTemporaryFile("w+", delete=False, suffix=".jsonl") as f:
+                    # Previous user input
+                    f.write(json.dumps({"type": "USER_INPUT", "source": "USER_EXPLICIT", "content": "How do I do X?"}) + "\n")
+                    # Intermediate tool call response (should be skipped)
+                    f.write(json.dumps({"type": "PLANNER_RESPONSE", "tool_calls": [{"name": "run_command", "args": {}}]}) + "\n")
+                    f.write(json.dumps({"type": "GENERIC", "content": "Tool output"}) + "\n")
+                    # Final assistant message
+                    final_msg = "Completed task: configured and verified all endpoints successfully."
+                    f.write(json.dumps({"type": "PLANNER_RESPONSE", "content": final_msg}) + "\n")
+                    tpath = f.name
+
+                try:
+                    msg = mod.extract_last_assistant_message(tpath)
+                    self.assertEqual(msg, final_msg)
+                finally:
+                    if os.path.exists(tpath):
+                        os.remove(tpath)
+
+                # Verify Nonexistent / empty file returns None
+                self.assertIsNone(mod.extract_last_assistant_message("/nonexistent/file.jsonl"))
+                self.assertIsNone(mod.extract_last_assistant_message(None))
+
+                # Verify Stop event handler extracts message in script
+                self.assertIn("if event == 'Stop' and not payload.get('last_assistant_message'):", py_code)
+                self.assertIn("msg = extract_last_assistant_message(t_path)", py_code)
+
     def test_ask_question_response_payload(self):
         """Test formatting of --ask response output for ask_question."""
         answers = {"Which database engine would you like to use?": "PostgreSQL"}

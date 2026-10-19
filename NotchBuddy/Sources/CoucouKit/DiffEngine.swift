@@ -246,6 +246,8 @@ enum DiffEngine {
             s = s.replacingOccurrences(of: "**", with: "")
             s = s.replacingOccurrences(of: "__", with: "")
             s = s.replacingOccurrences(of: "`", with: "")
+            s = s.replacingOccurrences(of: #"(?s)\[([^\]]+)\]\([^\)]+\)"#, with: "$1", options: .regularExpression)
+            s = s.replacingOccurrences(of: #"(https?|file)://\S+"#, with: "", options: .regularExpression)
             let processed: [String] = s.components(separatedBy: "\n").compactMap { line in
                 var l = line
                 while l.hasPrefix("#") { l = String(l.dropFirst()) }

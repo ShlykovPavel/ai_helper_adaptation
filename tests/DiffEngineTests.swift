@@ -208,6 +208,14 @@ enum DiffEngineTests {
             // first paragraph empty → fall through to next
             checkTrue("empty first para → next",
                 DiffEngine.toOneLine("\n\nActual content.") == "Actual content.")
+
+            // strip markdown links and bare URLs
+            checkTrue("strip markdown links",
+                DiffEngine.toOneLine("Added [`SettingsInfoTip`](file:///path/to/file.swift) component.")
+                    == "Added SettingsInfoTip component.")
+            checkTrue("strip bare URLs",
+                DiffEngine.toOneLine("Refactored code. See https://example.com/pr/123 for details.")
+                    == "Refactored code. See for details.")
         }
 
         // ── finish ─────────────────────────────────────────────────────────────
