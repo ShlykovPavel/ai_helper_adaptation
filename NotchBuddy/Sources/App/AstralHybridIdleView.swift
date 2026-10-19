@@ -74,10 +74,10 @@ struct AstralHybridIdleHostView: View {
     var body: some View {
         GeometryReader { geo in
             let compact = ShapeshifterGeometry.isCompactMode(mode: state.mode, isMini: false)
-            // Sized to comfortably fit inside notch (22pt) and expanded card (52pt) without clipping
+            // 22pt in compact notch, 66pt in expanded card (matches Mochi's 58-62pt diameter)
             let targetSize = compact
                 ? CGSize(width: 22, height: 22)
-                : CGSize(width: 52, height: 52)
+                : CGSize(width: 66, height: 66)
             let isSleeping = state.effectiveState == .sleeping
             let yOffset = ShapeshifterGeometry.verticalOffset(particleOverhang: particleOverhang)
 
