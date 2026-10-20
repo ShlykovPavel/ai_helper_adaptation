@@ -79,7 +79,7 @@
 **Files:**
 - `design/animations/hybrid-idle-prototype.html`
 
-- [ ] Add Form & State switcher:
+- [x] Add Form & State switcher:
   - Idle (Ghost)
   - Sleeping (Ghost)
   - Working (Ghost)
@@ -88,9 +88,9 @@
   - Finished (Orb)
   - Question / Approval (Cube)
   - Error / Warning (Wisp)
-- [ ] Embed the clean 480px bodies (Ghost, Orb, Cube, Wisp) as data URIs / local paths.
-- [ ] Implement state-specific eye rendering (happy arcs, question tilt, dizzy `@ @`, sleeping `∪ ∪`, focused, normal) and physics (bounce, tilt, flame flicker, float) in JavaScript canvas.
-- [ ] Verify prototype renders properly across hero (280pt), card (66pt), notch (22pt), and mini pill (13pt) preview slots.
+- [x] Embed the clean 480px bodies (Ghost, Orb, Cube, Wisp) as data URIs / local paths.
+- [x] Implement state-specific eye rendering (happy arcs, question tilt, dizzy `@ @`, sleeping `∪ ∪`, focused, normal) and physics (bounce, tilt, flame flicker, float) in JavaScript canvas.
+- [x] Verify prototype renders properly across hero (280pt), card (66pt), notch (22pt), and mini pill (13pt) preview slots.
 
 ---
 
