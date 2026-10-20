@@ -44,7 +44,85 @@ enum AstralHybridIdleTests {
         let blinkRest = AstralHybridMotion.blinkProgress(at: 2.0)
         check("Blink during resting interval is 0.0", blinkRest == 0.0)
 
-        // 4. Rendering in Context
+        // 4. Multi-Form Physics Math
+        print("AstralHybridIdle — Multi-Form Motion Physics Math")
+        let bounce0 = AstralHybridMotion.bounceY(at: 0, amp: 6.0)
+        check("Bounce at 0 is 0.0", abs(bounce0) < 0.001)
+
+        let bouncePeak = AstralHybridMotion.bounceY(at: .pi / 8.0, amp: 6.0) // 4.0 * (.pi / 8) = .pi / 2 -> sin = 1
+        check("Bounce at quarter-period reaches -amp (-6.0)", abs(bouncePeak - (-6.0)) < 0.001)
+
+        let tilt0 = AstralHybridMotion.tiltAngle(at: 0, maxAngle: 0.12)
+        check("Tilt angle at 0 is 0.0", abs(tilt0) < 0.001)
+
+        let tiltPeak = AstralHybridMotion.tiltAngle(at: .pi / 3.0, maxAngle: 0.12) // 1.5 * (.pi / 3) = .pi / 2 -> sin = 1
+        check("Tilt angle at quarter-period reaches maxAngle (0.12)", abs(tiltPeak - 0.12) < 0.001)
+
+        let shake = AstralHybridMotion.flameShake(at: 1.0, amp: 2.0)
+        check("Flame shake returns finite values", shake.dx.isFinite && shake.dy.isFinite)
+
+        let flicker = AstralHybridMotion.flickerOffset(at: 1.0, amp: 2.0)
+        check("Flicker offset alias matches flameShake", flicker.dx == shake.dx && flicker.dy == shake.dy)
+
+        let gaze0 = AstralHybridMotion.searchGazeX(at: 0)
+        check("Search gaze at 0 is 0.0", abs(gaze0) < 0.001)
+
+        let gazePeak = AstralHybridMotion.searchGazeX(at: .pi / 4.0) // 2.0 * (.pi / 4) = .pi / 2 -> sin = 1
+        check("Search gaze at quarter-period is 0.75", abs(gazePeak - 0.75) < 0.001)
+
+        // 5. State Mapping
+        print("AstralHybridIdle — Form & State Resolution")
+        check("Form for finished is orb", AstralHybridForm.form(for: "finished") == .orb)
+        check("Form for done is orb", AstralHybridForm.form(for: "done") == .orb)
+        check("Form for question is cube", AstralHybridForm.form(for: "question") == .cube)
+        check("Form for approval is cube", AstralHybridForm.form(for: "approval") == .cube)
+        check("Form for permission is cube", AstralHybridForm.form(for: "permission") == .cube)
+        check("Form for error is wisp", AstralHybridForm.form(for: "error") == .wisp)
+        check("Form for ratelimit is wisp", AstralHybridForm.form(for: "ratelimit") == .wisp)
+        check("Form for dizzy is wisp", AstralHybridForm.form(for: "dizzy") == .wisp)
+        check("Form for idle is ghost", AstralHybridForm.form(for: "idle") == .ghost)
+        check("Form for sleeping is ghost", AstralHybridForm.form(for: "sleeping") == .ghost)
+        check("Form for working is ghost", AstralHybridForm.form(for: "working") == .ghost)
+        check("Form for thinking is ghost", AstralHybridForm.form(for: "thinking") == .ghost)
+        check("Form for searching is ghost", AstralHybridForm.form(for: "searching") == .ghost)
+
+        enum TestState: String {
+            case finished, question, error, idle
+        }
+        check("RawRepresentable form for finished is orb", AstralHybridForm.form(for: TestState.finished) == .orb)
+        check("RawRepresentable form for question is cube", AstralHybridForm.form(for: TestState.question) == .cube)
+        check("RawRepresentable form for error is wisp", AstralHybridForm.form(for: TestState.error) == .wisp)
+        check("RawRepresentable form for idle is ghost", AstralHybridForm.form(for: TestState.idle) == .ghost)
+
+        for s in AstralHybridState.allCases {
+            check("AstralHybridState \(s.rawValue) resolves form", s.form == AstralHybridForm.form(for: s.rawValue))
+        }
+
+        // 6. Eye Geometry Specs
+        print("AstralHybridIdle — Eye Geometry Specs")
+        for form in AstralHybridForm.allCases {
+            let geom = AstralHybridEyeGeometry.geometry(for: form)
+            check("Geom for \(form) has symmetric Y", abs(geom.leftY - geom.rightY) < 0.001)
+            check("Geom for \(form) has valid horizontal separation", geom.leftX < geom.rightX)
+            check("Geom for \(form) has positive eye radii", geom.rx > 0 && geom.ry > 0)
+        }
+
+        // 7. Assets Loading & Caching
+        print("AstralHybridIdle — Assets Loading & Caching")
+        AstralHybridAssets.shared.clearCache()
+        let ghostImg = AstralHybridAssets.shared.bodyImage(for: .ghost)
+        check("Loads ghost image from disk/bundle", ghostImg != nil)
+
+        let orbImg = AstralHybridAssets.shared.bodyImage(for: .orb)
+        check("Loads orb image from disk/bundle", orbImg != nil)
+
+        let cubeImg = AstralHybridAssets.shared.bodyImage(for: .cube)
+        check("Loads cube image from disk/bundle", cubeImg != nil)
+
+        let wispImg = AstralHybridAssets.shared.bodyImage(for: .wisp)
+        check("Loads wisp image from disk/bundle", wispImg != nil)
+
+        // 8. Rendering in Context
         print("AstralHybridIdle — Rendering Verification")
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         guard let ctx = CGContext(
@@ -74,7 +152,7 @@ enum AstralHybridIdleTests {
             exit(1)
         }
 
-        // Draw awake state
+        // Draw awake state (legacy signature)
         AstralHybridRenderer.draw(
             in: ctx,
             size: CGSize(width: 128, height: 128),
@@ -84,9 +162,9 @@ enum AstralHybridIdleTests {
             isSleeping: false,
             imageOverride: dummyImg
         )
-        check("Renderer draws awake frame without crashing", true)
+        check("Renderer draws awake frame without crashing (legacy signature)", true)
 
-        // Draw sleeping state
+        // Draw sleeping state (legacy signature)
         AstralHybridRenderer.draw(
             in: ctx,
             size: CGSize(width: 128, height: 128),
@@ -96,7 +174,42 @@ enum AstralHybridIdleTests {
             isSleeping: true,
             imageOverride: dummyImg
         )
-        check("Renderer draws sleeping frame with sleep arcs without crashing", true)
+        check("Renderer draws sleeping frame with sleep arcs without crashing (legacy signature)", true)
+
+        // Draw all forms and states with full signature
+        let statesToTest = ["idle", "working", "thinking", "searching", "finished", "approval", "question", "error", "ratelimit", "dizzy", "sleeping"]
+        for st in statesToTest {
+            let targetForm = AstralHybridForm.form(for: st)
+            AstralHybridRenderer.draw(
+                in: ctx,
+                size: CGSize(width: 128, height: 128),
+                elapsed: 2.5,
+                form: targetForm,
+                stateName: st,
+                lookX: 0.3,
+                lookY: -0.2,
+                isSleeping: (st == "sleeping"),
+                imageOverride: dummyImg
+            )
+        }
+        check("Renderer draws all 11 states across all 4 forms with dummy image", true)
+
+        // Test fallback body rendering (imageOverride == nil and clear cache)
+        AstralHybridAssets.shared.clearCache()
+        for form in AstralHybridForm.allCases {
+            AstralHybridRenderer.draw(
+                in: ctx,
+                size: CGSize(width: 128, height: 128),
+                elapsed: 1.0,
+                form: form,
+                stateName: "idle",
+                lookX: 0,
+                lookY: 0,
+                isSleeping: false,
+                imageOverride: dummyImg
+            )
+        }
+        check("Renderer draws all forms without crashing", true)
 
         print("AstralHybridIdleTests finished with \(failures) failures.")
         if failures > 0 { exit(1) }
