@@ -63,14 +63,14 @@
 - `design/mascot/astral-v2/astral-{orb,cube,wisp}-{240,480}.png`
 - `NotchBuddy/Resources/Mascots/AstralHybrid/astral-{orb,cube,wisp}-{240,480}.png`
 
-- [ ] Write Python script `scripts/prepare-astral-hybrid-bodies.py` that loads:
+- [x] Write Python script `scripts/prepare-astral-hybrid-bodies.py` that loads:
   - `design/mascot/astral-v2/morph-kit/frames/astral-orb-480.png`
   - `design/mascot/astral-v2/morph-kit/frames/astral-cube-480.png`
   - `design/mascot/astral-v2/morph-kit/frames/astral-wisp-480.png`
   and seamlessly reconstructs the smooth glass body across the eye bbox (`x=144..335, y=96..277`) using surrounding glass gradient & texture interpolation.
-- [ ] Generate 480×480 and 240×240 exports for Orb, Cube, and Wisp.
-- [ ] Place generated files in `design/mascot/astral-v2/` and `NotchBuddy/Resources/Mascots/AstralHybrid/`.
-- [ ] Verify image files exist, have correct dimensions, alpha transparency, and no artifacts.
+- [x] Generate 480×480 and 240×240 exports for Orb, Cube, and Wisp.
+- [x] Place generated files in `design/mascot/astral-v2/` and `NotchBuddy/Resources/Mascots/AstralHybrid/`.
+- [x] Verify image files exist, have correct dimensions, alpha transparency, and no artifacts.
 
 ---
 
