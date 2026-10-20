@@ -7,6 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EE944ED3D0512490B904C4AC /* astral-body-240.png in Resources */ = {isa = PBXBuildFile; fileRef = 5CECFE657E2C16666B3441C4 /* astral-body-240.png */; };
+		8CF187613462ACA58FEF689D /* astral-body-480.png in Resources */ = {isa = PBXBuildFile; fileRef = 5FB5D729CAD5CD13F644989C /* astral-body-480.png */; };
+		2AB8DE121C5C3E38C1483AD1 /* astral-cube-240.png in Resources */ = {isa = PBXBuildFile; fileRef = B12030E4071D0F8D08187125 /* astral-cube-240.png */; };
+		306459BCABCADEFB41B2B060 /* astral-cube-480.png in Resources */ = {isa = PBXBuildFile; fileRef = 51ED5F446FE722FC542C7DFC /* astral-cube-480.png */; };
+		C0F684FE3F7546B41D26AB6A /* astral-orb-240.png in Resources */ = {isa = PBXBuildFile; fileRef = E089A4710BEBD9DDEF328EB4 /* astral-orb-240.png */; };
+		E85EACB86B1C0D3A69548D51 /* astral-orb-480.png in Resources */ = {isa = PBXBuildFile; fileRef = 00A2BC1D7341A5115F3B9845 /* astral-orb-480.png */; };
+		207AFAB295FD3025AB5C7FF0 /* astral-wisp-240.png in Resources */ = {isa = PBXBuildFile; fileRef = 1789157D377DBAEDF38B32C6 /* astral-wisp-240.png */; };
+		46AD4C0BDBA160FEC1F102F8 /* astral-wisp-480.png in Resources */ = {isa = PBXBuildFile; fileRef = 997BD84A1BB92D49AD524BE3 /* astral-wisp-480.png */; };
 		00089CAE7DCB2E61E3824715 /* TelegramPolling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2857DB36F5179E97A5FC7BB3 /* TelegramPolling.swift */; };
 		00AF866F31F341EBCB0C31F2 /* AstralIdleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B9C0E4B6173CC56EEA4C3B /* AstralIdleView.swift */; };
 		01B96F947DF2BDC352E8526D /* WeeklyRecapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 888B3E1420BCB6292BDC8117 /* WeeklyRecapView.swift */; };
@@ -333,6 +341,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5CECFE657E2C16666B3441C4 /* astral-body-240.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "astral-body-240.png"; sourceTree = "<group>"; };
+		5FB5D729CAD5CD13F644989C /* astral-body-480.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "astral-body-480.png"; sourceTree = "<group>"; };
+		B12030E4071D0F8D08187125 /* astral-cube-240.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "astral-cube-240.png"; sourceTree = "<group>"; };
+		51ED5F446FE722FC542C7DFC /* astral-cube-480.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "astral-cube-480.png"; sourceTree = "<group>"; };
+		E089A4710BEBD9DDEF328EB4 /* astral-orb-240.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "astral-orb-240.png"; sourceTree = "<group>"; };
+		00A2BC1D7341A5115F3B9845 /* astral-orb-480.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "astral-orb-480.png"; sourceTree = "<group>"; };
+		1789157D377DBAEDF38B32C6 /* astral-wisp-240.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "astral-wisp-240.png"; sourceTree = "<group>"; };
+		997BD84A1BB92D49AD524BE3 /* astral-wisp-480.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "astral-wisp-480.png"; sourceTree = "<group>"; };
 		011D05714C97CF5CAB32DCE7 /* AgentNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentNotifier.swift; sourceTree = "<group>"; };
 		0364C7995680F9FA9F85F905 /* PortfolioController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioController.swift; sourceTree = "<group>"; };
 		0365DDE3C554F5E8570055F4 /* IslandTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandTypes.swift; sourceTree = "<group>"; };
@@ -563,6 +579,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		76F40113B2FB26B9D6FEA0CF /* AstralHybrid */ = {
+			isa = PBXGroup;
+			children = (
+				5CECFE657E2C16666B3441C4 /* astral-body-240.png */,
+				5FB5D729CAD5CD13F644989C /* astral-body-480.png */,
+				B12030E4071D0F8D08187125 /* astral-cube-240.png */,
+				51ED5F446FE722FC542C7DFC /* astral-cube-480.png */,
+				E089A4710BEBD9DDEF328EB4 /* astral-orb-240.png */,
+				00A2BC1D7341A5115F3B9845 /* astral-orb-480.png */,
+				1789157D377DBAEDF38B32C6 /* astral-wisp-240.png */,
+				997BD84A1BB92D49AD524BE3 /* astral-wisp-480.png */,
+			);
+			path = Mascots/AstralHybrid;
+			sourceTree = "<group>";
+		};
 		061D81F5DBAB8DB3ADFD0CB8 /* sounds */ = {
 			isa = PBXGroup;
 			children = (
@@ -786,6 +817,7 @@
 		D3593DF62D69E62DA5121807 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				76F40113B2FB26B9D6FEA0CF /* AstralHybrid */,
 				B2AA83D80260660475FAB052 /* Localizable.xcstrings */,
 				44997FA2E1F840D7601BDD7E /* Mascots */,
 				C066E2B991AA4F56B2724263 /* sounds */,
@@ -1029,6 +1061,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EE944ED3D0512490B904C4AC /* astral-body-240.png in Resources */,
+				8CF187613462ACA58FEF689D /* astral-body-480.png in Resources */,
+				2AB8DE121C5C3E38C1483AD1 /* astral-cube-240.png in Resources */,
+				306459BCABCADEFB41B2B060 /* astral-cube-480.png in Resources */,
+				C0F684FE3F7546B41D26AB6A /* astral-orb-240.png in Resources */,
+				E85EACB86B1C0D3A69548D51 /* astral-orb-480.png in Resources */,
+				207AFAB295FD3025AB5C7FF0 /* astral-wisp-240.png in Resources */,
+				46AD4C0BDBA160FEC1F102F8 /* astral-wisp-480.png in Resources */,
 				DCAC390FF9EC65B945A15B24 /* Assets.xcassets in Resources */,
 				7AEED9FBB924F0DD1D07E1A5 /* Localizable.xcstrings in Resources */,
 				D2A6DEC745F505884EC7865C /* Mascots in Resources */,

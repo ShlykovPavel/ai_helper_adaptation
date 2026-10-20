@@ -18,18 +18,14 @@ struct BotCanvasView: View {
 
     var body: some View {
         if MascotSettings.selectedMascot == .shapeshifter {
-            if state.effectiveState == .idle || state.effectiveState == .sleeping {
-                let look = lookXY(state: state)
-                AstralHybridIdleHostView(
-                    state: state,
-                    particleOverhang: particleOverhang,
-                    lookX: look.x,
-                    lookY: look.y,
-                    paused: paused || !viewActive || state.isDraggingBot
-                )
-            } else {
-                ShapeshifterHostView(state: state, particleOverhang: particleOverhang, lookOriginOverride: lookOriginOverride, paused: paused)
-            }
+            let look = lookXY(state: state)
+            AstralHybridHostView(
+                state: state,
+                particleOverhang: particleOverhang,
+                lookX: look.x,
+                lookY: look.y,
+                paused: paused || !viewActive || state.isDraggingBot
+            )
         } else {
             // Display refresh rate — every frame on a 60 Hz screen, every frame on ProMotion.
             // MochiFrameClock.advance accumulates the step debt so Mochi's speed never changes.
@@ -288,21 +284,12 @@ struct MiniBotCanvasView: View {
 
     var body: some View {
         if MascotSettings.selectedMascot == .shapeshifter {
-            if task.state == .idle || task.state == .sleeping {
-                AstralHybridIdleView(
-                    size: CGSize(width: 13, height: 13),
-                    isPaused: !viewActive,
-                    isSleeping: task.state == .sleeping
-                )
-            } else {
-                ShapeshifterCompactView(
-                    size: CGSize(width: 18, height: 18),
-                    lookX: 0,
-                    lookY: 0,
-                    shape: MascotSettings.shape,
-                    provider: ProviderCoreType.from(pillId: task.id)
-                )
-            }
+            AstralHybridIdleView(
+                size: CGSize(width: 13, height: 13),
+                stateName: task.state.rawValue,
+                isPaused: !viewActive,
+                isSleeping: task.state == .sleeping
+            )
         } else {
             // Display refresh rate. Paused in island views that are not shown.
             TimelineView(.animation(paused: !viewActive)) { timeline in

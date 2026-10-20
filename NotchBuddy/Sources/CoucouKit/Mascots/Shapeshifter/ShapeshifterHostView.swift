@@ -63,14 +63,13 @@ struct ShapeshifterHostView: View {
                         isPulsing: state.effectiveState == .thinking
                     )
                 } else {
-                    ShapeshifterExpandedView(
+                    AstralHybridIdleView(
                         size: mascotSize,
-                        action: action,
-                        shape: MascotSettings.shape,
-                        provider: provider,
+                        stateName: state.effectiveState.rawValue,
+                        isPaused: isPaused,
                         lookX: 0,
                         lookY: 0,
-                        isPaused: isPaused
+                        isSleeping: state.effectiveState == .sleeping
                     )
                 }
             }
