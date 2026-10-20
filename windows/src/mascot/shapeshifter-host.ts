@@ -1,7 +1,7 @@
 import type { MascotActionState, ProviderCoreId } from "./types";
-import { MascotSettingsManager } from "./settings";
-import { drawCompactMascot } from "./shapeshifter-compact";
-import { drawExpandedMascot } from "./shapeshifter-expanded";
+import { MascotSettingsManager } from "./settings.ts";
+import { drawCompactMascot } from "./shapeshifter-compact.ts";
+import { drawExpandedMascot } from "./shapeshifter-expanded.ts";
 
 export function mapActionFromBotState(botState: string): MascotActionState {
   switch (botState) {

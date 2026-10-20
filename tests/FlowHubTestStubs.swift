@@ -108,6 +108,9 @@ struct ApprovalInfo: Sendable {
     var projectName: String? = nil
 }
 
+struct AskQuestion: Sendable {}
+struct TelegramEvent: Sendable {}
+
 final class AppState: ObservableObject {
     static let shared = AppState()
     @Published var pendingApproval: ApprovalInfo? = nil
