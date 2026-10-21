@@ -177,12 +177,17 @@ actor TunnelGuardNetworkWorker {
         getRouteInfo(dest: dest, timeoutSeconds: timeoutSeconds).gateway
     }
 
-    /// Отправка ICMP пакета с настраиваемым wall-clock таймаутом.
-    private func executePing(timeoutSeconds: Double = 1.5) -> (ok: Bool, latencyMs: Double) {
+    /// Отправка ICMP пакета с настраиваемым wall-clock таймаутом и привязкой к интерфейсу (-b).
+    func executePing(timeoutSeconds: Double = 1.5, interface: String? = nil) -> (ok: Bool, latencyMs: Double) {
         let task = Process()
         task.executableURL = pingExecutableURL
         let timeoutMs = max(500, Int(timeoutSeconds * 1000))
-        task.arguments = ["-c", "1", "-W", "\(timeoutMs)", "1.1.1.1"]
+        var args = ["-c", "1", "-W", "\(timeoutMs)"]
+        if let iface = interface, !iface.isEmpty {
+            args.append(contentsOf: ["-b", iface])
+        }
+        args.append("1.1.1.1")
+        task.arguments = args
         task.standardOutput = FileHandle.nullDevice
         task.standardError = FileHandle.nullDevice
 
@@ -285,7 +290,7 @@ actor TunnelGuardNetworkWorker {
                 } else {
                     currentTimeout = basePingTimeout
                 }
-                let pingResult = executePing(timeoutSeconds: currentTimeout)
+                let pingResult = executePing(timeoutSeconds: currentTimeout, interface: selectedRoute.iface)
                 lastPingTimestamp = now
                 pingOk = pingResult.ok
                 pingLatencyMs = pingResult.latencyMs

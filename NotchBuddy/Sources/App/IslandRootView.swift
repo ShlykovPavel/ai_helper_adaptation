@@ -826,10 +826,12 @@ struct ClaudePlanHeaderPill: View {
                 state.planDetailIsCodex = codex
                 state.showingPlanDetail = !open
             }
-            if antigravity {
-                state.refreshAntigravityPlanUsage()
-            } else if codex {
-                state.refreshCodexPlanUsage()
+            if state.showingPlanDetail {
+                if antigravity {
+                    state.refreshAntigravityPlanUsage()
+                } else if codex {
+                    state.refreshCodexPlanUsage()
+                }
             }
         }) {
             HStack(spacing: 4) {

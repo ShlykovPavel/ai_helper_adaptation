@@ -101,19 +101,20 @@ final class HookServer: @unchecked Sendable {
     /// Puts the oldest waiting request on the card. When the card already shows it, only
     /// its "n waiting" count is refreshed (no sound, no focus change).
     @MainActor
-    private func showApprovalHead() {
+    func showApprovalHead() {
         let state = AppState.shared
         guard let head = approvals.head else { return }
-        if let shown = state.pendingApproval, shown.id == head.id {
-            if shown.queueCount != approvals.count { state.pendingApproval?.queueCount = approvals.count }
-            return
+        let isSameId = (state.pendingApproval?.id == head.id)
+        if isSameId {
+            if state.pendingApproval?.queueCount != approvals.count { state.pendingApproval?.queueCount = approvals.count }
+        } else {
+            state.updateTask(id: head.pillId, state: .approval)
+            state.pendingApproval = ApprovalInfo(sessionId: head.sessionId, tool: head.tool,
+                                                  command: head.command, inputKey: head.inputKey,
+                                                  pillId: head.pillId, id: head.id,
+                                                  queueCount: approvals.count,
+                                                  projectName: head.projectName)
         }
-        state.updateTask(id: head.pillId, state: .approval)
-        state.pendingApproval = ApprovalInfo(sessionId: head.sessionId, tool: head.tool,
-                                              command: head.command, inputKey: head.inputKey,
-                                              pillId: head.pillId, id: head.id,
-                                              queueCount: approvals.count,
-                                              projectName: head.projectName)
         state.isPinned = true
         // Approval always forces the island open — the user must be able to respond.
         // Save the focus once, so it comes back when the last request is gone.
@@ -197,23 +198,28 @@ final class HookServer: @unchecked Sendable {
     /// Puts the oldest waiting question on the card. When the card already shows it, only
     /// its queue count is refreshed (no sound, no focus change).
     @MainActor
-    private func showQuestionHead() {
-        let state = AppState.shared
-        guard let head = questions.head else { return }
-        if let shown = state.pendingQuestion, shown.id == head.id {
-            if shown.queueCount != questions.count {
-                state.pendingQuestion?.queueCount = questions.count
-            }
+    func showQuestionHead() {
+        if approvals.head != nil {
+            showApprovalHead()
             return
         }
-        state.updateTask(id: head.pillId, state: .question)
-        var q = head.question
-        q.id = head.id
-        q.pillId = head.pillId
-        q.projectName = head.projectName
-        q.queueIndex = 1
-        q.queueCount = questions.count
-        state.pendingQuestion = q
+        let state = AppState.shared
+        guard let head = questions.head else { return }
+        let isSameId = (state.pendingQuestion?.id == head.id)
+        if isSameId {
+            if state.pendingQuestion?.queueCount != questions.count {
+                state.pendingQuestion?.queueCount = questions.count
+            }
+        } else {
+            state.updateTask(id: head.pillId, state: .question)
+            var q = head.question
+            q.id = head.id
+            q.pillId = head.pillId
+            q.projectName = head.projectName
+            q.queueIndex = 1
+            q.queueCount = questions.count
+            state.pendingQuestion = q
+        }
         state.isPinned = true
         if focusBeforeQuestion == nil { focusBeforeQuestion = state.focusId }
         withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) { state.focusId = head.pillId }
@@ -246,29 +252,32 @@ final class HookServer: @unchecked Sendable {
             sessionId: entry.sessionId,
             agentId: entry.pillId,
             agentName: "",
-            kind: .questionResolved
+            kind: .questionResolved,
+            question: QuestionSnapshot(id: entry.id, items: [])
         ))
         if !questions.hasEntries(forPill: entry.pillId) {
             state.updateTask(id: entry.pillId, state: .working)
             clearPillBadge(id: entry.pillId)
         }
-        if questions.head != nil {
-            showQuestionHead()
-            return
-        }
-        // Last question gone: close the card and give the focus back.
-        state.pendingQuestion = nil
-        state.isPinned = false
-        if let prev = focusBeforeQuestion {
-            focusBeforeQuestion = nil
-            if state.focusId == entry.pillId, state.tasks.contains(where: { $0.id == prev }) {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) { state.focusId = prev }
+        if questions.isEmpty {
+            state.pendingQuestion = nil
+            if let prev = focusBeforeQuestion {
+                focusBeforeQuestion = nil
+                if state.focusId == entry.pillId, state.tasks.contains(where: { $0.id == prev }) {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) { state.focusId = prev }
+                }
             }
         }
         if approvals.head != nil {
             showApprovalHead()
             return
         }
+        if questions.head != nil {
+            showQuestionHead()
+            return
+        }
+        // Last question gone and no approvals: close the card and give the focus back.
+        state.isPinned = false
         if let note, !note.isEmpty {
             state.noteMessage = note
             state.view = .note
@@ -291,22 +300,28 @@ final class HookServer: @unchecked Sendable {
             DemoEngine.shared.handleQuestionAnswered(answers: answers)
             return
         }
-        guard let head = questions.head else {
-            let s = AppState.shared
-            s.pendingQuestion = nil
-            s.isPinned = false
-            if approvals.head != nil {
-                showApprovalHead()
+        let target: QueuedQuestion?
+        if let id {
+            target = questions.entries.first(where: { $0.id == id })
+        } else {
+            target = questions.head
+        }
+        guard let target else {
+            if questions.isEmpty {
+                let s = AppState.shared
+                s.pendingQuestion = nil
+                s.isPinned = false
+                if approvals.head != nil {
+                    showApprovalHead()
+                } else {
+                    s.view = s.tasks.isEmpty ? .empty : .overview
+                }
             } else {
-                s.view = s.tasks.isEmpty ? .empty : .overview
+                nbLog("Question answer for unknown or resolved id \(id?.uuidString ?? "nil"), ignored")
             }
             return
         }
-        if let id, id != head.id {
-            nbLog("Question answer for a question no longer on the card, ignored")
-            return
-        }
-        let sid = head.sessionId
+        let sid = target.sessionId
         let jsonStr: String
         if let data = try? JSONSerialization.data(withJSONObject: ["permissionDecision": "answer", "answers": answers], options: .withoutEscapingSlashes),
            let json = String(data: data, encoding: .utf8) {
@@ -315,24 +330,34 @@ final class HookServer: @unchecked Sendable {
             jsonStr = #"{"permissionDecision":"ask"}"#
         }
         if !sid.isEmpty { RecapStore.shared.recordQuestionAnswered(sessionId: sid) }
-        removeQuestion(id: head.id, answer: jsonStr)
+        removeQuestion(id: target.id, answer: jsonStr)
     }
 
     /// Called by QuestionView "Reply in terminal" button.
     @MainActor
     func sendQuestionAsk(for id: UUID? = nil) {
-        guard let targetId = id ?? questions.head?.id else {
-            let s = AppState.shared
-            s.pendingQuestion = nil
-            s.isPinned = false
-            if approvals.head != nil {
-                showApprovalHead()
+        let target: QueuedQuestion?
+        if let id {
+            target = questions.entries.first(where: { $0.id == id })
+        } else {
+            target = questions.head
+        }
+        guard let target else {
+            if questions.isEmpty {
+                let s = AppState.shared
+                s.pendingQuestion = nil
+                s.isPinned = false
+                if approvals.head != nil {
+                    showApprovalHead()
+                } else {
+                    s.view = s.tasks.isEmpty ? .empty : .overview
+                }
             } else {
-                s.view = s.tasks.isEmpty ? .empty : .overview
+                nbLog("Question ask for unknown or resolved id \(id?.uuidString ?? "nil"), ignored")
             }
             return
         }
-        removeQuestion(id: targetId, answer: #"{"permissionDecision":"ask"}"#)
+        removeQuestion(id: target.id, answer: #"{"permissionDecision":"ask"}"#)
     }
 
     /// Returns the tool_input serialized as sorted-keys JSON, "" if absent or empty.
@@ -845,6 +870,8 @@ final class HookServer: @unchecked Sendable {
             }
         } else if isAlert {
             // Alerts always force-expand
+            state.view = view
+            state.mode = .expanded
             NotificationCenter.default.post(name: .hookExpand, object: view)
         } else if state.mode == .hidden {
             // Non-alert work events: reveal compact only, never force-expand
@@ -1152,7 +1179,7 @@ final class HookServer: @unchecked Sendable {
                 multiSelect: q.multiSelect
             )
         }
-        let snap = QuestionSnapshot(items: qItems)
+        let snap = QuestionSnapshot(id: entry.id, items: qItems)
         Self.emitEvent(TelegramEvent(
             sessionId: sessionId,
             agentId: pillId,
@@ -3397,6 +3424,20 @@ def _get_route_interface(dest):
         pass
     return ""
 
+def _normalize_agent(agent_name):
+    norm = (agent_name or "").strip().lower()
+    if norm in ("claude", "claude-cli", "claude-desktop"):
+        return "claude"
+    if norm in ("agy", "antigravity", "agy-cli"):
+        return "agy"
+    if norm in ("codex", "codex-cli"):
+        return "codex"
+    if norm in ("gemini", "gemini-cli"):
+        return "gemini"
+    if norm in ("cursor", "cursor-agent", "cursor-agent-cli"):
+        return "cursor"
+    return norm
+
 def is_tunnelguard_active(agent_name="", state_file=None, socket_path=None):
     if state_file is None:
         state_file = os.environ.get('TUNNELGUARD_STATE_FILE') or os.environ.get('_TUNNELGUARD_STATE_FILE') or os.path.expanduser('~/Library/Application Support/NotchBuddy/tunnelguard-state.json')
@@ -3428,18 +3469,15 @@ def is_tunnelguard_active(agent_name="", state_file=None, socket_path=None):
 
     # Check if this agent is in protected targets
     targets = data.get("protected_targets", [])
-    if isinstance(targets, list) and targets:
-        # Normalize agent name: agy / antigravity, etc.
-        norm = "agy" if agent_name in ("antigravity", "agy-cli") else agent_name
-        # Match against targets: target could be "agy", "agy-cli", "claude", etc.
-        target_matched = False
-        for t in targets:
-            t_norm = "agy" if t in ("antigravity", "agy-cli") else t
-            if t == agent_name or t == norm or t_norm == norm or norm in t:
-                target_matched = True
-                break
-        if not target_matched and agent_name:
+    if isinstance(targets, list):
+        if not targets:
             return False
+        norm_agent = "claude" if not agent_name else _normalize_agent(agent_name)
+        norm_targets = {_normalize_agent(t) for t in targets}
+        if norm_agent not in norm_targets:
+            return False
+    else:
+        return False
 
     if socket_path is None:
         socket_path = os.environ.get('NOTCHBUDDY_SOCKET_PATH') or os.environ.get('_NOTCHBUDDY_SOCKET_PATH') or os.path.expanduser('~/Library/Application Support/NotchBuddy/nb.sock')
@@ -3453,6 +3491,9 @@ def is_vpn_interface(iface):
     return bool(iface and iface.startswith(vpn_prefixes))
 
 def get_target_ai_domain(agent_name="", state_file=None):
+    if not agent_name:
+        return ""
+    norm_agent = _normalize_agent(agent_name)
     if state_file is None:
         state_file = os.environ.get('TUNNELGUARD_STATE_FILE') or os.environ.get('_TUNNELGUARD_STATE_FILE') or os.path.expanduser('~/Library/Application Support/NotchBuddy/tunnelguard-state.json')
     if os.path.exists(state_file):
@@ -3463,34 +3504,46 @@ def get_target_ai_domain(agent_name="", state_file=None):
             if isinstance(domains, dict):
                 if agent_name in domains:
                     return domains[agent_name]
-                norm = "agy" if agent_name in ("antigravity", "agy-cli") else agent_name
-                if norm in domains:
-                    return domains[norm]
+                if norm_agent in domains:
+                    return domains[norm_agent]
+                for k, v in domains.items():
+                    if _normalize_agent(k) == norm_agent:
+                        return v
         except Exception:
             pass
     mapping = {
         "antigravity": "generativelanguage.googleapis.com",
         "agy": "generativelanguage.googleapis.com",
-        "agy-cli": "generativelanguage.googleapis.com",
         "gemini": "generativelanguage.googleapis.com",
-        "gemini-cli": "generativelanguage.googleapis.com",
         "claude": "claude.ai",
-        "claude-cli": "claude.ai",
-        "claude-desktop": "claude.ai",
         "codex": "chatgpt.com",
-        "codex-cli": "chatgpt.com",
         "cursor": "cursor.sh",
-        "cursor-agent": "cursor.sh",
-        "cursor-agent-cli": "cursor.sh",
     }
-    return mapping.get(agent_name, "")
+    if agent_name in mapping:
+        return mapping[agent_name]
+    return mapping.get(norm_agent, "")
 
 def verify_vpn_route(agent_name="", state_file=None):
+    if state_file is None:
+        state_file = os.environ.get('TUNNELGUARD_STATE_FILE') or os.environ.get('_TUNNELGUARD_STATE_FILE') or os.path.expanduser('~/Library/Application Support/NotchBuddy/tunnelguard-state.json')
+    split_tunnel_check = False
+    if os.path.exists(state_file):
+        try:
+            with open(state_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            split_tunnel_check = bool(data.get("split_tunnel_check", False))
+        except Exception:
+            pass
+
     domain = get_target_ai_domain(agent_name, state_file=state_file)
     if domain:
         domain_iface = _get_route_interface(domain)
-        if is_vpn_interface(domain_iface):
-            return True
+        if domain_iface:
+            if is_vpn_interface(domain_iface):
+                return True
+            if split_tunnel_check:
+                return False
+
     iface = _get_route_interface("1.1.1.1")
     if is_vpn_interface(iface):
         return True
@@ -3499,8 +3552,8 @@ def verify_vpn_route(agent_name="", state_file=None):
         return True
     return False
 
-def verify_vpn_route_utun(agent_name=""):
-    return verify_vpn_route(agent_name)
+def verify_vpn_route_utun(agent_name="", state_file=None):
+    return verify_vpn_route(agent_name, state_file=state_file)
 
 def get_real_agent_pid():
     # Определение PID реального процесса агента через обход дерева процессов вверх

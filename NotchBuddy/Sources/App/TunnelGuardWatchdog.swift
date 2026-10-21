@@ -45,10 +45,12 @@ final class TunnelGuardWatchdog: ObservableObject {
             if !isEnabled {
                 protectionStatus = .disabled
                 isGracePeriodActive = false
+                let hadPrompt = isDeadTunnelPromptActive
                 if isDeadTunnelPromptActive {
                     isDeadTunnelPromptActive = false
                     AppState.shared.dismissDeadTunnelPrompt()
                 }
+                resumeSuspendedProcesses(hadPrompt: hadPrompt, reason: "Защита TunnelGuard отключена. Агенты возобновлены (SIGCONT).")
                 powerGuard.updateSleepAssertion(shouldHold: false)
             }
             syncRuntimeStateFile()
@@ -56,7 +58,11 @@ final class TunnelGuardWatchdog: ObservableObject {
     }
     @Published var continuousKill: Bool = true
     @Published var pingCheckEnabled: Bool = true
-    @Published var splitTunnelCheck: Bool = false
+    @Published var splitTunnelCheck: Bool = false {
+        didSet {
+            syncRuntimeStateFile()
+        }
+    }
     @Published var preventSleep: Bool = true {
         didSet {
             powerGuard.updateSleepAssertion(
@@ -77,6 +83,13 @@ final class TunnelGuardWatchdog: ObservableObject {
             syncRuntimeStateFile()
         }
     }
+
+    /// Набор PID процессов, замороженных watchdog-ом при dead tunnel
+    private(set) var suspendedPIDs: Set<pid_t> = []
+
+    /// Исполняемые файлы для pkill и pgrep (настраиваемые для тестов)
+    var pkillExecutableURL: URL = URL(fileURLWithPath: "/usr/bin/pkill")
+    var pgrepExecutableURL: URL = URL(fileURLWithPath: "/usr/bin/pgrep")
 
     /// Директория для записи runtime state файла (по умолчанию nil -> defaultStateDirectoryURL).
     var stateDirectoryURL: URL? = nil
@@ -109,13 +122,37 @@ final class TunnelGuardWatchdog: ObservableObject {
     init(
         powerGuard: TunnelGuardPowerGuard = TunnelGuardPowerGuard(),
         networkWorker: TunnelGuardNetworkWorker = TunnelGuardNetworkWorker(),
-        settingsDefaults: UserDefaults = .standard,
+        settingsDefaults: UserDefaults? = nil,
         stateDirectoryURL: URL? = nil
     ) {
         self.powerGuard = powerGuard
         self.networkWorker = networkWorker
-        self.settingsDefaults = settingsDefaults
-        self.stateDirectoryURL = stateDirectoryURL
+
+        let env = ProcessInfo.processInfo.environment
+        let isTestMode = env["TUNNELGUARD_TEST_MODE"] == "1"
+
+        if let settingsDefaults {
+            self.settingsDefaults = settingsDefaults
+        } else if isTestMode {
+            let testSuite = "tunnelguard-test-defaults-\(UUID().uuidString)"
+            self.settingsDefaults = UserDefaults(suiteName: testSuite) ?? .standard
+        } else {
+            self.settingsDefaults = .standard
+        }
+
+        if let stateDirectoryURL {
+            self.stateDirectoryURL = stateDirectoryURL
+        } else if let envDir = env["TUNNELGUARD_STATE_DIR"], !envDir.isEmpty {
+            self.stateDirectoryURL = URL(fileURLWithPath: envDir, isDirectory: true)
+        } else if isTestMode {
+            let fallbackDir = FileManager.default.temporaryDirectory
+                .appendingPathComponent("tunnelguard-test-state-\(UUID().uuidString)", isDirectory: true)
+            try? FileManager.default.createDirectory(at: fallbackDir, withIntermediateDirectories: true)
+            self.stateDirectoryURL = fallbackDir
+        } else {
+            self.stateDirectoryURL = nil
+        }
+
         loadPersistedSettings()
     }
 
@@ -191,6 +228,12 @@ final class TunnelGuardWatchdog: ObservableObject {
     func stop() {
         monitorTimer?.invalidate()
         monitorTimer = nil
+        let hadPrompt = isDeadTunnelPromptActive
+        if isDeadTunnelPromptActive {
+            isDeadTunnelPromptActive = false
+            AppState.shared.dismissDeadTunnelPrompt()
+        }
+        resumeSuspendedProcesses(hadPrompt: hadPrompt, reason: "TunnelGuard остановлен. Агенты возобновлены (SIGCONT).")
         powerGuard.releaseOnTerminate()
         cleanupRuntimeStateFile()
     }
@@ -290,9 +333,15 @@ final class TunnelGuardWatchdog: ObservableObject {
                     )
                 }
                 let activeTargets = targets
-                queue.async {
+                let pgrepURL = pgrepExecutableURL
+                let pkillURL = pkillExecutableURL
+                queue.async { [weak self] in
                     Self.logSecurityEvent("⏸ [DEAD_TUNNEL] Туннель не отвечает на пинг. Замораживаем агентов (SIGSTOP).")
-                    let suspended = TunnelGuardAppHunter.suspendAllActiveTargets(targets: activeTargets)
+                    let foundPIDs = TunnelGuardAppHunter.findTargetPIDs(targets: activeTargets, pgrepExecutableURL: pgrepURL)
+                    let suspended = TunnelGuardAppHunter.suspendAllActiveTargets(targets: activeTargets, pkillExecutableURL: pkillURL)
+                    DispatchQueue.main.async {
+                        self?.suspendedPIDs.formUnion(foundPIDs)
+                    }
                     if !suspended.isEmpty {
                         Self.logSecurityEvent("⏸ [DEAD_TUNNEL] Заморожены: \(suspended.joined(separator: ", "))")
                     }
@@ -310,14 +359,16 @@ final class TunnelGuardWatchdog: ObservableObject {
                 if interfaceDropped || splitLeakWithoutDeadTunnel {
                     isDeadTunnelPromptActive = false
                     AppState.shared.dismissDeadTunnelPrompt()
+                    suspendedPIDs.removeAll()
                     let effectiveReason = failureReason.isEmpty ? "VPN отключен во время ожидания туннеля" : failureReason
                     executeTunnelGuardHardKill(reason: effectiveReason, detectedIface: snapshot.iface)
                 }
                 // Иначе: пока активен диалог dead-tunnel и туннель всё ещё в utun, НЕ убиваем процессы hard kill, они остаются замороженными (SIGSTOP) в ожидании выбора пользователя
             } else if continuousKill {
                 let activeTargets = targets
+                let pkillURL = pkillExecutableURL
                 queue.async {
-                    let killed = TunnelGuardAppHunter.killAllActiveTargets(targets: activeTargets)
+                    let killed = TunnelGuardAppHunter.killAllActiveTargets(targets: activeTargets, pkillExecutableURL: pkillURL)
                     if !killed.isEmpty {
                         Self.logSecurityEvent("⚡ [CONTINUOUS_KILL] Подавлены повторно запущенные процессы: \(killed.joined(separator: ", "))")
                     }
@@ -326,17 +377,15 @@ final class TunnelGuardWatchdog: ObservableObject {
         } else if !wasHealthy && currentlyHealthy {
             // Восстановление сети
             previousHealthy = true
-            if isDeadTunnelPromptActive {
+            let hadPrompt = isDeadTunnelPromptActive
+            if isDeadTunnelPromptActive || !suspendedPIDs.isEmpty {
                 isDeadTunnelPromptActive = false
                 AppState.shared.dismissDeadTunnelPrompt()
                 let isActuallyVpn = snapshot.isVpn && (snapshot.iface.isEmpty || Self.isVpnInterface(snapshot.iface))
                 if isActuallyVpn {
-                    let activeTargets = targets
-                    queue.async {
-                        TunnelGuardAppHunter.resumeAllActiveTargets(targets: activeTargets)
-                        Self.logSecurityEvent("🟢 [WATCHDOG] Туннель восстановился. Агенты возобновлены (SIGCONT).")
-                    }
+                    resumeSuspendedProcesses(hadPrompt: hadPrompt, reason: "Туннель восстановился. Агенты возобновлены (SIGCONT).")
                 } else {
+                    suspendedPIDs.removeAll()
                     executeTunnelGuardHardKill(reason: "VPN отключен при выходе из ожидания туннеля", detectedIface: snapshot.iface)
                 }
             } else if AppState.shared.view == .securityPanic {
@@ -362,15 +411,46 @@ final class TunnelGuardWatchdog: ObservableObject {
         handleNetworkSnapshot(snapshot, isGrace: false)
     }
 
+    // MARK: - Управление приостановленными процессами
+
+    private func resumeSuspendedProcesses(hadPrompt: Bool = false, reason: String = "Агенты возобновлены (SIGCONT).") {
+        let pidsToResume = suspendedPIDs
+        let activeTargets = targets
+        let pkillURL = pkillExecutableURL
+        let shouldResume = !pidsToResume.isEmpty || hadPrompt || isDeadTunnelPromptActive
+        suspendedPIDs.removeAll()
+
+        guard shouldResume else { return }
+
+        queue.async {
+            if !pidsToResume.isEmpty {
+                TunnelGuardAppHunter.resumeProcesses(pids: pidsToResume)
+            }
+            TunnelGuardAppHunter.resumeAllActiveTargets(targets: activeTargets, pkillExecutableURL: pkillURL)
+            Self.logSecurityEvent("🟢 [WATCHDOG] \(reason)")
+        }
+    }
+
+    func flushWorkerQueue() {
+        queue.sync {}
+        RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.05))
+    }
+
+    func recordSuspendedPIDsForTesting(_ pids: Set<pid_t>) {
+        suspendedPIDs.formUnion(pids)
+    }
+
     // MARK: - Пользовательские действия при Dead Tunnel Prompt
 
     func userConfirmedDeadTunnelKill() {
         isDeadTunnelPromptActive = false
         AppState.shared.dismissDeadTunnelPrompt()
+        suspendedPIDs.removeAll()
         executeTunnelGuardHardKill(reason: "Пользователь подтвердил завершение зависших агентов")
     }
 
     func userRequestedDeadTunnelWait() {
+        let hadPrompt = isDeadTunnelPromptActive
         isDeadTunnelPromptActive = false
         AppState.shared.dismissDeadTunnelPrompt()
         Task { [networkWorker] in
@@ -378,12 +458,7 @@ final class TunnelGuardWatchdog: ObservableObject {
         }
         protectionStatus = .protected
         previousHealthy = true
-        let activeTargets = targets
-        queue.async { [weak self] in
-            _ = self
-            TunnelGuardAppHunter.resumeAllActiveTargets(targets: activeTargets)
-            Self.logSecurityEvent("⏳ [DEAD_TUNNEL] Пользователь выбрал продолжить ожидание. Агенты возобновлены.")
-        }
+        resumeSuspendedProcesses(hadPrompt: hadPrompt, reason: "Пользователь выбрал продолжить ожидание. Агенты возобновлены.")
     }
 
     private func checkNetwork() {
@@ -453,9 +528,10 @@ final class TunnelGuardWatchdog: ObservableObject {
 
         // Вынос логирования и ликвидации на фоновую очередь
         let activeTargets = targets
+        let pkillURL = pkillExecutableURL
         queue.async {
             Self.logSecurityEvent("🚨 [KILL-SWITCH] \(finalReason). Немедленная ликвидация агентов.")
-            let killed = TunnelGuardAppHunter.killAllActiveTargets(targets: activeTargets)
+            let killed = TunnelGuardAppHunter.killAllActiveTargets(targets: activeTargets, pkillExecutableURL: pkillURL)
             if !killed.isEmpty {
                 Self.logSecurityEvent("💀 [KILL-SWITCH] Ликвидированы: \(killed.joined(separator: ", "))")
             }
@@ -577,8 +653,20 @@ final class TunnelGuardWatchdog: ObservableObject {
         }
     }
 
+    nonisolated static var defaultLogDirectoryURL: URL {
+        let env = ProcessInfo.processInfo.environment
+        if let envLog = env["TUNNELGUARD_LOG_DIR"], !envLog.isEmpty {
+            return URL(fileURLWithPath: envLog, isDirectory: true)
+        }
+        if env["TUNNELGUARD_TEST_MODE"] == "1" {
+            return FileManager.default.temporaryDirectory
+                .appendingPathComponent("tunnelguard-test-logs", isDirectory: true)
+        }
+        return URL(fileURLWithPath: (NSHomeDirectory() as NSString).appendingPathComponent("Library/Logs/TunnelGuard"))
+    }
+
     nonisolated static func logSecurityEvent(_ message: String, logDirURL: URL? = nil) {
-        let logDir = logDirURL ?? URL(fileURLWithPath: (NSHomeDirectory() as NSString).appendingPathComponent("Library/Logs/TunnelGuard"))
+        let logDir = logDirURL ?? defaultLogDirectoryURL
         try? FileManager.default.createDirectory(at: logDir, withIntermediateDirectories: true)
         let logFile = logDir.appendingPathComponent("watchdog.log")
 
@@ -619,7 +707,14 @@ final class TunnelGuardWatchdog: ObservableObject {
     }
 
     nonisolated static func stateFileURL(for directoryURL: URL?) -> URL {
-        let dir = directoryURL ?? defaultStateDirectoryURL
+        let dir: URL
+        if let directoryURL {
+            dir = directoryURL
+        } else if let envDir = ProcessInfo.processInfo.environment["TUNNELGUARD_STATE_DIR"], !envDir.isEmpty {
+            dir = URL(fileURLWithPath: envDir, isDirectory: true)
+        } else {
+            dir = defaultStateDirectoryURL
+        }
         if dir.pathExtension == "json" {
             return dir
         }
@@ -657,15 +752,31 @@ final class TunnelGuardWatchdog: ObservableObject {
             "pid": Int(ProcessInfo.processInfo.processIdentifier),
             "protected_targets": activeCliTargets,
             "target_domains": domains,
+            "split_tunnel_check": splitTunnelCheck,
             "updated_at": Date().timeIntervalSince1970
         ]
     }
 
     private func writeRuntimeStatePayload(_ payload: [String: Any], stateDirURL: URL?) {
-        let fileURL = Self.stateFileURL(for: stateDirURL)
-        let targetDir = fileURL.deletingLastPathComponent()
+        let targetDir = stateDirURL ?? stateDirectoryURL
+        let resolvedDir: URL
+        if let targetDir {
+            resolvedDir = targetDir
+        } else if let envDir = ProcessInfo.processInfo.environment["TUNNELGUARD_STATE_DIR"], !envDir.isEmpty {
+            resolvedDir = URL(fileURLWithPath: envDir, isDirectory: true)
+        } else if ProcessInfo.processInfo.environment["TUNNELGUARD_TEST_MODE"] == "1" {
+            let fallbackDir = FileManager.default.temporaryDirectory
+                .appendingPathComponent("tunnelguard-test-state-\(UUID().uuidString)", isDirectory: true)
+            try? FileManager.default.createDirectory(at: fallbackDir, withIntermediateDirectories: true)
+            resolvedDir = fallbackDir
+        } else {
+            resolvedDir = Self.defaultStateDirectoryURL
+        }
+
+        let fileURL = Self.stateFileURL(for: resolvedDir)
+        let targetParentDir = fileURL.deletingLastPathComponent()
         do {
-            try FileManager.default.createDirectory(at: targetDir, withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(at: targetParentDir, withIntermediateDirectories: true)
             let data = try JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
             try data.write(to: fileURL, options: .atomic)
         } catch {

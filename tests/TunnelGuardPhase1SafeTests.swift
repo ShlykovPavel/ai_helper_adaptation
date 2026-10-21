@@ -136,7 +136,9 @@ enum TunnelGuardPhase1SafeTests {
 
     @MainActor
     static func testWatchdogSplitTunnelHealth() {
-        let watchdog = TunnelGuardWatchdog()
+        let context = TunnelGuardTestContext(prefix: "tg-phase1-watchdog")
+        defer { context.tearDown() }
+        let watchdog = context.makeWatchdog()
         watchdog.splitTunnelCheck = true
         watchdog.targets = [] // этот тест проверяет состояние, но не должен запускать pkill
         let healthySplit = NetworkSnapshot(

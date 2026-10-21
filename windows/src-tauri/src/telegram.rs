@@ -459,28 +459,32 @@ pub struct ActiveQuestion {
 
 // ── Service State ───────────────────────────────────────────────────────────
 
-struct TelegramInner {
-    status: String,
-    registry: TelegramActionRegistry,
-    abort_handle: Option<tauri::async_runtime::JoinHandle<()>>,
-    queue: NotificationQueue,
-    last_finished_key: Option<String>,
-    active_questions: HashMap<String, ActiveQuestion>,
+pub struct TelegramInner {
+    pub status: String,
+    pub registry: TelegramActionRegistry,
+    pub abort_handle: Option<tauri::async_runtime::JoinHandle<()>>,
+    pub queue: NotificationQueue,
+    pub last_finished_key: Option<String>,
+    pub active_questions: HashMap<String, ActiveQuestion>,
 }
 
-fn get_state() -> MutexGuard<'static, TelegramInner> {
+impl Default for TelegramInner {
+    fn default() -> Self {
+        Self {
+            status: "idle".to_string(),
+            registry: TelegramActionRegistry::default(),
+            abort_handle: None,
+            queue: NotificationQueue::default(),
+            last_finished_key: None,
+            active_questions: HashMap::new(),
+        }
+    }
+}
+
+pub fn get_state() -> MutexGuard<'static, TelegramInner> {
     static STATE: std::sync::OnceLock<Mutex<TelegramInner>> = std::sync::OnceLock::new();
     STATE
-        .get_or_init(|| {
-            Mutex::new(TelegramInner {
-                status: "idle".to_string(),
-                registry: TelegramActionRegistry::default(),
-                abort_handle: None,
-                queue: NotificationQueue::default(),
-                last_finished_key: None,
-                active_questions: HashMap::new(),
-            })
-        })
+        .get_or_init(|| Mutex::new(TelegramInner::default()))
         .lock()
         .unwrap_or_else(PoisonError::into_inner)
 }
@@ -494,6 +498,238 @@ pub fn format_question_prompt(prefix: &str, header: Option<&str>, question: &str
         _ => {
             format!("{prefix}\n{question}")
         }
+    }
+}
+
+pub fn build_answers_map(aq: &ActiveQuestion) -> HashMap<String, serde_json::Value> {
+    let mut answers_map = HashMap::new();
+    for (idx, q) in aq.questions.iter().enumerate() {
+        let sels = aq.selections.get(idx).cloned().unwrap_or_default();
+        if q.multi_select {
+            answers_map.insert(q.question.clone(), serde_json::json!(sels));
+        } else {
+            let sel = sels.first().cloned().unwrap_or_default();
+            answers_map.insert(q.question.clone(), serde_json::Value::String(sel));
+        }
+    }
+    answers_map
+}
+
+pub fn build_question_keyboard(
+    registry: &mut TelegramActionRegistry,
+    aq: &mut ActiveQuestion,
+    user_id: i64,
+    now: Instant,
+) -> InlineKeyboardMarkup {
+    let q_idx = aq.current_index;
+    let q = match aq.questions.get(q_idx) {
+        Some(item) => item,
+        None => return InlineKeyboardMarkup { inline_keyboard: Vec::new() },
+    };
+    let mut buttons = Vec::new();
+    let mut new_option_refs = HashMap::new();
+
+    for opt in &q.options {
+        let act = registry.insert(
+            TelegramActionKind::QuestionSelect,
+            aq.fingerprint.clone(),
+            aq.request_id.clone(),
+            aq.chat_id,
+            user_id,
+            aq.message_id,
+            now,
+        );
+        new_option_refs.insert(act.r#ref.clone(), (q_idx, opt.label.clone()));
+        let btn_text = if q.multi_select {
+            let is_checked = aq.selections.get(q_idx).map_or(false, |s| s.contains(&opt.label));
+            if is_checked {
+                format!("☑️ {}", opt.label)
+            } else {
+                format!("◻️ {}", opt.label)
+            }
+        } else {
+            opt.label.clone()
+        };
+        buttons.push(vec![InlineKeyboardButton {
+            text: btn_text,
+            callback_data: Some(make_callback_data(&act.r#ref, "select")),
+            url: None,
+        }]);
+    }
+
+    if q.multi_select {
+        let sr = if let Some(existing_sr) = &aq.submit_ref {
+            existing_sr.clone()
+        } else {
+            let sub = registry.insert(
+                TelegramActionKind::QuestionSubmit,
+                aq.fingerprint.clone(),
+                aq.request_id.clone(),
+                aq.chat_id,
+                user_id,
+                aq.message_id,
+                now,
+            );
+            sub.r#ref
+        };
+        buttons.push(vec![InlineKeyboardButton {
+            text: "Submit".to_string(),
+            callback_data: Some(make_callback_data(&sr, "submit")),
+            url: None,
+        }]);
+        aq.submit_ref = Some(sr);
+    } else {
+        aq.submit_ref = None;
+    }
+
+    aq.option_refs = new_option_refs;
+    InlineKeyboardMarkup { inline_keyboard: buttons }
+}
+
+pub fn advance_question_state(
+    registry: &mut TelegramActionRegistry,
+    aq: &mut ActiveQuestion,
+    user_id: i64,
+    now: Instant,
+) -> Option<InlineKeyboardMarkup> {
+    if aq.current_index + 1 < aq.questions.len() {
+        aq.current_index += 1;
+        aq.submit_ref = None;
+        let next_q = &aq.questions[aq.current_index];
+        aq.prompt_text = format_question_prompt(
+            &format!("❓ Question [{}/{}]", aq.current_index + 1, aq.questions.len()),
+            next_q.header.as_deref(),
+            &next_q.question,
+        );
+        let kb = build_question_keyboard(registry, aq, user_id, now);
+        Some(kb)
+    } else {
+        None
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum QuestionCallbackResult {
+    Toggled {
+        message_id: i64,
+        prompt_text: String,
+        keyboard: InlineKeyboardMarkup,
+    },
+    Advanced {
+        current_index: usize,
+        message_id: i64,
+        prompt_text: String,
+        keyboard: InlineKeyboardMarkup,
+    },
+    Completed {
+        request_id: String,
+        message_id: i64,
+        answers: HashMap<String, serde_json::Value>,
+    },
+}
+
+pub fn process_question_callback(
+    st: &mut TelegramInner,
+    parsed: &ParsedCallback,
+    chat_id: i64,
+    user_id: i64,
+    now: Instant,
+) -> Result<QuestionCallbackResult, &'static str> {
+    if parsed.op == "select" {
+        let mut found = None;
+        for aq in st.active_questions.values() {
+            if let Some(opt_info) = aq.option_refs.get(&parsed.r#ref) {
+                found = Some((aq.clone(), opt_info.clone()));
+                break;
+            }
+        }
+        let (mut aq, (q_idx, label)) = match found {
+            Some(f) => f,
+            None => return Err("This action has expired or was already consumed."),
+        };
+
+        let consume_res = st.registry.consume(&parsed.r#ref, chat_id, user_id, &aq.fingerprint, now);
+        match consume_res {
+            TelegramActionResult::Accepted(_) => {
+                let is_multi = aq.questions.get(q_idx).map_or(false, |q| q.multi_select);
+                if is_multi {
+                    if aq.selections[q_idx].contains(&label) {
+                        aq.selections[q_idx].retain(|x| x != &label);
+                    } else {
+                        aq.selections[q_idx].push(label.clone());
+                    }
+                    let kb = build_question_keyboard(&mut st.registry, &mut aq, user_id, now);
+                    let res = QuestionCallbackResult::Toggled {
+                        message_id: aq.message_id,
+                        prompt_text: aq.prompt_text.clone(),
+                        keyboard: kb,
+                    };
+                    st.active_questions.insert(aq.request_id.clone(), aq);
+                    Ok(res)
+                } else {
+                    aq.selections[q_idx] = vec![label.clone()];
+                    if let Some(kb) = advance_question_state(&mut st.registry, &mut aq, user_id, now) {
+                        let res = QuestionCallbackResult::Advanced {
+                            current_index: aq.current_index,
+                            message_id: aq.message_id,
+                            prompt_text: aq.prompt_text.clone(),
+                            keyboard: kb,
+                        };
+                        st.active_questions.insert(aq.request_id.clone(), aq);
+                        Ok(res)
+                    } else {
+                        st.active_questions.remove(&aq.request_id);
+                        let answers = build_answers_map(&aq);
+                        Ok(QuestionCallbackResult::Completed {
+                            request_id: aq.request_id.clone(),
+                            message_id: aq.message_id,
+                            answers,
+                        })
+                    }
+                }
+            }
+            _ => Err("This action has expired or was already consumed."),
+        }
+    } else if parsed.op == "submit" {
+        let mut active_q = None;
+        for aq in st.active_questions.values() {
+            if aq.submit_ref.as_deref() == Some(&parsed.r#ref) {
+                active_q = Some(aq.clone());
+                break;
+            }
+        }
+        let mut aq = match active_q {
+            Some(q) => q,
+            None => return Err("This action has expired or was already consumed."),
+        };
+
+        let consume_res = st.registry.consume(&parsed.r#ref, chat_id, user_id, &aq.fingerprint, now);
+        match consume_res {
+            TelegramActionResult::Accepted(_) => {
+                aq.submit_ref = None;
+                if let Some(kb) = advance_question_state(&mut st.registry, &mut aq, user_id, now) {
+                    let res = QuestionCallbackResult::Advanced {
+                        current_index: aq.current_index,
+                        message_id: aq.message_id,
+                        prompt_text: aq.prompt_text.clone(),
+                        keyboard: kb,
+                    };
+                    st.active_questions.insert(aq.request_id.clone(), aq);
+                    Ok(res)
+                } else {
+                    st.active_questions.remove(&aq.request_id);
+                    let answers = build_answers_map(&aq);
+                    Ok(QuestionCallbackResult::Completed {
+                        request_id: aq.request_id.clone(),
+                        message_id: aq.message_id,
+                        answers,
+                    })
+                }
+            }
+            _ => Err("This action has expired or was already consumed."),
+        }
+    } else {
+        Err("Unsupported question operation")
     }
 }
 
@@ -760,190 +996,38 @@ async fn handle_update_internal(app: &AppHandle, api: &TelegramApi, update: Tele
             }
         };
 
-        if parsed.op == "select" {
-            let mut found = None;
-            {
-                let st = get_state();
-                for aq in st.active_questions.values() {
-                    if let Some(opt_info) = aq.option_refs.get(&parsed.r#ref) {
-                        found = Some((aq.clone(), opt_info.clone()));
-                        break;
-                    }
-                }
-            }
-            if let Some((mut aq, (q_idx, label))) = found {
-                let now = Instant::now();
-                let consume_res = {
-                    let mut st = get_state();
-                    st.registry.consume(&parsed.r#ref, chat_id, user_id, &aq.fingerprint, now)
-                };
-                match consume_res {
-                    TelegramActionResult::Accepted(_) => {
-                        let is_multi = aq.questions.get(q_idx).map_or(false, |q| q.multi_select);
-                        if is_multi {
-                            if aq.selections[q_idx].contains(&label) {
-                                aq.selections[q_idx].retain(|x| x != &label);
-                            } else {
-                                aq.selections[q_idx].push(label.clone());
-                            }
-                            let mut buttons = Vec::new();
-                            let mut new_option_refs = HashMap::new();
-                            {
-                                let mut st = get_state();
-                                for opt in &aq.questions[q_idx].options {
-                                    let act = st.registry.insert(
-                                        TelegramActionKind::QuestionSelect,
-                                        aq.fingerprint.clone(),
-                                        aq.request_id.clone(),
-                                        chat_id,
-                                        user_id,
-                                        aq.message_id,
-                                        now,
-                                    );
-                                    new_option_refs.insert(act.r#ref.clone(), (q_idx, opt.label.clone()));
-                                    let is_checked = aq.selections[q_idx].contains(&opt.label);
-                                    let btn_text = if is_checked {
-                                        format!("☑️ {}", opt.label)
-                                    } else {
-                                        format!("◻️ {}", opt.label)
-                                    };
-                                    buttons.push(vec![InlineKeyboardButton {
-                                        text: btn_text,
-                                        callback_data: Some(make_callback_data(&act.r#ref, "select")),
-                                        url: None,
-                                    }]);
-                                }
-                                if let Some(sr) = &aq.submit_ref {
-                                    buttons.push(vec![InlineKeyboardButton {
-                                        text: "Submit".to_string(),
-                                        callback_data: Some(make_callback_data(sr, "submit")),
-                                        url: None,
-                                    }]);
-                                }
-                            }
-                            aq.option_refs = new_option_refs;
-                            {
-                                let mut st = get_state();
-                                st.active_questions.insert(aq.request_id.clone(), aq.clone());
-                            }
-                            let keyboard = InlineKeyboardMarkup { inline_keyboard: buttons };
-                            let _ = api.answer_callback_query(&cb.id, None, false).await;
-                            let _ = api.edit_message(chat_id, aq.message_id, Some(&aq.prompt_text), Some(&keyboard)).await;
-                        } else {
-                            aq.selections[q_idx] = vec![label.clone()];
-                            if q_idx + 1 < aq.questions.len() {
-                                aq.current_index = q_idx + 1;
-                                let next_q = &aq.questions[aq.current_index];
-                                aq.prompt_text = format_question_prompt(
-                                    &format!("❓ Question [{}/{}]", aq.current_index + 1, aq.questions.len()),
-                                    next_q.header.as_deref(),
-                                    &next_q.question,
-                                );
-                                let mut buttons = Vec::new();
-                                let mut new_option_refs = HashMap::new();
-                                {
-                                    let mut st = get_state();
-                                    for opt in &next_q.options {
-                                        let act = st.registry.insert(
-                                            TelegramActionKind::QuestionSelect,
-                                            aq.fingerprint.clone(),
-                                            aq.request_id.clone(),
-                                            chat_id,
-                                            user_id,
-                                            aq.message_id,
-                                            now,
-                                        );
-                                        new_option_refs.insert(act.r#ref.clone(), (aq.current_index, opt.label.clone()));
-                                        let btn_text = if next_q.multi_select {
-                                            format!("◻️ {}", opt.label)
-                                        } else {
-                                            opt.label.clone()
-                                        };
-                                        buttons.push(vec![InlineKeyboardButton {
-                                            text: btn_text,
-                                            callback_data: Some(make_callback_data(&act.r#ref, "select")),
-                                            url: None,
-                                        }]);
-                                    }
-                                }
-                                aq.option_refs = new_option_refs;
-                                {
-                                    let mut st = get_state();
-                                    st.active_questions.insert(aq.request_id.clone(), aq.clone());
-                                }
-                                let keyboard = InlineKeyboardMarkup { inline_keyboard: buttons };
-                                let _ = api.answer_callback_query(&cb.id, None, false).await;
-                                let _ = api.edit_message(chat_id, aq.message_id, Some(&aq.prompt_text), Some(&keyboard)).await;
-                            } else {
-                                let mut answers_map = HashMap::new();
-                                for (idx, q) in aq.questions.iter().enumerate() {
-                                    let sel = aq.selections.get(idx).and_then(|s| s.first()).cloned().unwrap_or_default();
-                                    answers_map.insert(q.question.clone(), serde_json::Value::String(sel));
-                                }
-                                crate::pipe::answer_question(app, &aq.request_id, &answers_map);
-                                let _ = api.answer_callback_query(&cb.id, Some("Answered"), false).await;
-                                if aq.message_id > 0 {
-                                    let _ = api.edit_message(chat_id, aq.message_id, Some("Answered"), None).await;
-                                }
-                                let mut st = get_state();
-                                st.active_questions.remove(&aq.request_id);
-                            }
-                        }
-                    }
-                    _ => {
-                        let _ = api.answer_callback_query(&cb.id, Some("This action has expired or was already consumed."), true).await;
-                    }
-                }
-                return;
-            }
-        }
-
-        if parsed.op == "submit" {
-            let mut active_q = None;
-            {
-                let st = get_state();
-                for aq in st.active_questions.values() {
-                    if aq.submit_ref.as_deref() == Some(&parsed.r#ref) {
-                        active_q = Some(aq.clone());
-                        break;
-                    }
-                }
-            }
-            if let Some(aq) = active_q {
-                let now = Instant::now();
-                let consume_res = {
-                    let mut st = get_state();
-                    st.registry.consume(&parsed.r#ref, chat_id, user_id, &aq.fingerprint, now)
-                };
-                match consume_res {
-                    TelegramActionResult::Accepted(_) => {
-                        let mut answers_map = HashMap::new();
-                        for (idx, q) in aq.questions.iter().enumerate() {
-                            let sels = aq.selections.get(idx).cloned().unwrap_or_default();
-                            if q.multi_select {
-                                answers_map.insert(q.question.clone(), serde_json::json!(sels));
-                            } else {
-                                let sel = sels.first().cloned().unwrap_or_default();
-                                answers_map.insert(q.question.clone(), serde_json::Value::String(sel));
-                            }
-                        }
-                        crate::pipe::answer_question(app, &aq.request_id, &answers_map);
-                        let _ = api.answer_callback_query(&cb.id, Some("Answered"), false).await;
-                        if aq.message_id > 0 {
-                            let _ = api.edit_message(chat_id, aq.message_id, Some("Answered"), None).await;
-                        }
-                        let mut st = get_state();
-                        st.active_questions.remove(&aq.request_id);
-                    }
-                    _ => {
-                        let _ = api.answer_callback_query(&cb.id, Some("This action has expired or was already consumed."), true).await;
-                    }
-                }
-                return;
-            }
-        }
-
         let now = Instant::now();
+        if parsed.op == "select" || parsed.op == "submit" {
+            let res = {
+                let mut st = get_state();
+                process_question_callback(&mut st, &parsed, chat_id, user_id, now)
+            };
+            match res {
+                Ok(QuestionCallbackResult::Toggled { message_id, prompt_text, keyboard }) => {
+                    let _ = api.answer_callback_query(&cb.id, None, false).await;
+                    let target_msg_id = if message_id > 0 { message_id } else { cb.message.as_ref().map(|m| m.message_id).unwrap_or(0) };
+                    let _ = api.edit_message(chat_id, target_msg_id, Some(&prompt_text), Some(&keyboard)).await;
+                }
+                Ok(QuestionCallbackResult::Advanced { message_id, prompt_text, keyboard, .. }) => {
+                    let _ = api.answer_callback_query(&cb.id, None, false).await;
+                    let target_msg_id = if message_id > 0 { message_id } else { cb.message.as_ref().map(|m| m.message_id).unwrap_or(0) };
+                    let _ = api.edit_message(chat_id, target_msg_id, Some(&prompt_text), Some(&keyboard)).await;
+                }
+                Ok(QuestionCallbackResult::Completed { request_id, message_id, answers }) => {
+                    crate::pipe::answer_question(app, &request_id, &answers);
+                    let _ = api.answer_callback_query(&cb.id, Some("Answered"), false).await;
+                    let target_msg_id = if message_id > 0 { message_id } else { cb.message.as_ref().map(|m| m.message_id).unwrap_or(0) };
+                    if target_msg_id > 0 {
+                        let _ = api.edit_message(chat_id, target_msg_id, Some("Answered"), None).await;
+                    }
+                }
+                Err(err_msg) => {
+                    let _ = api.answer_callback_query(&cb.id, Some(err_msg), true).await;
+                }
+            }
+            return;
+        }
+
         let consume_result = {
             let mut st = get_state();
             st.registry.consume(&parsed.r#ref, chat_id, user_id, "", now)
@@ -1104,56 +1188,23 @@ pub fn on_pending_approval(app: &AppHandle, payload: &serde_json::Value) {
         let safe_text = truncate_text(&prompt_text, 3500);
 
         let now = Instant::now();
-        let mut option_refs = HashMap::new();
-        let mut buttons: Vec<Vec<InlineKeyboardButton>> = Vec::new();
+        let q_count = parsed_questions.len();
+        let mut active_q = ActiveQuestion {
+            request_id: request_id.clone(),
+            fingerprint,
+            chat_id,
+            message_id: 0,
+            prompt_text: safe_text.clone(),
+            questions: parsed_questions,
+            selections: vec![Vec::new(); q_count],
+            current_index: 0,
+            option_refs: HashMap::new(),
+            submit_ref: None,
+        };
 
-        let (q_actions, submit_action) = {
+        let keyboard = {
             let mut st = get_state();
-            let mut actions = Vec::new();
-            for opt in &first_q.options {
-                let action = st.registry.insert(
-                    TelegramActionKind::QuestionSelect,
-                    fingerprint.clone(),
-                    request_id.clone(),
-                    chat_id,
-                    user_id,
-                    0,
-                    now,
-                );
-                option_refs.insert(action.r#ref.clone(), (0, opt.label.clone()));
-                let btn_text = if first_q.multi_select {
-                    format!("◻️ {}", opt.label)
-                } else {
-                    opt.label.clone()
-                };
-                buttons.push(vec![InlineKeyboardButton {
-                    text: btn_text,
-                    callback_data: Some(make_callback_data(&action.r#ref, "select")),
-                    url: None,
-                }]);
-                actions.push(action);
-            }
-
-            let submit = if first_q.multi_select {
-                let sub = st.registry.insert(
-                    TelegramActionKind::QuestionSubmit,
-                    fingerprint.clone(),
-                    request_id.clone(),
-                    chat_id,
-                    user_id,
-                    0,
-                    now,
-                );
-                buttons.push(vec![InlineKeyboardButton {
-                    text: "Submit".to_string(),
-                    callback_data: Some(make_callback_data(&sub.r#ref, "submit")),
-                    url: None,
-                }]);
-                Some(sub)
-            } else {
-                None
-            };
-
+            let kb = build_question_keyboard(&mut st.registry, &mut active_q, user_id, now);
             st.queue.push(QueuedNotification {
                 id: format!(
                     "notif-{}",
@@ -1166,35 +1217,12 @@ pub fn on_pending_approval(app: &AppHandle, payload: &serde_json::Value) {
                 text: safe_text.clone(),
                 created_at: now,
             });
-
-            (actions, submit)
+            st.active_questions.insert(request_id.clone(), active_q.clone());
+            kb
         };
 
-        let submit_ref = submit_action.as_ref().map(|s| s.r#ref.clone());
-        let q_count = parsed_questions.len();
-        let active_q = ActiveQuestion {
-            request_id: request_id.clone(),
-            fingerprint,
-            chat_id,
-            message_id: 0,
-            prompt_text: safe_text.clone(),
-            questions: parsed_questions,
-            selections: vec![Vec::new(); q_count],
-            current_index: 0,
-            option_refs,
-            submit_ref: submit_ref.clone(),
-        };
-
-        {
-            let mut st = get_state();
-            st.active_questions.insert(request_id.clone(), active_q);
-        }
-
-        let keyboard = InlineKeyboardMarkup {
-            inline_keyboard: buttons,
-        };
-
-        let action_refs: Vec<String> = q_actions.into_iter().map(|a| a.r#ref).collect();
+        let action_refs: Vec<String> = active_q.option_refs.keys().cloned().collect();
+        let submit_ref = active_q.submit_ref.clone();
         let req_id_clone = request_id.clone();
 
         tauri::async_runtime::spawn(async move {
@@ -2135,6 +2163,316 @@ mod tests {
             answers_map["Select features:"],
             serde_json::json!(["Auth", "Tracing"])
         );
+    }
+
+    #[test]
+    fn test_multi_step_multi_to_single() {
+        let mut st = TelegramInner::default();
+        let q1 = QuestionItem {
+            question: "Select features:".to_string(),
+            header: Some("Features".to_string()),
+            options: vec![
+                QuestionOption { label: "Auth".to_string(), description: "".to_string() },
+                QuestionOption { label: "Metrics".to_string(), description: "".to_string() },
+                QuestionOption { label: "Tracing".to_string(), description: "".to_string() },
+            ],
+            multi_select: true,
+        };
+        let q2 = QuestionItem {
+            question: "Choose environment:".to_string(),
+            header: Some("Env".to_string()),
+            options: vec![
+                QuestionOption { label: "Staging".to_string(), description: "".to_string() },
+                QuestionOption { label: "Production".to_string(), description: "".to_string() },
+            ],
+            multi_select: false,
+        };
+
+        let now = Instant::now();
+        let user_id = 67890;
+        let chat_id = 12345;
+        let mut aq = ActiveQuestion {
+            request_id: "req-ms-1".to_string(),
+            fingerprint: "fp-ms-1".to_string(),
+            chat_id,
+            message_id: 101,
+            prompt_text: "test".to_string(),
+            questions: vec![q1, q2],
+            selections: vec![Vec::new(), Vec::new()],
+            current_index: 0,
+            option_refs: HashMap::new(),
+            submit_ref: None,
+        };
+
+        let _kb = build_question_keyboard(&mut st.registry, &mut aq, user_id, now);
+        st.active_questions.insert(aq.request_id.clone(), aq);
+
+        // Find ref for "Auth"
+        let ref_auth = st.active_questions["req-ms-1"].option_refs.iter().find(|(_, (_, label))| label == "Auth").unwrap().0.clone();
+
+        // Select "Auth"
+        let parsed = parse_callback_data(&make_callback_data(&ref_auth, "select")).unwrap();
+        let res_auth = process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+        match res_auth {
+            QuestionCallbackResult::Toggled { keyboard, .. } => {
+                let has_checked_auth = keyboard.inline_keyboard.iter().any(|row| {
+                    row.iter().any(|btn| btn.text.contains("☑️ Auth"))
+                });
+                assert!(has_checked_auth, "Auth should be checked");
+            }
+            _ => panic!("expected toggled"),
+        }
+
+        // Find ref for "Tracing" (refreshed after toggle)
+        let ref_tracing = st.active_questions["req-ms-1"].option_refs.iter().find(|(_, (_, label))| label == "Tracing").unwrap().0.clone();
+
+        // Select "Tracing"
+        let parsed = parse_callback_data(&make_callback_data(&ref_tracing, "select")).unwrap();
+        let res_tracing = process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+        match res_tracing {
+            QuestionCallbackResult::Toggled { keyboard, .. } => {
+                let has_checked_tracing = keyboard.inline_keyboard.iter().any(|row| {
+                    row.iter().any(|btn| btn.text.contains("☑️ Tracing"))
+                });
+                assert!(has_checked_tracing, "Tracing should be checked");
+            }
+            _ => panic!("expected toggled"),
+        }
+
+        // Submit Q1
+        let submit_ref_q1 = st.active_questions["req-ms-1"].submit_ref.clone().unwrap();
+        let parsed = parse_callback_data(&make_callback_data(&submit_ref_q1, "submit")).unwrap();
+        let res_sub1 = process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+
+        match res_sub1 {
+            QuestionCallbackResult::Advanced { current_index, keyboard, .. } => {
+                assert_eq!(current_index, 1);
+                // Q2 is single-select: must NOT have a Submit button
+                let has_submit = keyboard.inline_keyboard.iter().any(|row| {
+                    row.iter().any(|btn| btn.text == "Submit")
+                });
+                assert!(!has_submit, "Q2 is single-select and should not have a Submit button");
+            }
+            _ => panic!("expected advanced"),
+        }
+
+        // Check active_questions still exists
+        assert!(st.active_questions.contains_key("req-ms-1"));
+
+        // Select "Production" on Q2
+        let ref_prod = st.active_questions["req-ms-1"].option_refs.iter().find(|(_, (_, label))| label == "Production").unwrap().0.clone();
+        let parsed = parse_callback_data(&make_callback_data(&ref_prod, "select")).unwrap();
+        let res_prod = process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+
+        match res_prod {
+            QuestionCallbackResult::Completed { request_id, answers, .. } => {
+                assert_eq!(request_id, "req-ms-1");
+                // Q1 multi-select answers must NOT be truncated
+                assert_eq!(answers["Select features:"], serde_json::json!(["Auth", "Tracing"]));
+                // Q2 single-select answer must be string "Production"
+                assert_eq!(answers["Choose environment:"], "Production");
+            }
+            _ => panic!("expected completed"),
+        }
+
+        // Verify active question removed upon completion
+        assert!(!st.active_questions.contains_key("req-ms-1"));
+
+        // Verify re-clicking old ref is rejected
+        let parsed = parse_callback_data(&make_callback_data(&ref_prod, "select")).unwrap();
+        let res_replay = process_question_callback(&mut st, &parsed, chat_id, user_id, now);
+        assert!(res_replay.is_err());
+    }
+
+    #[test]
+    fn test_multi_step_single_to_multi() {
+        let mut st = TelegramInner::default();
+        let q1 = QuestionItem {
+            question: "Target Cloud:".to_string(),
+            header: Some("Cloud".to_string()),
+            options: vec![
+                QuestionOption { label: "AWS".to_string(), description: "".to_string() },
+                QuestionOption { label: "GCP".to_string(), description: "".to_string() },
+            ],
+            multi_select: false,
+        };
+        let q2 = QuestionItem {
+            question: "Channels:".to_string(),
+            header: Some("Notifications".to_string()),
+            options: vec![
+                QuestionOption { label: "Slack".to_string(), description: "".to_string() },
+                QuestionOption { label: "Telegram".to_string(), description: "".to_string() },
+                QuestionOption { label: "Email".to_string(), description: "".to_string() },
+            ],
+            multi_select: true,
+        };
+
+        let now = Instant::now();
+        let user_id = 67890;
+        let chat_id = 12345;
+        let mut aq = ActiveQuestion {
+            request_id: "req-sm-1".to_string(),
+            fingerprint: "fp-sm-1".to_string(),
+            chat_id,
+            message_id: 102,
+            prompt_text: "test".to_string(),
+            questions: vec![q1, q2],
+            selections: vec![Vec::new(), Vec::new()],
+            current_index: 0,
+            option_refs: HashMap::new(),
+            submit_ref: None,
+        };
+
+        let _kb = build_question_keyboard(&mut st.registry, &mut aq, user_id, now);
+        st.active_questions.insert(aq.request_id.clone(), aq);
+
+        // Select "AWS" on Q1 (single select)
+        let ref_aws = st.active_questions["req-sm-1"].option_refs.iter().find(|(_, (_, label))| label == "AWS").unwrap().0.clone();
+        let parsed = parse_callback_data(&make_callback_data(&ref_aws, "select")).unwrap();
+        let res_aws = process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+
+        // Advance to Q2 (multi-select)
+        match res_aws {
+            QuestionCallbackResult::Advanced { current_index, keyboard, .. } => {
+                assert_eq!(current_index, 1);
+                // Q2 MUST have a Submit button!
+                let has_submit = keyboard.inline_keyboard.iter().any(|row| {
+                    row.iter().any(|btn| btn.text == "Submit")
+                });
+                assert!(has_submit, "Q2 is multi-select and MUST have a Submit button");
+            }
+            _ => panic!("expected advanced to Q2"),
+        }
+
+        // Select "Slack" and "Email" on Q2
+        let ref_slack = {
+            let aq_stored = &st.active_questions["req-sm-1"];
+            assert!(aq_stored.submit_ref.is_some(), "submit_ref must be present for Q2");
+            aq_stored.option_refs.iter().find(|(_, (_, label))| label == "Slack").unwrap().0.clone()
+        };
+        let parsed = parse_callback_data(&make_callback_data(&ref_slack, "select")).unwrap();
+        let res = process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+        assert!(matches!(res, QuestionCallbackResult::Toggled { .. }));
+
+        let ref_email = st.active_questions["req-sm-1"].option_refs.iter().find(|(_, (_, label))| label == "Email").unwrap().0.clone();
+        let parsed = parse_callback_data(&make_callback_data(&ref_email, "select")).unwrap();
+        let res = process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+        assert!(matches!(res, QuestionCallbackResult::Toggled { .. }));
+
+        // Submit Q2
+        let submit_ref_q2 = st.active_questions["req-sm-1"].submit_ref.clone().unwrap();
+        let parsed = parse_callback_data(&make_callback_data(&submit_ref_q2, "submit")).unwrap();
+        let res_sub2 = process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+
+        match res_sub2 {
+            QuestionCallbackResult::Completed { request_id, answers, .. } => {
+                assert_eq!(request_id, "req-sm-1");
+                assert_eq!(answers["Target Cloud:"], "AWS");
+                assert_eq!(answers["Channels:"], serde_json::json!(["Slack", "Email"]));
+            }
+            _ => panic!("expected completed"),
+        }
+
+        // Check active question removed
+        assert!(!st.active_questions.contains_key("req-sm-1"));
+    }
+
+    #[test]
+    fn test_multi_step_multi_to_multi() {
+        let mut st = TelegramInner::default();
+        let q1 = QuestionItem {
+            question: "Select roles:".to_string(),
+            header: Some("Roles".to_string()),
+            options: vec![
+                QuestionOption { label: "Admin".to_string(), description: "".to_string() },
+                QuestionOption { label: "Editor".to_string(), description: "".to_string() },
+                QuestionOption { label: "Viewer".to_string(), description: "".to_string() },
+            ],
+            multi_select: true,
+        };
+        let q2 = QuestionItem {
+            question: "Select scopes:".to_string(),
+            header: Some("Scopes".to_string()),
+            options: vec![
+                QuestionOption { label: "Read".to_string(), description: "".to_string() },
+                QuestionOption { label: "Write".to_string(), description: "".to_string() },
+                QuestionOption { label: "Delete".to_string(), description: "".to_string() },
+            ],
+            multi_select: true,
+        };
+
+        let now = Instant::now();
+        let user_id = 67890;
+        let chat_id = 12345;
+        let mut aq = ActiveQuestion {
+            request_id: "req-mm-1".to_string(),
+            fingerprint: "fp-mm-1".to_string(),
+            chat_id,
+            message_id: 103,
+            prompt_text: "test".to_string(),
+            questions: vec![q1, q2],
+            selections: vec![Vec::new(), Vec::new()],
+            current_index: 0,
+            option_refs: HashMap::new(),
+            submit_ref: None,
+        };
+
+        let _kb = build_question_keyboard(&mut st.registry, &mut aq, user_id, now);
+        st.active_questions.insert(aq.request_id.clone(), aq);
+
+        // Select Admin & Viewer on Q1
+        let ref_admin = st.active_questions["req-mm-1"].option_refs.iter().find(|(_, (_, l))| l == "Admin").unwrap().0.clone();
+        let parsed = parse_callback_data(&make_callback_data(&ref_admin, "select")).unwrap();
+        let _ = process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+
+        let ref_viewer = st.active_questions["req-mm-1"].option_refs.iter().find(|(_, (_, l))| l == "Viewer").unwrap().0.clone();
+        let parsed = parse_callback_data(&make_callback_data(&ref_viewer, "select")).unwrap();
+        let _ = process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+
+        // Submit Q1
+        let submit_ref_q1 = st.active_questions["req-mm-1"].submit_ref.clone().unwrap();
+        let parsed = parse_callback_data(&make_callback_data(&submit_ref_q1, "submit")).unwrap();
+        let res_sub1 = process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+        match res_sub1 {
+            QuestionCallbackResult::Advanced { current_index, keyboard, .. } => {
+                assert_eq!(current_index, 1);
+                let has_submit = keyboard.inline_keyboard.iter().any(|row| {
+                    row.iter().any(|btn| btn.text == "Submit")
+                });
+                assert!(has_submit, "Q2 must have a Submit button");
+            }
+            _ => panic!("expected advanced"),
+        }
+
+        // Q2 submit_ref must be different from Q1 submit_ref
+        let submit_ref_q2 = {
+            let sr2 = st.active_questions["req-mm-1"].submit_ref.clone().unwrap();
+            assert_ne!(sr2, submit_ref_q1, "Q2 must have a fresh submit_ref");
+            sr2
+        };
+
+        // Select Read & Write on Q2
+        let ref_read = st.active_questions["req-mm-1"].option_refs.iter().find(|(_, (_, l))| l == "Read").unwrap().0.clone();
+        let parsed = parse_callback_data(&make_callback_data(&ref_read, "select")).unwrap();
+        let _ = process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+
+        let ref_write = st.active_questions["req-mm-1"].option_refs.iter().find(|(_, (_, l))| l == "Write").unwrap().0.clone();
+        let parsed = parse_callback_data(&make_callback_data(&ref_write, "select")).unwrap();
+        let _ = process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+
+        // Submit Q2
+        let parsed = parse_callback_data(&make_callback_data(&submit_ref_q2, "submit")).unwrap();
+        let res_sub2 = process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+        match res_sub2 {
+            QuestionCallbackResult::Completed { request_id, answers, .. } => {
+                assert_eq!(request_id, "req-mm-1");
+                assert_eq!(answers["Select roles:"], serde_json::json!(["Admin", "Viewer"]));
+                assert_eq!(answers["Select scopes:"], serde_json::json!(["Read", "Write"]));
+            }
+            _ => panic!("expected completed"),
+        }
+
+        assert!(!st.active_questions.contains_key("req-mm-1"));
     }
 
     #[test]

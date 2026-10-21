@@ -7,11 +7,11 @@ actor TelegramActionRegistry {
     private static let ttl: TimeInterval = 120
     init(clock: any TelegramClock = SystemTelegramClock()) { self.clock = clock }
 
-    func insert(kind: TelegramActionKind, fingerprint: String, sessionId: String = "", chatId: Int64, userId: Int64, messageId: Int64 = 0) -> TelegramAction {
+    func insert(kind: TelegramActionKind, fingerprint: String, sessionId: String = "", chatId: Int64, userId: Int64, messageId: Int64 = 0, requestId: UUID? = nil) -> TelegramAction {
         prune(now: clock.now)
         while entries.count >= 64, let oldest = entries.min(by: { $0.value.action.expiresAt < $1.value.action.expiresAt }) { entries.removeValue(forKey: oldest.key) }
         let ref = Self.makeRef()
-        let action = TelegramAction(ref: ref, kind: kind, fingerprint: fingerprint, sessionId: sessionId, expiresAt: clock.now.addingTimeInterval(Self.ttl), chatId: chatId, userId: userId, messageId: messageId)
+        let action = TelegramAction(ref: ref, kind: kind, fingerprint: fingerprint, sessionId: sessionId, expiresAt: clock.now.addingTimeInterval(Self.ttl), chatId: chatId, userId: userId, messageId: messageId, requestId: requestId)
         entries[ref] = Entry(action: action)
         return action
     }

@@ -693,7 +693,11 @@ struct PlanDetailIslandView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task {
             while !Task.isCancelled {
-                if state.planDetailIsCodex { state.refreshCodexPlanUsage() }
+                if state.planDetailIsAntigravity {
+                    state.refreshAntigravityPlanUsage()
+                } else if state.planDetailIsCodex {
+                    state.refreshCodexPlanUsage()
+                }
                 do { try await Task.sleep(for: .seconds(60)) }
                 catch { return }
             }

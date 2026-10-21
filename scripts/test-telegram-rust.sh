@@ -700,6 +700,395 @@ fn main() {
     secrets::set("telegram-bot-token", "fake_bot_token").unwrap();
     println!("ok");
 
+    // 14. Multi-step Question Transitions and Callback Query Flows (R16)
+    print!("test multi_step_question_flows_and_transitions ... ");
+    pipe::clear_recorded();
+    telegram::reset_state_for_test();
+
+    let user_id = 67890;
+    let chat_id = 12345;
+    let now = std::time::Instant::now();
+
+    // 14a: multi -> single scenario with 2 selected options in multi
+    {
+        let q1 = telegram::QuestionItem {
+            question: "Select features:".to_string(),
+            header: Some("Features".to_string()),
+            options: vec![
+                telegram::QuestionOption { label: "Auth".to_string(), description: "".to_string() },
+                telegram::QuestionOption { label: "Metrics".to_string(), description: "".to_string() },
+                telegram::QuestionOption { label: "Tracing".to_string(), description: "".to_string() },
+            ],
+            multi_select: true,
+        };
+        let q2 = telegram::QuestionItem {
+            question: "Target environment:".to_string(),
+            header: Some("Env".to_string()),
+            options: vec![
+                telegram::QuestionOption { label: "Staging".to_string(), description: "".to_string() },
+                telegram::QuestionOption { label: "Production".to_string(), description: "".to_string() },
+            ],
+            multi_select: false,
+        };
+
+        let mut aq = telegram::ActiveQuestion {
+            request_id: "req-flow-ms".to_string(),
+            fingerprint: "fp-flow-ms".to_string(),
+            chat_id,
+            message_id: 201,
+            prompt_text: "❓ Claude [1/2]\nFeatures\nSelect features:".to_string(),
+            questions: vec![q1, q2],
+            selections: vec![Vec::new(), Vec::new()],
+            current_index: 0,
+            option_refs: std::collections::HashMap::new(),
+            submit_ref: None,
+        };
+
+        {
+            let mut st = telegram::get_state();
+            let _ = telegram::build_question_keyboard(&mut st.registry, &mut aq, user_id, now);
+            st.active_questions.insert(aq.request_id.clone(), aq);
+        }
+
+        // Toggle Auth
+        let ref_auth = {
+            let st = telegram::get_state();
+            st.active_questions["req-flow-ms"].option_refs.iter().find(|(_, (_, l))| l == "Auth").unwrap().0.clone()
+        };
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&ref_auth, "select")).unwrap();
+            let res = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+            assert!(matches!(res, telegram::QuestionCallbackResult::Toggled { .. }));
+        }
+
+        // Toggle Tracing
+        let ref_tracing = {
+            let st = telegram::get_state();
+            st.active_questions["req-flow-ms"].option_refs.iter().find(|(_, (_, l))| l == "Tracing").unwrap().0.clone()
+        };
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&ref_tracing, "select")).unwrap();
+            let res = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+            assert!(matches!(res, telegram::QuestionCallbackResult::Toggled { .. }));
+        }
+
+        // Verify pipe has NOT received answers yet
+        assert_eq!(pipe::get_recorded_question_answers().len(), 0);
+
+        // Submit Q1
+        let submit_ref_q1 = {
+            let st = telegram::get_state();
+            st.active_questions["req-flow-ms"].submit_ref.clone().unwrap()
+        };
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&submit_ref_q1, "submit")).unwrap();
+            let res = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+            match res {
+                telegram::QuestionCallbackResult::Advanced { current_index, keyboard, .. } => {
+                    assert_eq!(current_index, 1);
+                    let has_submit = keyboard.inline_keyboard.iter().any(|row| row.iter().any(|b| b.text == "Submit"));
+                    assert!(!has_submit, "single-select Q2 must not have a Submit button");
+                }
+                _ => panic!("expected advanced to Q2"),
+            }
+        }
+
+        // Still not dispatched to pipe
+        assert_eq!(pipe::get_recorded_question_answers().len(), 0);
+        {
+            let st = telegram::get_state();
+            assert!(st.active_questions.contains_key("req-flow-ms"));
+        }
+
+        // Select Production on Q2
+        let ref_prod = {
+            let st = telegram::get_state();
+            st.active_questions["req-flow-ms"].option_refs.iter().find(|(_, (_, l))| l == "Production").unwrap().0.clone()
+        };
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&ref_prod, "select")).unwrap();
+            let res = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+            match res {
+                telegram::QuestionCallbackResult::Completed { request_id, answers, .. } => {
+                    assert_eq!(request_id, "req-flow-ms");
+                    pipe::record_question_answer(&request_id, &answers);
+                }
+                _ => panic!("expected completed"),
+            }
+        }
+
+        // Now pipe MUST have received exactly 1 answer
+        let answers = pipe::get_recorded_question_answers();
+        assert_eq!(answers.len(), 1);
+        assert_eq!(answers[0].0, "req-flow-ms");
+        // Multi-select answers must have both selected items and NOT truncated to 1
+        assert_eq!(answers[0].1["Select features:"], serde_json::json!(["Auth", "Tracing"]));
+        // Single-select answer must be string "Production"
+        assert_eq!(answers[0].1["Target environment:"], "Production");
+
+        // Active context must be cleaned up
+        {
+            let st = telegram::get_state();
+            assert!(!st.active_questions.contains_key("req-flow-ms"));
+        }
+
+        // Consumed action replay must fail
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&ref_prod, "select")).unwrap();
+            let res = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now);
+            assert!(res.is_err());
+        }
+    }
+
+    // 14b: single -> multi scenario with 2 selected options in multi
+    pipe::clear_recorded();
+    telegram::reset_state_for_test();
+    {
+        let q1 = telegram::QuestionItem {
+            question: "Target Cloud:".to_string(),
+            header: Some("Cloud".to_string()),
+            options: vec![
+                telegram::QuestionOption { label: "AWS".to_string(), description: "".to_string() },
+                telegram::QuestionOption { label: "GCP".to_string(), description: "".to_string() },
+            ],
+            multi_select: false,
+        };
+        let q2 = telegram::QuestionItem {
+            question: "Channels:".to_string(),
+            header: Some("Notifications".to_string()),
+            options: vec![
+                telegram::QuestionOption { label: "Slack".to_string(), description: "".to_string() },
+                telegram::QuestionOption { label: "Telegram".to_string(), description: "".to_string() },
+                telegram::QuestionOption { label: "Email".to_string(), description: "".to_string() },
+            ],
+            multi_select: true,
+        };
+
+        let mut aq = telegram::ActiveQuestion {
+            request_id: "req-flow-sm".to_string(),
+            fingerprint: "fp-flow-sm".to_string(),
+            chat_id,
+            message_id: 202,
+            prompt_text: "test".to_string(),
+            questions: vec![q1, q2],
+            selections: vec![Vec::new(), Vec::new()],
+            current_index: 0,
+            option_refs: std::collections::HashMap::new(),
+            submit_ref: None,
+        };
+
+        {
+            let mut st = telegram::get_state();
+            let _ = telegram::build_question_keyboard(&mut st.registry, &mut aq, user_id, now);
+            st.active_questions.insert(aq.request_id.clone(), aq);
+        }
+
+        // Select AWS on Q1
+        let ref_aws = {
+            let st = telegram::get_state();
+            st.active_questions["req-flow-sm"].option_refs.iter().find(|(_, (_, l))| l == "AWS").unwrap().0.clone()
+        };
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&ref_aws, "select")).unwrap();
+            let res = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+            match res {
+                telegram::QuestionCallbackResult::Advanced { current_index, keyboard, .. } => {
+                    assert_eq!(current_index, 1);
+                    let has_submit = keyboard.inline_keyboard.iter().any(|row| row.iter().any(|b| b.text == "Submit"));
+                    assert!(has_submit, "Q2 is multi-select and MUST have a Submit button");
+                }
+                _ => panic!("expected advanced to Q2"),
+            }
+        }
+
+        assert_eq!(pipe::get_recorded_question_answers().len(), 0);
+
+        // Toggle Slack and Email on Q2
+        let ref_slack = {
+            let st = telegram::get_state();
+            st.active_questions["req-flow-sm"].option_refs.iter().find(|(_, (_, l))| l == "Slack").unwrap().0.clone()
+        };
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&ref_slack, "select")).unwrap();
+            let _ = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+        }
+
+        let ref_email = {
+            let st = telegram::get_state();
+            st.active_questions["req-flow-sm"].option_refs.iter().find(|(_, (_, l))| l == "Email").unwrap().0.clone()
+        };
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&ref_email, "select")).unwrap();
+            let _ = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+        }
+
+        // Submit Q2
+        let submit_ref_q2 = {
+            let st = telegram::get_state();
+            st.active_questions["req-flow-sm"].submit_ref.clone().unwrap()
+        };
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&submit_ref_q2, "submit")).unwrap();
+            let res = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+            match res {
+                telegram::QuestionCallbackResult::Completed { request_id, answers, .. } => {
+                    assert_eq!(request_id, "req-flow-sm");
+                    pipe::record_question_answer(&request_id, &answers);
+                }
+                _ => panic!("expected completed"),
+            }
+        }
+
+        let answers = pipe::get_recorded_question_answers();
+        assert_eq!(answers.len(), 1);
+        assert_eq!(answers[0].0, "req-flow-sm");
+        assert_eq!(answers[0].1["Target Cloud:"], "AWS");
+        assert_eq!(answers[0].1["Channels:"], serde_json::json!(["Slack", "Email"]));
+    }
+
+    // 14c: multi -> multi scenario with 2 selected options in each multi
+    pipe::clear_recorded();
+    telegram::reset_state_for_test();
+    {
+        let q1 = telegram::QuestionItem {
+            question: "Select roles:".to_string(),
+            header: Some("Roles".to_string()),
+            options: vec![
+                telegram::QuestionOption { label: "Admin".to_string(), description: "".to_string() },
+                telegram::QuestionOption { label: "Editor".to_string(), description: "".to_string() },
+                telegram::QuestionOption { label: "Viewer".to_string(), description: "".to_string() },
+            ],
+            multi_select: true,
+        };
+        let q2 = telegram::QuestionItem {
+            question: "Select scopes:".to_string(),
+            header: Some("Scopes".to_string()),
+            options: vec![
+                telegram::QuestionOption { label: "Read".to_string(), description: "".to_string() },
+                telegram::QuestionOption { label: "Write".to_string(), description: "".to_string() },
+                telegram::QuestionOption { label: "Delete".to_string(), description: "".to_string() },
+            ],
+            multi_select: true,
+        };
+
+        let mut aq = telegram::ActiveQuestion {
+            request_id: "req-flow-mm".to_string(),
+            fingerprint: "fp-flow-mm".to_string(),
+            chat_id,
+            message_id: 203,
+            prompt_text: "test".to_string(),
+            questions: vec![q1, q2],
+            selections: vec![Vec::new(), Vec::new()],
+            current_index: 0,
+            option_refs: std::collections::HashMap::new(),
+            submit_ref: None,
+        };
+
+        {
+            let mut st = telegram::get_state();
+            let _ = telegram::build_question_keyboard(&mut st.registry, &mut aq, user_id, now);
+            st.active_questions.insert(aq.request_id.clone(), aq);
+        }
+
+        // Select Admin & Viewer on Q1
+        let ref_admin = {
+            let st = telegram::get_state();
+            st.active_questions["req-flow-mm"].option_refs.iter().find(|(_, (_, l))| l == "Admin").unwrap().0.clone()
+        };
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&ref_admin, "select")).unwrap();
+            let _ = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+        }
+        let ref_viewer = {
+            let st = telegram::get_state();
+            st.active_questions["req-flow-mm"].option_refs.iter().find(|(_, (_, l))| l == "Viewer").unwrap().0.clone()
+        };
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&ref_viewer, "select")).unwrap();
+            let _ = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+        }
+
+        // Submit Q1
+        let submit_ref_q1 = {
+            let st = telegram::get_state();
+            st.active_questions["req-flow-mm"].submit_ref.clone().unwrap()
+        };
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&submit_ref_q1, "submit")).unwrap();
+            let res = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+            match res {
+                telegram::QuestionCallbackResult::Advanced { current_index, keyboard, .. } => {
+                    assert_eq!(current_index, 1);
+                    let has_submit = keyboard.inline_keyboard.iter().any(|row| row.iter().any(|b| b.text == "Submit"));
+                    assert!(has_submit, "Q2 must have a Submit button");
+                }
+                _ => panic!("expected advanced"),
+            }
+        }
+
+        // Q2 submit_ref must be fresh
+        let submit_ref_q2 = {
+            let st = telegram::get_state();
+            let sr2 = st.active_questions["req-flow-mm"].submit_ref.clone().unwrap();
+            assert_ne!(sr2, submit_ref_q1, "Q2 must have a fresh submit_ref");
+            sr2
+        };
+
+        // Select Read & Write on Q2
+        let ref_read = {
+            let st = telegram::get_state();
+            st.active_questions["req-flow-mm"].option_refs.iter().find(|(_, (_, l))| l == "Read").unwrap().0.clone()
+        };
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&ref_read, "select")).unwrap();
+            let _ = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+        }
+        let ref_write = {
+            let st = telegram::get_state();
+            st.active_questions["req-flow-mm"].option_refs.iter().find(|(_, (_, l))| l == "Write").unwrap().0.clone()
+        };
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&ref_write, "select")).unwrap();
+            let _ = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+        }
+
+        // Submit Q2
+        {
+            let mut st = telegram::get_state();
+            let parsed = telegram::parse_callback_data(&telegram::make_callback_data(&submit_ref_q2, "submit")).unwrap();
+            let res = telegram::process_question_callback(&mut st, &parsed, chat_id, user_id, now).unwrap();
+            match res {
+                telegram::QuestionCallbackResult::Completed { request_id, answers, .. } => {
+                    assert_eq!(request_id, "req-flow-mm");
+                    pipe::record_question_answer(&request_id, &answers);
+                }
+                _ => panic!("expected completed"),
+            }
+        }
+
+        let answers = pipe::get_recorded_question_answers();
+        assert_eq!(answers.len(), 1);
+        assert_eq!(answers[0].0, "req-flow-mm");
+        assert_eq!(answers[0].1["Select roles:"], serde_json::json!(["Admin", "Viewer"]));
+        assert_eq!(answers[0].1["Select scopes:"], serde_json::json!(["Read", "Write"]));
+    }
+    telegram::reset_state_for_test();
+    println!("ok");
+
     println!("\nALL TELEGRAM RUST UNIT TESTS PASSED (100% OK)");
 }
 EOF

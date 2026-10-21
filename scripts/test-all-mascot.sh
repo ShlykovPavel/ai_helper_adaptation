@@ -12,6 +12,9 @@ bash scripts/test-astral-idle.sh
 echo "[0/7] Running Native Astral Greeting Tests..."
 bash scripts/test-astral-greeting.sh
 
+echo "[0/7] Running Native Astral Hybrid Tests..."
+bash scripts/test-astral-hybrid.sh
+
 echo "[1/7] Running Geometry & Notch Anchoring Tests..."
 bash scripts/test-geometry.sh
 
@@ -31,8 +34,9 @@ echo "[6/7] Running Astral Morph E2E Tests..."
 bash scripts/test-astral-morph-e2e.sh
 
 echo "[7/7] Running Cross-Platform TypeScript / Node.js Tests..."
-node windows/tests/compact-lod.test.mjs
-node windows/tests/expanded-lod.test.mjs
+(cd windows && node --import ./tests/setup.mjs tests/compact-lod.test.mjs)
+(cd windows && node --import ./tests/setup.mjs tests/expanded-lod.test.mjs)
+(cd windows && node --import ./tests/setup.mjs tests/facade-geometry.test.mjs)
 
 echo "=========================================================="
 echo "  ✅ All Mascot Tests Passed Successfully! (0 Failures)  "

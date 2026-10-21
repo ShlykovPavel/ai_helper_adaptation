@@ -2,7 +2,28 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 TEST_DIR="$(mktemp -d "${TMPDIR:-/tmp}/coucou-tunnelguard-phase3-safe.XXXXXX")"
-trap 'rm -rf "$TEST_DIR"' EXIT
+export TUNNELGUARD_TEST_MODE=1
+
+STATE_FILE="$HOME/Library/Application Support/NotchBuddy/tunnelguard-state.json"
+BEFORE_HASH=""
+if [ -f "$STATE_FILE" ]; then
+    BEFORE_HASH="$(shasum -a 256 "$STATE_FILE" | awk '{print $1}')"
+fi
+
+cleanup() {
+    rm -rf "$TEST_DIR"
+    AFTER_HASH=""
+    if [ -f "$STATE_FILE" ]; then
+        AFTER_HASH="$(shasum -a 256 "$STATE_FILE" | awk '{print $1}')"
+    fi
+    if [ "$BEFORE_HASH" != "$AFTER_HASH" ]; then
+        echo "❌ FATAL: Real state file was modified during tests!" >&2
+        echo "Before SHA256: $BEFORE_HASH" >&2
+        echo "After SHA256:  $AFTER_HASH" >&2
+        exit 1
+    fi
+}
+trap cleanup EXIT
 
 CACHE_ARGS=()
 if [ -d "NotchBuddy/build/ModuleCache.noindex" ]; then
@@ -14,6 +35,7 @@ swiftc -swift-version 6 -strict-concurrency=complete "${CACHE_ARGS[@]+"${CACHE_A
     NotchBuddy/Sources/App/TunnelGuardNetworkWorker.swift \
     NotchBuddy/Sources/App/TunnelGuardAppHunter.swift \
     NotchBuddy/Sources/App/TunnelGuardWatchdog.swift \
+    tests/TunnelGuardTestHelper.swift \
     tests/TunnelGuardPhase3SafeTests.swift -o "$TEST_DIR/tunnelguard-phase3-safe-tests"
 
 "$TEST_DIR/tunnelguard-phase3-safe-tests"
@@ -23,6 +45,7 @@ swiftc -swift-version 6 -strict-concurrency=complete "${CACHE_ARGS[@]+"${CACHE_A
     NotchBuddy/Sources/App/TunnelGuardNetworkWorker.swift \
     NotchBuddy/Sources/App/TunnelGuardAppHunter.swift \
     NotchBuddy/Sources/App/TunnelGuardWatchdog.swift \
+    tests/TunnelGuardTestHelper.swift \
     tests/TunnelGuardWatchdogPromptTests.swift -o "$TEST_DIR/tunnelguard-watchdog-prompt-tests"
 
 "$TEST_DIR/tunnelguard-watchdog-prompt-tests"
@@ -32,6 +55,7 @@ swiftc -swift-version 6 -strict-concurrency=complete "${CACHE_ARGS[@]+"${CACHE_A
     NotchBuddy/Sources/App/TunnelGuardNetworkWorker.swift \
     NotchBuddy/Sources/App/TunnelGuardAppHunter.swift \
     NotchBuddy/Sources/App/TunnelGuardWatchdog.swift \
+    tests/TunnelGuardTestHelper.swift \
     tests/TunnelGuardSplitLeakSafetyTests.swift -o "$TEST_DIR/tunnelguard-split-leak-safety-tests"
 
 "$TEST_DIR/tunnelguard-split-leak-safety-tests"
@@ -41,5 +65,15 @@ swiftc -swift-version 6 -strict-concurrency=complete "${CACHE_ARGS[@]+"${CACHE_A
     tests/TunnelGuardSettingsUITests.swift -o "$TEST_DIR/tunnelguard-settings-ui-tests"
 
 "$TEST_DIR/tunnelguard-settings-ui-tests"
+
+swiftc -swift-version 6 -strict-concurrency=complete "${CACHE_ARGS[@]+"${CACHE_ARGS[@]}"}" \
+    NotchBuddy/Sources/App/TunnelGuardPowerGuard.swift \
+    NotchBuddy/Sources/App/TunnelGuardNetworkWorker.swift \
+    NotchBuddy/Sources/App/TunnelGuardAppHunter.swift \
+    NotchBuddy/Sources/App/TunnelGuardWatchdog.swift \
+    tests/TunnelGuardTestHelper.swift \
+    tests/TunnelGuardProgressivePingTests.swift -o "$TEST_DIR/tunnelguard-progressive-ping-tests"
+
+"$TEST_DIR/tunnelguard-progressive-ping-tests"
 
 

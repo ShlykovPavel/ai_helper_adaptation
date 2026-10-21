@@ -211,6 +211,81 @@ enum AstralHybridIdleTests {
         }
         check("Renderer draws all forms without crashing", true)
 
+        // 9. R07: Vertical eye look direction contract verification
+        print("AstralHybridIdle — R07 Look Direction Contract")
+        let testRect = CGRect(x: 0, y: 0, width: 100, height: 100)
+        let neutralEyes = AstralHybridRenderer.eyeCenters(rect: testRect, form: .ghost, lookX: 0, lookY: 0)
+        let lookDownEyes = AstralHybridRenderer.eyeCenters(rect: testRect, form: .ghost, lookX: 0, lookY: -1.0)
+        let lookUpEyes = AstralHybridRenderer.eyeCenters(rect: testRect, form: .ghost, lookX: 0, lookY: 1.0)
+
+        check("Cursor below (lookY = -1.0) shifts eyes DOWN (left.y > neutral.y)", lookDownEyes.left.y > neutralEyes.left.y)
+        check("Cursor below (lookY = -1.0) shifts eyes DOWN (right.y > neutral.y)", lookDownEyes.right.y > neutralEyes.right.y)
+        check("Cursor above (lookY = 1.0) shifts eyes UP (left.y < neutral.y)", lookUpEyes.left.y < neutralEyes.left.y)
+        check("Cursor above (lookY = 1.0) shifts eyes UP (right.y < neutral.y)", lookUpEyes.right.y < neutralEyes.right.y)
+
+        let lookRightEyes = AstralHybridRenderer.eyeCenters(rect: testRect, form: .ghost, lookX: 1.0, lookY: 0)
+        let lookLeftEyes = AstralHybridRenderer.eyeCenters(rect: testRect, form: .ghost, lookX: -1.0, lookY: 0)
+        check("Cursor right (lookX = 1.0) shifts eyes RIGHT", lookRightEyes.left.x > neutralEyes.left.x)
+        check("Cursor left (lookX = -1.0) shifts eyes LEFT", lookLeftEyes.left.x < neutralEyes.left.x)
+
+        // 10. R17: Slap / poke bounce physics and state machine verification
+        print("AstralHybridIdle — R17 Slap Physics & State Machine")
+        let slapInitial = AstralHybridMotion.slapBounce(at: 0.0, duration: 0.5, amp: 10.0)
+        check("Slap at 0 is active", slapInitial.isActive)
+        check("Slap at 0 has zero vertical bounce", abs(slapInitial.bounceY) < 0.001)
+        check("Slap at 0 has initial squash (scaleX > 1, scaleY < 1)", slapInitial.scaleX > 1.0 && slapInitial.scaleY < 1.0)
+        check("Slap at 0 has initial blush alpha", slapInitial.blushAlpha > 0.5)
+
+        let slapMid = AstralHybridMotion.slapBounce(at: 0.25, duration: 0.5, amp: 10.0)
+        check("Slap at midpoint is active", slapMid.isActive)
+        check("Slap at midpoint reaches peak negative bounceY (lifted up)", slapMid.bounceY < -9.5)
+        check("Slap at midpoint has flight stretch (scaleY > 1)", slapMid.scaleY > 1.0)
+
+        let slapEnd = AstralHybridMotion.slapBounce(at: 0.55, duration: 0.5, amp: 10.0)
+        check("Slap past duration is inactive", !slapEnd.isActive)
+        check("Slap past duration has zero bounce", abs(slapEnd.bounceY) < 0.001)
+
+        let slapNegative = AstralHybridMotion.slapBounce(at: -0.1, duration: 0.5, amp: 10.0)
+        check("Slap with negative elapsed is inactive", !slapNegative.isActive)
+
+        // State machine tests
+        var slapState = AstralHybridSlapState(duration: 0.5)
+        check("SlapState starts inactive", !slapState.isActive(at: 100.0))
+        check("SlapState elapsed is nil when inactive", slapState.elapsed(at: 100.0) == nil)
+
+        slapState.trigger(at: 100.0)
+        check("SlapState is active after trigger", slapState.isActive(at: 100.1))
+        check("SlapState elapsed matches time delta", abs((slapState.elapsed(at: 100.1) ?? 0) - 0.1) < 0.001)
+
+        // Repeat slap before finish resets duration
+        slapState.trigger(at: 100.3)
+        check("SlapState remains active after second trigger", slapState.isActive(at: 100.6))
+        check("SlapState elapsed is relative to latest trigger", abs((slapState.elapsed(at: 100.6) ?? 0) - 0.3) < 0.001)
+
+        // Slap finishes cleanly
+        check("SlapState becomes inactive after duration", !slapState.isActive(at: 100.9))
+        check("SlapState elapsed is nil after duration", slapState.elapsed(at: 100.9) == nil)
+
+        // Reset clears slap (e.g. on collapse or pause)
+        slapState.trigger(at: 200.0)
+        slapState.reset()
+        check("SlapState is inactive after reset", !slapState.isActive(at: 200.1))
+
+        // Draw with active slap
+        AstralHybridRenderer.draw(
+            in: ctx,
+            size: CGSize(width: 128, height: 128),
+            elapsed: 1.0,
+            form: .ghost,
+            stateName: "idle",
+            lookX: 0,
+            lookY: 0,
+            isSleeping: false,
+            slapElapsed: 0.25,
+            imageOverride: dummyImg
+        )
+        check("Renderer draws frame with active slap and blush without crashing", true)
+
         print("AstralHybridIdleTests finished with \(failures) failures.")
         if failures > 0 { exit(1) }
     }

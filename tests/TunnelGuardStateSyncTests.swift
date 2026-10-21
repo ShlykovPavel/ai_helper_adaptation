@@ -38,7 +38,7 @@ final class AppState: ObservableObject {
 @main
 enum TunnelGuardStateSyncTests {
     @MainActor
-    static func main() {
+    static func main() throws {
         print("=== TunnelGuard State Sync Tests ===")
 
         testDefaultStateFileURL()
@@ -47,6 +47,9 @@ enum TunnelGuardStateSyncTests {
         testTargetChangeSync()
         testCleanupRuntimeStateFile()
         testStopAndApplicationWillTerminate()
+        testDefaultStateFileUntouchedByWatchdog()
+        try testExternalControlFileRemainsUntouched()
+        testTestModeSafetyFallbackPreventsDefaultFileWrite()
 
         print("TunnelGuard State Sync: all cases passed")
     }
@@ -62,16 +65,13 @@ enum TunnelGuardStateSyncTests {
 
     @MainActor
     static func testSyncRuntimeStateFile() {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("tg-sync-test-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let context = TunnelGuardTestContext(prefix: "tg-sync-test")
+        defer { context.tearDown() }
 
-        let defaults = UserDefaults(suiteName: "test-\(UUID().uuidString)")!
-        let watchdog = TunnelGuardWatchdog(settingsDefaults: defaults, stateDirectoryURL: tempDir)
+        let watchdog = context.makeWatchdog()
+        watchdog.syncRuntimeStateFile(stateDirURL: context.tempDirectoryURL)
 
-        watchdog.syncRuntimeStateFile(stateDirURL: tempDir)
-
-        let stateFile = tempDir.appendingPathComponent("tunnelguard-state.json")
+        let stateFile = context.stateFileURL
         precondition(FileManager.default.fileExists(atPath: stateFile.path),
                      "tunnelguard-state.json must be created in tempDir")
 
@@ -112,20 +112,17 @@ enum TunnelGuardStateSyncTests {
 
     @MainActor
     static func testEnabledChangeSync() {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("tg-enabled-test-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let context = TunnelGuardTestContext(prefix: "tg-enabled-test")
+        defer { context.tearDown() }
 
-        let defaults = UserDefaults(suiteName: "test-\(UUID().uuidString)")!
-        let watchdog = TunnelGuardWatchdog(settingsDefaults: defaults, stateDirectoryURL: tempDir)
-
-        watchdog.syncRuntimeStateFile(stateDirURL: tempDir)
+        let watchdog = context.makeWatchdog()
+        watchdog.syncRuntimeStateFile(stateDirURL: context.tempDirectoryURL)
 
         // Disable TunnelGuard
         watchdog.isEnabled = false
-        watchdog.syncRuntimeStateFile(stateDirURL: tempDir)
+        watchdog.syncRuntimeStateFile(stateDirURL: context.tempDirectoryURL)
 
-        let stateFile = tempDir.appendingPathComponent("tunnelguard-state.json")
+        let stateFile = context.stateFileURL
         guard let data = try? Data(contentsOf: stateFile),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             fatalError("Failed to parse state file after disabling")
@@ -139,20 +136,18 @@ enum TunnelGuardStateSyncTests {
 
     @MainActor
     static func testTargetChangeSync() {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("tg-targets-test-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let context = TunnelGuardTestContext(prefix: "tg-targets-test")
+        defer { context.tearDown() }
 
-        let defaults = UserDefaults(suiteName: "test-\(UUID().uuidString)")!
-        let watchdog = TunnelGuardWatchdog(settingsDefaults: defaults, stateDirectoryURL: tempDir)
+        let watchdog = context.makeWatchdog()
 
         // Custom target list: only claude
         watchdog.targets = [
             TunnelGuardTargetApp(id: "claude-cli", name: "Claude CLI", type: .cli, binaryOrBundleId: "claude", domain: "claude.ai")
         ]
-        watchdog.syncRuntimeStateFile(stateDirURL: tempDir)
+        watchdog.syncRuntimeStateFile(stateDirURL: context.tempDirectoryURL)
 
-        let stateFile = tempDir.appendingPathComponent("tunnelguard-state.json")
+        let stateFile = context.stateFileURL
         guard let data = try? Data(contentsOf: stateFile),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             fatalError("Failed to parse state file after target change")
@@ -169,20 +164,18 @@ enum TunnelGuardStateSyncTests {
 
     @MainActor
     static func testCleanupRuntimeStateFile() {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("tg-cleanup-test-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let context = TunnelGuardTestContext(prefix: "tg-cleanup-test")
+        defer { context.tearDown() }
 
-        let defaults = UserDefaults(suiteName: "test-\(UUID().uuidString)")!
-        let watchdog = TunnelGuardWatchdog(settingsDefaults: defaults, stateDirectoryURL: tempDir)
+        let watchdog = context.makeWatchdog()
 
         // First sync running=true
-        watchdog.syncRuntimeStateFile(stateDirURL: tempDir)
+        watchdog.syncRuntimeStateFile(stateDirURL: context.tempDirectoryURL)
 
         // Cleanup
-        watchdog.cleanupRuntimeStateFile(stateDirURL: tempDir)
+        watchdog.cleanupRuntimeStateFile(stateDirURL: context.tempDirectoryURL)
 
-        let stateFile = tempDir.appendingPathComponent("tunnelguard-state.json")
+        let stateFile = context.stateFileURL
         guard let data = try? Data(contentsOf: stateFile),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             fatalError("Failed to parse state file after cleanup")
@@ -198,14 +191,12 @@ enum TunnelGuardStateSyncTests {
 
     @MainActor
     static func testStopAndApplicationWillTerminate() {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("tg-stop-test-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let context = TunnelGuardTestContext(prefix: "tg-stop-test")
+        defer { context.tearDown() }
 
-        let defaults = UserDefaults(suiteName: "test-\(UUID().uuidString)")!
-        let watchdog = TunnelGuardWatchdog(settingsDefaults: defaults, stateDirectoryURL: tempDir)
+        let watchdog = context.makeWatchdog()
 
-        let stateFile = tempDir.appendingPathComponent("tunnelguard-state.json")
+        let stateFile = context.stateFileURL
         precondition(FileManager.default.fileExists(atPath: stateFile.path),
                      "State file should exist after initialization")
 
@@ -221,5 +212,79 @@ enum TunnelGuardStateSyncTests {
         precondition(json["enabled"] as? Bool == false, "stop() must write enabled=false")
 
         print("  ✓ stop() triggers cleanupRuntimeStateFile with running=false: passed")
+    }
+
+    @MainActor
+    static func testDefaultStateFileUntouchedByWatchdog() {
+        let defaultURL = TunnelGuardWatchdog.defaultStateFileURL
+        let existsBefore = FileManager.default.fileExists(atPath: defaultURL.path)
+        let dataBefore = try? Data(contentsOf: defaultURL)
+
+        let context = TunnelGuardTestContext(prefix: "tg-untouched-test")
+        let watchdog = context.makeWatchdog()
+        watchdog.isEnabled = true
+        watchdog.syncRuntimeStateFile()
+        watchdog.targets = []
+        watchdog.isEnabled = false
+        watchdog.stop()
+        context.tearDown()
+
+        let existsAfter = FileManager.default.fileExists(atPath: defaultURL.path)
+        precondition(existsBefore == existsAfter,
+                     "Default state file existence changed! Before: \(existsBefore), after: \(existsAfter)")
+
+        if existsBefore {
+            let dataAfter = try? Data(contentsOf: defaultURL)
+            precondition(dataBefore == dataAfter,
+                         "Default state file was modified! Real user state must never be touched by tests.")
+        }
+        print("  ✓ default state file remains completely untouched by watchdog operations: passed")
+    }
+
+    @MainActor
+    static func testExternalControlFileRemainsUntouched() throws {
+        let controlDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("tg-control-dir-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: controlDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: controlDir) }
+
+        let controlFile = controlDir.appendingPathComponent("tunnelguard-state.json")
+        let sentinelData = "{\"sentinel\": \"canary-guard-12345\"}".data(using: .utf8)!
+        try sentinelData.write(to: controlFile)
+
+        let context = TunnelGuardTestContext(prefix: "tg-canary-test")
+        let watchdog = context.makeWatchdog()
+        watchdog.isEnabled = true
+        watchdog.syncRuntimeStateFile()
+        watchdog.targets = []
+        watchdog.stop()
+        context.tearDown()
+
+        let readControl = try Data(contentsOf: controlFile)
+        precondition(readControl == sentinelData,
+                     "Control file in external directory was modified by watchdog!")
+        print("  ✓ control file outside test directory remains completely untouched: passed")
+    }
+
+    @MainActor
+    static func testTestModeSafetyFallbackPreventsDefaultFileWrite() {
+        let defaultURL = TunnelGuardWatchdog.defaultStateFileURL
+        let dataBefore = try? Data(contentsOf: defaultURL)
+        let existsBefore = FileManager.default.fileExists(atPath: defaultURL.path)
+
+        // Bare TunnelGuardWatchdog() under TUNNELGUARD_TEST_MODE=1
+        let bareWatchdog = TunnelGuardWatchdog()
+        bareWatchdog.isEnabled = true
+        bareWatchdog.syncRuntimeStateFile()
+        bareWatchdog.isEnabled = false
+        bareWatchdog.stop()
+
+        let existsAfter = FileManager.default.fileExists(atPath: defaultURL.path)
+        precondition(existsBefore == existsAfter, "Bare watchdog modified default state file existence!")
+        if existsBefore {
+            let dataAfter = try? Data(contentsOf: defaultURL)
+            precondition(dataBefore == dataAfter, "Bare watchdog modified default state file content!")
+        }
+        print("  ✓ TUNNELGUARD_TEST_MODE fallback prevents bare watchdog from touching default file: passed")
     }
 }

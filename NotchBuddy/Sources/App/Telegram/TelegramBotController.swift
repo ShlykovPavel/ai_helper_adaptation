@@ -19,6 +19,7 @@ final class TelegramBotController {
     }
 
     struct ActiveQuestionContext {
+        let id: UUID?
         let fingerprint: String
         let sessionId: String
         let agentName: String
@@ -50,8 +51,8 @@ final class TelegramBotController {
     private let settingsProvider: @Sendable () -> TelegramSettings
     private let tokenProvider: @Sendable () -> String?
     private let onApprovalDecision: (@MainActor (String, UUID?) -> Void)?
-    private let onQuestionAnswers: (@MainActor ([String: Any]) -> Void)?
-    private let onQuestionAsk: (@MainActor () -> Void)?
+    private let onQuestionAnswers: (@MainActor ([String: Any], UUID?) -> Void)?
+    private let onQuestionAsk: (@MainActor (UUID?) -> Void)?
     private let clock: any TelegramClock
 
     private var cancellables = Set<AnyCancellable>()
@@ -65,7 +66,14 @@ final class TelegramBotController {
         activeApprovals.values.first
     }
 
-    private(set) var activeQuestion: ActiveQuestionContext?
+    private(set) var activeQuestions: [UUID: ActiveQuestionContext] = [:]
+    private var activeQuestionsBySession: [String: ActiveQuestionContext] = [:]
+    private var questionSessionByRef: [String: String] = [:]
+    private var questionRefs: [String: UUID] = [:]
+
+    var activeQuestion: ActiveQuestionContext? {
+        activeQuestions.values.first
+    }
 
     private var lastFinishedKey: String?
 
@@ -79,8 +87,8 @@ final class TelegramBotController {
         settingsProvider: (@Sendable () -> TelegramSettings)? = nil,
         tokenProvider: (@Sendable () -> String?)? = nil,
         onApprovalDecision: (@MainActor (String, UUID?) -> Void)? = nil,
-        onQuestionAnswers: (@MainActor ([String: Any]) -> Void)? = nil,
-        onQuestionAsk: (@MainActor () -> Void)? = nil,
+        onQuestionAnswers: (@MainActor ([String: Any], UUID?) -> Void)? = nil,
+        onQuestionAsk: (@MainActor (UUID?) -> Void)? = nil,
         clock: any TelegramClock = SystemTelegramClock()
     ) {
         self.api = api
@@ -115,18 +123,56 @@ final class TelegramBotController {
         if let onAnswers = onQuestionAnswers {
             self.onQuestionAnswers = onAnswers
         } else {
-            self.onQuestionAnswers = { answers in
-                HookServer.shared.sendQuestionAnswers(answers)
+            self.onQuestionAnswers = { answers, id in
+                HookServer.shared.sendQuestionAnswers(answers, for: id)
             }
         }
 
         if let onAsk = onQuestionAsk {
             self.onQuestionAsk = onAsk
         } else {
-            self.onQuestionAsk = {
-                HookServer.shared.sendQuestionAsk()
+            self.onQuestionAsk = { id in
+                HookServer.shared.sendQuestionAsk(for: id)
             }
         }
+    }
+
+    convenience init(
+        api: TelegramBotAPI? = nil,
+        polling: TelegramPolling? = nil,
+        registry: TelegramActionRegistry? = nil,
+        settings: TelegramSettings? = nil,
+        settingsProvider: (@Sendable () -> TelegramSettings)? = nil,
+        tokenProvider: (@Sendable () -> String?)? = nil,
+        onApprovalDecision: (@MainActor (String, UUID?) -> Void)? = nil,
+        onQuestionAnswers: (@MainActor ([String: Any]) -> Void)?,
+        onQuestionAsk: (@MainActor () -> Void)? = nil,
+        clock: any TelegramClock = SystemTelegramClock()
+    ) {
+        let wrappedAnswers: (@MainActor ([String: Any], UUID?) -> Void)?
+        if let onQuestionAnswers {
+            wrappedAnswers = { answers, _ in onQuestionAnswers(answers) }
+        } else {
+            wrappedAnswers = nil
+        }
+        let wrappedAsk: (@MainActor (UUID?) -> Void)?
+        if let onQuestionAsk {
+            wrappedAsk = { _ in onQuestionAsk() }
+        } else {
+            wrappedAsk = nil
+        }
+        self.init(
+            api: api,
+            polling: polling,
+            registry: registry,
+            settings: settings,
+            settingsProvider: settingsProvider,
+            tokenProvider: tokenProvider,
+            onApprovalDecision: onApprovalDecision,
+            onQuestionAnswers: wrappedAnswers,
+            onQuestionAsk: wrappedAsk,
+            clock: clock
+        )
     }
 
     // MARK: - Lifecycle
@@ -186,7 +232,7 @@ final class TelegramBotController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] pending in
                 guard let self = self else { return }
-                if pending == nil && self.activeQuestion != nil {
+                if pending == nil && !self.activeQuestions.isEmpty {
                     self.handle(event: TelegramEvent(
                         sessionId: "",
                         agentId: "",
@@ -216,7 +262,10 @@ final class TelegramBotController {
         activeApprovalsBySession.removeAll()
         approvalSessionByRef.removeAll()
         approvalRefs.removeAll()
-        activeQuestion = nil
+        activeQuestions.removeAll()
+        activeQuestionsBySession.removeAll()
+        questionSessionByRef.removeAll()
+        questionRefs.removeAll()
     }
 
     func settingsChanged() {
@@ -379,11 +428,13 @@ final class TelegramBotController {
 
             let projectPart = event.projectName.map { " (\($0))" } ?? ""
             let baseHeader = "❓ \(event.agentName)\(projectPart)"
+            let questionId = questionSnap.id ?? UUID()
 
             Task { [weak self] in
                 guard let self = self, let api = self.api else { return }
 
                 var context = ActiveQuestionContext(
+                    id: questionSnap.id ?? questionId,
                     fingerprint: questionSnap.fingerprint,
                     sessionId: event.sessionId,
                     agentName: event.agentName,
@@ -407,6 +458,7 @@ final class TelegramBotController {
                 do {
                     let msgId = try await api.sendMessage(chatId: chatId, text: ui.text, keyboard: ui.keyboard)
                     let updatedContext = ActiveQuestionContext(
+                        id: context.id,
                         fingerprint: context.fingerprint,
                         sessionId: context.sessionId,
                         agentName: context.agentName,
@@ -424,18 +476,37 @@ final class TelegramBotController {
                         textRef: context.textRef,
                         terminalRef: context.terminalRef
                     )
-                    self.activeQuestion = updatedContext
+                    self.activeQuestions[questionId] = updatedContext
+                    self.activeQuestionsBySession[event.sessionId] = updatedContext
+                    self.recordQuestionRefs(for: updatedContext, questionId: questionId)
                 } catch {
                     // Ignored on network error
                 }
             }
 
         case .questionResolved:
-            if let active = activeQuestion {
+            let targetId = event.question?.id
+            let toResolve: [ActiveQuestionContext]
+            if let targetId = targetId, let active = activeQuestions.removeValue(forKey: targetId) {
+                if activeQuestionsBySession[active.sessionId]?.id == targetId {
+                    activeQuestionsBySession.removeValue(forKey: active.sessionId)
+                }
+                removeQuestionRefs(for: active)
+                toResolve = [active]
+            } else if targetId == nil {
+                toResolve = Array(activeQuestions.values)
+                activeQuestions.removeAll()
+                activeQuestionsBySession.removeAll()
+                questionRefs.removeAll()
+                questionSessionByRef.removeAll()
+            } else {
+                toResolve = []
+            }
+
+            for active in toResolve {
                 let msgId = active.messageId
                 let chat = active.chatId
                 let prompt = active.promptText
-                activeQuestion = nil
                 Task { [weak self] in
                     let updatedText = Self.capText(prompt + "\n\n(Обработано)")
                     try? await self?.api?.editMessage(
@@ -446,6 +517,61 @@ final class TelegramBotController {
                     )
                 }
             }
+        }
+    }
+
+    // MARK: - Question Ref Helpers
+
+    private func recordQuestionRefs(for ctx: ActiveQuestionContext, questionId: UUID) {
+        for ref in ctx.optionRefs.keys {
+            questionRefs[ref] = questionId
+            questionSessionByRef[ref] = ctx.sessionId
+        }
+        if let s = ctx.submitRef {
+            questionRefs[s] = questionId
+            questionSessionByRef[s] = ctx.sessionId
+        }
+        if let t = ctx.textRef {
+            questionRefs[t] = questionId
+            questionSessionByRef[t] = ctx.sessionId
+        }
+        if let term = ctx.terminalRef {
+            questionRefs[term] = questionId
+            questionSessionByRef[term] = ctx.sessionId
+        }
+    }
+
+    private func removeQuestionRefs(for ctx: ActiveQuestionContext) {
+        for ref in ctx.optionRefs.keys {
+            questionRefs.removeValue(forKey: ref)
+            questionSessionByRef.removeValue(forKey: ref)
+        }
+        if let s = ctx.submitRef {
+            questionRefs.removeValue(forKey: s)
+            questionSessionByRef.removeValue(forKey: s)
+        }
+        if let t = ctx.textRef {
+            questionRefs.removeValue(forKey: t)
+            questionSessionByRef.removeValue(forKey: t)
+        }
+        if let term = ctx.terminalRef {
+            questionRefs.removeValue(forKey: term)
+            questionSessionByRef.removeValue(forKey: term)
+        }
+    }
+
+    private func removeActiveQuestion(id: UUID?, sessionId: String) {
+        if let id = id {
+            if let ctx = activeQuestions.removeValue(forKey: id) {
+                removeQuestionRefs(for: ctx)
+            }
+        } else if let firstKey = activeQuestions.first(where: { $0.value.sessionId == sessionId })?.key {
+            if let ctx = activeQuestions.removeValue(forKey: firstKey) {
+                removeQuestionRefs(for: ctx)
+            }
+        }
+        if activeQuestionsBySession[sessionId]?.id == id {
+            activeQuestionsBySession.removeValue(forKey: sessionId)
         }
     }
 
@@ -469,7 +595,8 @@ final class TelegramBotController {
                 fingerprint: active.fingerprint,
                 sessionId: active.sessionId,
                 chatId: chatId,
-                userId: userId
+                userId: userId,
+                requestId: active.id
             )
             optionRefs[action.ref] = (qIndex, opt.label)
             let isSelected = active.selections[qIndex].contains(opt.label)
@@ -489,7 +616,8 @@ final class TelegramBotController {
                 fingerprint: active.fingerprint,
                 sessionId: active.sessionId,
                 chatId: chatId,
-                userId: userId
+                userId: userId,
+                requestId: active.id
             )
             submitRef = subAction.ref
             buttons.append([TelegramInlineKeyboardButton(text: "Отправить", callbackData: "c:\(subAction.ref):submit")])
@@ -500,7 +628,8 @@ final class TelegramBotController {
             fingerprint: active.fingerprint,
             sessionId: active.sessionId,
             chatId: chatId,
-            userId: userId
+            userId: userId,
+            requestId: active.id
         )
         let textRef = textAction.ref
         buttons.append([TelegramInlineKeyboardButton(text: "Ответить текстом", callbackData: "c:\(textAction.ref):text")])
@@ -510,7 +639,8 @@ final class TelegramBotController {
             fingerprint: active.fingerprint,
             sessionId: active.sessionId,
             chatId: chatId,
-            userId: userId
+            userId: userId,
+            requestId: active.id
         )
         let terminalRef = termAction.ref
         buttons.append([TelegramInlineKeyboardButton(text: "Ответить в терминале", callbackData: "c:\(termAction.ref):terminal")])
@@ -596,7 +726,12 @@ final class TelegramBotController {
         }
 
         // Handle reply to awaiting text question
-        if var active = activeQuestion, active.awaitingText {
+        let matchedActive = message.replyToMessage.flatMap { reply in
+            activeQuestions.values.first(where: { $0.awaitingText && ($0.textPromptMessageId == reply.messageId || $0.messageId == reply.messageId) })
+        } ?? activeQuestions.values.first(where: { $0.awaitingText })
+
+        if var active = matchedActive {
+            let qId = active.id ?? UUID()
             guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
             if let replyId = message.replyToMessage?.messageId,
                replyId != active.textPromptMessageId && replyId != active.messageId {
@@ -614,17 +749,19 @@ final class TelegramBotController {
                 // Advance to next question
                 active.currentQuestionIndex = qIndex + 1
                 let ui = await buildQuestionUI(for: &active, chatId: active.chatId, userId: pairedUserId)
-                activeQuestion = active
+                activeQuestions[qId] = active
+                activeQuestionsBySession[active.sessionId] = active
+                recordQuestionRefs(for: active, questionId: qId)
                 try? await api?.editMessage(chatId: active.chatId, messageId: active.messageId, text: ui.text, keyboard: ui.keyboard)
             } else {
                 // All questions completed!
                 let answers = AskQuestion.buildAnswers(questions: active.items, selections: active.selections)
-                onQuestionAnswers?(answers)
+                onQuestionAnswers?(answers, active.id)
 
                 let msgId = active.messageId
                 let chat = active.chatId
                 let prompt = active.promptText
-                activeQuestion = nil
+                removeActiveQuestion(id: active.id, sessionId: active.sessionId)
 
                 let updatedText = Self.capText(prompt + "\n\nОтветил: \(text)")
                 try? await api?.editMessage(chatId: chat, messageId: msgId, text: updatedText, keyboard: nil)
@@ -699,7 +836,8 @@ final class TelegramBotController {
 
         // Question Option Selection
         if op == "select" {
-            guard var active = activeQuestion else {
+            guard let qId = questionRefs[ref] ?? activeQuestions.values.first(where: { $0.optionRefs[ref] != nil })?.id,
+                  var active = activeQuestions[qId] else {
                 try? await api?.answerCallbackQuery(id: cb.id, text: "Срок действия истёк", showAlert: false)
                 return
             }
@@ -726,7 +864,9 @@ final class TelegramBotController {
                     try? await api?.answerCallbackQuery(id: cb.id, text: nil, showAlert: false)
 
                     let ui = await buildQuestionUI(for: &active, chatId: chatId, userId: fromId)
-                    activeQuestion = active
+                    activeQuestions[qId] = active
+                    activeQuestionsBySession[active.sessionId] = active
+                    recordQuestionRefs(for: active, questionId: qId)
 
                     try? await api?.editMessage(
                         chatId: chatId,
@@ -743,7 +883,10 @@ final class TelegramBotController {
                         // Advance to next question!
                         active.currentQuestionIndex = qIndex + 1
                         let ui = await buildQuestionUI(for: &active, chatId: chatId, userId: fromId)
-                        activeQuestion = active
+                        activeQuestions[qId] = active
+                        activeQuestionsBySession[active.sessionId] = active
+                        recordQuestionRefs(for: active, questionId: qId)
+
                         try? await api?.editMessage(
                             chatId: chatId,
                             messageId: active.messageId,
@@ -753,7 +896,7 @@ final class TelegramBotController {
                     } else {
                         // All questions answered!
                         let answers = AskQuestion.buildAnswers(questions: active.items, selections: active.selections)
-                        onQuestionAnswers?(answers)
+                        onQuestionAnswers?(answers, active.id)
 
                         let summary: String
                         if active.items.count == 1 {
@@ -763,7 +906,7 @@ final class TelegramBotController {
                         }
                         let updatedText = Self.capText(active.promptText + "\n\nОтветил: \(summary)")
                         let msgId = active.messageId
-                        activeQuestion = nil
+                        removeActiveQuestion(id: active.id, sessionId: active.sessionId)
                         try? await api?.editMessage(chatId: chatId, messageId: msgId, text: updatedText, keyboard: nil)
                     }
                 }
@@ -776,7 +919,8 @@ final class TelegramBotController {
 
         // Question Submit (Multi-select)
         if op == "submit" {
-            guard var active = activeQuestion, let submitRef = active.submitRef, submitRef == ref else {
+            guard let qId = questionRefs[ref] ?? activeQuestions.values.first(where: { $0.submitRef == ref })?.id,
+                  var active = activeQuestions[qId], let submitRef = active.submitRef, submitRef == ref else {
                 try? await api?.answerCallbackQuery(id: cb.id, text: "Срок действия истёк", showAlert: false)
                 return
             }
@@ -796,7 +940,10 @@ final class TelegramBotController {
                     // Advance to next question
                     active.currentQuestionIndex = qIndex + 1
                     let ui = await buildQuestionUI(for: &active, chatId: chatId, userId: fromId)
-                    activeQuestion = active
+                    activeQuestions[qId] = active
+                    activeQuestionsBySession[active.sessionId] = active
+                    recordQuestionRefs(for: active, questionId: qId)
+
                     try? await api?.editMessage(
                         chatId: chatId,
                         messageId: active.messageId,
@@ -806,12 +953,12 @@ final class TelegramBotController {
                 } else {
                     // All questions completed!
                     let answers = AskQuestion.buildAnswers(questions: active.items, selections: active.selections)
-                    onQuestionAnswers?(answers)
+                    onQuestionAnswers?(answers, active.id)
 
                     let summary = active.selections.map { $0.joined(separator: ", ") }.joined(separator: "; ")
                     let updatedText = Self.capText(active.promptText + "\n\nОтветил: \(summary)")
                     let msgId = active.messageId
-                    activeQuestion = nil
+                    removeActiveQuestion(id: active.id, sessionId: active.sessionId)
                     try? await api?.editMessage(chatId: chatId, messageId: msgId, text: updatedText, keyboard: nil)
                 }
 
@@ -823,7 +970,8 @@ final class TelegramBotController {
 
         // Question Text
         if op == "text" {
-            guard var active = activeQuestion, let textRef = active.textRef, textRef == ref else {
+            guard let qId = questionRefs[ref] ?? activeQuestions.values.first(where: { $0.textRef == ref })?.id,
+                  var active = activeQuestions[qId], let textRef = active.textRef, textRef == ref else {
                 try? await api?.answerCallbackQuery(id: cb.id, text: "Срок действия истёк", showAlert: false)
                 return
             }
@@ -832,7 +980,8 @@ final class TelegramBotController {
             switch result {
             case .accepted:
                 active.awaitingText = true
-                activeQuestion = active
+                activeQuestions[qId] = active
+                activeQuestionsBySession[active.sessionId] = active
                 do {
                     guard let api else { throw TelegramAPIError.invalidResponse }
                     let promptId = try await api.sendMessage(
@@ -842,15 +991,16 @@ final class TelegramBotController {
                         replyToMessageId: active.messageId
                     )
                     // A local answer or a new question may arrive while Telegram sends the prompt.
-                    guard var current = activeQuestion,
+                    guard var current = activeQuestions[qId],
                           current.messageId == active.messageId,
                           current.sessionId == active.sessionId,
                           current.currentQuestionIndex == active.currentQuestionIndex else { return }
                     current.textPromptMessageId = promptId
-                    activeQuestion = current
+                    activeQuestions[qId] = current
+                    activeQuestionsBySession[current.sessionId] = current
                     try? await api.answerCallbackQuery(id: cb.id, text: nil, showAlert: false)
                 } catch {
-                    guard var current = activeQuestion,
+                    guard var current = activeQuestions[qId],
                           current.messageId == active.messageId,
                           current.sessionId == active.sessionId,
                           current.currentQuestionIndex == active.currentQuestionIndex else { return }
@@ -858,8 +1008,10 @@ final class TelegramBotController {
                     current.textPromptMessageId = nil
                     // Reissue the consumed text action so a failed network request can be retried.
                     let ui = await buildQuestionUI(for: &current, chatId: chatId, userId: fromId)
-                    guard activeQuestion?.messageId == current.messageId else { return }
-                    activeQuestion = current
+                    guard activeQuestions[qId]?.messageId == current.messageId else { return }
+                    activeQuestions[qId] = current
+                    activeQuestionsBySession[current.sessionId] = current
+                    recordQuestionRefs(for: current, questionId: qId)
                     try? await api?.editMessage(chatId: chatId, messageId: current.messageId,
                                                text: ui.text + "\n\nНе удалось открыть ввод. Нажмите «Ответить текстом» ещё раз.",
                                                keyboard: ui.keyboard)
@@ -874,7 +1026,8 @@ final class TelegramBotController {
 
         // Question Terminal
         if op == "terminal" {
-            guard let active = activeQuestion, let terminalRef = active.terminalRef, terminalRef == ref else {
+            guard let qId = questionRefs[ref] ?? activeQuestions.values.first(where: { $0.terminalRef == ref })?.id,
+                  let active = activeQuestions[qId], let terminalRef = active.terminalRef, terminalRef == ref else {
                 try? await api?.answerCallbackQuery(id: cb.id, text: "Срок действия истёк", showAlert: false)
                 return
             }
@@ -882,12 +1035,12 @@ final class TelegramBotController {
             let result = await registry.consume(ref: ref, chatId: chatId, userId: fromId, now: clock.now, fingerprint: active.fingerprint)
             switch result {
             case .accepted:
-                onQuestionAsk?()
+                onQuestionAsk?(active.id)
                 try? await api?.answerCallbackQuery(id: cb.id, text: nil, showAlert: false)
 
                 let updatedText = Self.capText(active.promptText + "\n\n(Отвечено в терминале)")
                 let msgId = active.messageId
-                activeQuestion = nil
+                removeActiveQuestion(id: active.id, sessionId: active.sessionId)
                 try? await api?.editMessage(chatId: chatId, messageId: msgId, text: updatedText, keyboard: nil)
 
             case .rejected:

@@ -3,13 +3,13 @@ import SwiftUI
 public struct ShapeshifterStateMapper {
     public static func mapAction(state: String) -> MascotActionState {
         switch state.lowercased() {
-        case "working":                 return .writing
-        case "searching":               return .reading
-        case "thinking":                return .thinking
-        case "permission", "question":  return .approval
-        case "error":                   return .error
-        case "sleeping":                return .sleeping
-        default:                        return .idle
+        case "working":                             return .writing
+        case "searching":                           return .reading
+        case "thinking":                            return .thinking
+        case "approval", "permission", "question":  return .approval
+        case "error", "ratelimit", "dizzy":         return .error
+        case "sleeping":                            return .sleeping
+        default:                                    return .idle
         }
     }
 }
@@ -22,7 +22,7 @@ public enum IslandMode: Sendable {
 }
 #endif
 
-#if !STANDALONE_CLI
+#if os(macOS) && !STANDALONE_CLI
 struct ShapeshifterHostView: View {
     @ObservedObject var state: AppState
     var particleOverhang: CGFloat = 0

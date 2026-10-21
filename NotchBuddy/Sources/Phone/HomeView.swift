@@ -85,61 +85,72 @@ struct AgentsTab: View {
     @Binding var path: [String]
     @Namespace private var zoom
 
+    @ViewBuilder
+    private var headerSection: some View {
+        Section {
+            NotchHeader(link: link)
+                // Shrinks and fades as the list scrolls, like Wallet.
+                .visualEffect { content, proxy in
+                    let y: CGFloat = proxy.frame(in: .scrollView).minY
+                    let pull: CGFloat = min(0.0, y - 8.0)
+                    let scale: CGFloat = max(0.86, 1.0 + pull / 500.0)
+                    let opacity: Double = Double(max(0.0, 1.0 + pull / 160.0))
+                    return content
+                        .scaleEffect(scale, anchor: .top)
+                        .opacity(opacity)
+                }
+            TodayCard(link: link)
+        }
+        .listRowBackground(Color.clear)
+        .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+        .listRowSeparator(.hidden)
+    }
+
+    @ViewBuilder
+    private var sessionsSection: some View {
+        Section {
+            if link.sessions.isEmpty {
+                EmptySessionsView(status: link.status)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+            }
+            ForEach(link.sessions.sortedByUrgency()) { session in
+                NavigationLink(value: session.id) {
+                    SessionRow(session: session, zoom: zoom)
+                }
+                .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                    if session.needsApproval && !session.approvalFingerprint.isEmpty {
+                        Button {
+                            Task { _ = await QuickDecision.allow(session, link: link) }
+                        } label: {
+                            Label("Allow", systemImage: "faceid")
+                        }
+                        .tint(.green)
+                    }
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    if session.needsApproval && !session.approvalFingerprint.isEmpty {
+                        Button(role: .destructive) {
+                            Task { _ = await QuickDecision.deny(session, link: link) }
+                        } label: {
+                            Label("Deny", systemImage: "xmark")
+                        }
+                    }
+                }
+                .contextMenu {
+                    SessionMenu(link: link, session: session)
+                } preview: {
+                    SessionPeek(session: session, turn: link.turns[session.id])
+                }
+            }
+        }
+    }
+
     var body: some View {
         NavigationStack(path: $path) {
             List {
-                Section {
-                    NotchHeader(link: link)
-                        // Shrinks and fades as the list scrolls, like Wallet.
-                        .visualEffect { content, proxy in
-                            let y = proxy.frame(in: .scrollView).minY
-                            let pull = min(0, y - 8)
-                            return content
-                                .scaleEffect(max(0.86, 1 + pull / 500), anchor: .top)
-                                .opacity(max(0, 1 + pull / 160))
-                        }
-                    TodayCard(link: link)
-                }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
-                .listRowSeparator(.hidden)
-
-                Section {
-                    if link.sessions.isEmpty {
-                        EmptySessionsView(status: link.status)
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets())
-                    }
-                    ForEach(link.sessions.sortedByUrgency()) { session in
-                        NavigationLink(value: session.id) {
-                            SessionRow(session: session, zoom: zoom)
-                        }
-                        .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                            if session.needsApproval && !session.approvalFingerprint.isEmpty {
-                                Button {
-                                    Task { _ = await QuickDecision.allow(session, link: link) }
-                                } label: {
-                                    Label("Allow", systemImage: "faceid")
-                                }
-                                .tint(.green)
-                            }
-                        }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            if session.needsApproval && !session.approvalFingerprint.isEmpty {
-                                Button(role: .destructive) {
-                                    Task { _ = await QuickDecision.deny(session, link: link) }
-                                } label: {
-                                    Label("Deny", systemImage: "xmark")
-                                }
-                            }
-                        }
-                        .contextMenu {
-                            SessionMenu(link: link, session: session)
-                        } preview: {
-                            SessionPeek(session: session, turn: link.turns[session.id])
-                        }
-                    }
-                }
+                headerSection
+                sessionsSection
             }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
@@ -333,6 +344,7 @@ struct NotchHeader: View {
 
     var body: some View {
         Group {
+            #if false
             if #available(iOS 26.0, *) {
                 GlassEffectContainer(spacing: 12) {
                     VStack(spacing: 12) {
@@ -358,6 +370,18 @@ struct NotchHeader: View {
                     }
                 }
             }
+            #else
+            VStack(spacing: 12) {
+                summary
+                    .background(Color(white: 0.09), in: RoundedRectangle(cornerRadius: 28))
+                    .overlay(RoundedRectangle(cornerRadius: 28).strokeBorder(Color.white.opacity(0.12), lineWidth: 1))
+                if let waiting {
+                    panel(waiting)
+                        .background(Color(white: 0.11), in: RoundedRectangle(cornerRadius: 26))
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            #endif
         }
         .overlay {
             if approved {

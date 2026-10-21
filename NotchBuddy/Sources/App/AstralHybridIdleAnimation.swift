@@ -155,6 +155,70 @@ public enum AstralHybridMotion {
         guard elapsed.isFinite else { return 0 }
         return sin(elapsed * 2.0) * 0.75
     }
+
+    public static func slapBounce(
+        at elapsed: TimeInterval,
+        duration: Double = 0.5,
+        amp: Double = 8.0
+    ) -> (bounceY: Double, scaleX: Double, scaleY: Double, blushAlpha: Double, isActive: Bool) {
+        guard elapsed.isFinite, elapsed >= 0, elapsed < duration else {
+            return (bounceY: 0, scaleX: 1.0, scaleY: 1.0, blushAlpha: 0, isActive: false)
+        }
+        let u = elapsed / duration
+        let arc = sin(u * .pi)
+        let bounceY = -arc * amp
+
+        let scaleX: Double
+        let scaleY: Double
+        if u < 0.2 {
+            let squash = 0.15 * (1.0 - u / 0.2)
+            scaleX = 1.0 + squash
+            scaleY = 1.0 - squash
+        } else if u < 0.8 {
+            let stretch = sin((u - 0.2) / 0.6 * .pi) * 0.10
+            scaleX = 1.0 - stretch
+            scaleY = 1.0 + stretch
+        } else {
+            let squash = sin((u - 0.8) / 0.2 * .pi) * 0.12
+            scaleX = 1.0 + squash
+            scaleY = 1.0 - squash
+        }
+
+        let blushAlpha = (1.0 - u) * 0.65
+        return (bounceY: bounceY, scaleX: scaleX, scaleY: scaleY, blushAlpha: blushAlpha, isActive: true)
+    }
+}
+
+// MARK: - Slap State Machine
+
+public struct AstralHybridSlapState: Sendable, Equatable {
+    public private(set) var slapStartTime: TimeInterval? = nil
+    public var duration: TimeInterval = 0.5
+
+    public init(duration: TimeInterval = 0.5) {
+        self.duration = duration
+    }
+
+    public mutating func trigger(at now: TimeInterval) {
+        slapStartTime = now
+    }
+
+    public mutating func reset() {
+        slapStartTime = nil
+    }
+
+    public func isActive(at now: TimeInterval) -> Bool {
+        guard let start = slapStartTime else { return false }
+        let diff = now - start
+        return diff >= 0 && diff < duration
+    }
+
+    public func elapsed(at now: TimeInterval) -> TimeInterval? {
+        guard let start = slapStartTime else { return nil }
+        let diff = now - start
+        guard diff >= 0 && diff < duration else { return nil }
+        return diff
+    }
 }
 
 // MARK: - Assets Management
@@ -224,6 +288,33 @@ public final class AstralHybridAssets: @unchecked Sendable {
 // MARK: - Renderer
 
 public enum AstralHybridRenderer {
+    public static func eyeCenters(
+        rect: CGRect,
+        form: AstralHybridForm = .ghost,
+        lookX: CGFloat = 0,
+        lookY: CGFloat = 0
+    ) -> (left: CGPoint, right: CGPoint) {
+        let side = rect.width
+        let geom = AstralHybridEyeGeometry.geometry(for: form)
+        let rx = side * geom.rx
+        let ry = side * geom.ry
+
+        let maxShiftX = rx * 0.45
+        let maxShiftY = ry * 0.35
+        let clampedLookX = max(-1.0, min(1.0, lookX))
+        let clampedLookY = max(-1.0, min(1.0, lookY))
+        let shiftX = clampedLookX * maxShiftX
+        // Look contract: lookY < 0 when cursor is below character -> eyes shift DOWN (+Y in canvas coords)
+        // lookY > 0 when cursor is above character -> eyes shift UP (-Y in canvas coords)
+        let shiftY = -clampedLookY * maxShiftY
+
+        let leftCx = rect.minX + side * geom.leftX + shiftX
+        let leftCy = rect.minY + side * geom.leftY + shiftY
+        let rightCx = rect.minX + side * geom.rightX + shiftX
+        let rightCy = rect.minY + side * geom.rightY + shiftY
+        return (left: CGPoint(x: leftCx, y: leftCy), right: CGPoint(x: rightCx, y: rightCy))
+    }
+
     public static func draw(
         in context: CGContext,
         size: CGSize,
@@ -233,6 +324,7 @@ public enum AstralHybridRenderer {
         lookX: CGFloat = 0,
         lookY: CGFloat = 0,
         isSleeping: Bool = false,
+        slapElapsed: TimeInterval? = nil,
         imageOverride: CGImage? = nil
     ) {
         guard size.width > 0, size.height > 0 else { return }
@@ -321,6 +413,19 @@ public enum AstralHybridRenderer {
             }
         }
 
+        // Apply interactive click response (poke / slap bounce and blush)
+        var slapBlushAlpha: Double = 0.0
+        if let slapElapsed = slapElapsed {
+            let slapAmp = max(4.0, Double(side * 0.14))
+            let slap = AstralHybridMotion.slapBounce(at: slapElapsed, duration: 0.5, amp: slapAmp)
+            if slap.isActive {
+                transY += slap.bounceY
+                scaleX *= slap.scaleX
+                scaleY *= slap.scaleY
+                slapBlushAlpha = slap.blushAlpha
+            }
+        }
+
         var effectiveLookX = lookX
         var effectiveLookY = lookY
 
@@ -332,7 +437,7 @@ public enum AstralHybridRenderer {
             effectiveLookY = CGFloat(cos(elapsed * 1.0) * 0.12)
         } else if normalizedState == "thinking" {
             effectiveLookX = 0.55 + max(-0.2, min(0.2, lookX * 0.2))
-            effectiveLookY = -0.65 + max(-0.2, min(0.2, lookY * 0.2))
+            effectiveLookY = 0.65 + max(-0.2, min(0.2, lookY * 0.2))
         } else {
             effectiveLookX = max(-1.0, min(1.0, lookX))
             effectiveLookY = max(-1.0, min(1.0, lookY))
@@ -388,7 +493,8 @@ public enum AstralHybridRenderer {
             stateName: normalizedState,
             lookX: effectiveLookX,
             lookY: effectiveLookY,
-            isSleeping: (normalizedState == "sleeping")
+            isSleeping: (normalizedState == "sleeping"),
+            blushAlpha: slapBlushAlpha
         )
 
         context.restoreGState()
@@ -401,6 +507,7 @@ public enum AstralHybridRenderer {
         lookX: CGFloat = 0,
         lookY: CGFloat = 0,
         isSleeping: Bool = false,
+        slapElapsed: TimeInterval? = nil,
         imageOverride: CGImage? = nil
     ) {
         draw(
@@ -412,6 +519,7 @@ public enum AstralHybridRenderer {
             lookX: lookX,
             lookY: lookY,
             isSleeping: isSleeping,
+            slapElapsed: slapElapsed,
             imageOverride: imageOverride
         )
     }
@@ -487,22 +595,19 @@ public enum AstralHybridRenderer {
         stateName: String,
         lookX: CGFloat,
         lookY: CGFloat,
-        isSleeping: Bool
+        isSleeping: Bool,
+        blushAlpha: Double = 0.0
     ) {
         let side = rect.width
         let geom = AstralHybridEyeGeometry.geometry(for: form)
         let rx = side * geom.rx
         let ry = side * geom.ry
 
-        let maxShiftX = rx * 0.45
-        let maxShiftY = ry * 0.35
-        let shiftX = lookX * maxShiftX
-        let shiftY = lookY * maxShiftY
-
-        let leftCx = rect.minX + side * geom.leftX + shiftX
-        let leftCy = rect.minY + side * geom.leftY + shiftY
-        let rightCx = rect.minX + side * geom.rightX + shiftX
-        let rightCy = rect.minY + side * geom.rightY + shiftY
+        let centers = eyeCenters(rect: rect, form: form, lookX: lookX, lookY: lookY)
+        let leftCx = centers.left.x
+        let leftCy = centers.left.y
+        let rightCx = centers.right.x
+        let rightCy = centers.right.y
 
         context.saveGState()
 
@@ -572,6 +677,54 @@ public enum AstralHybridRenderer {
             drawPill(in: context, cx: rightCx, cy: rightCy, rx: curRx, ry: curRy)
         }
 
+        // Slap / Poke interactive blush
+        if blushAlpha > 0.01 {
+            drawBlush(
+                in: context,
+                leftCenter: CGPoint(x: leftCx, y: leftCy),
+                rightCenter: CGPoint(x: rightCx, y: rightCy),
+                rx: rx,
+                ry: ry,
+                alpha: CGFloat(blushAlpha)
+            )
+        }
+
+        context.restoreGState()
+    }
+
+    private static func drawBlush(
+        in context: CGContext,
+        leftCenter: CGPoint,
+        rightCenter: CGPoint,
+        rx: CGFloat,
+        ry: CGFloat,
+        alpha: CGFloat
+    ) {
+        guard alpha > 0.01 else { return }
+        context.saveGState()
+        let blushColor = CGColor(red: 1.0, green: 0.39, blue: 0.51, alpha: alpha)
+        context.setFillColor(blushColor)
+        context.setShadow(offset: .zero, blur: max(2, rx * 0.5), color: blushColor)
+
+        let blushW = rx * 1.8
+        let blushH = ry * 0.65
+        let blushOffsetY = ry * 1.3
+
+        // Left cheek
+        context.addEllipse(in: CGRect(
+            x: leftCenter.x - blushW * 0.5,
+            y: leftCenter.y + blushOffsetY - blushH * 0.5,
+            width: blushW,
+            height: blushH
+        ))
+        // Right cheek
+        context.addEllipse(in: CGRect(
+            x: rightCenter.x - blushW * 0.5,
+            y: rightCenter.y + blushOffsetY - blushH * 0.5,
+            width: blushW,
+            height: blushH
+        ))
+        context.fillPath()
         context.restoreGState()
     }
 

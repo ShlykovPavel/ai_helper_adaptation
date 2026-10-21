@@ -8,6 +8,7 @@ extension View {
     /// A card in glass (iOS 26) or the dark material Coucou used before.
     @ViewBuilder
     func glassCard(cornerRadius: CGFloat = 22, tint: Color? = nil) -> some View {
+        #if false
         if #available(iOS 26.0, *) {
             if let tint {
                 glassEffect(.regular.tint(tint.opacity(0.25)), in: RoundedRectangle(cornerRadius: cornerRadius))
@@ -17,11 +18,15 @@ extension View {
         } else {
             background(Color(white: 0.11), in: RoundedRectangle(cornerRadius: cornerRadius))
         }
+        #else
+        background(Color(white: 0.11), in: RoundedRectangle(cornerRadius: cornerRadius))
+        #endif
     }
 
     /// A small glass shape for pills and fields (iOS 26), a dark fill before.
     @ViewBuilder
     func glassPill<S: Shape>(_ shape: S, interactive: Bool = false, tint: Color? = nil) -> some View {
+        #if false
         if #available(iOS 26.0, *) {
             let base: Glass = interactive ? .regular.interactive() : .regular
             if let tint {
@@ -32,6 +37,9 @@ extension View {
         } else {
             background(tint?.opacity(0.25) ?? Color(white: 0.16), in: shape)
         }
+        #else
+        background(tint?.opacity(0.25) ?? Color(white: 0.16), in: shape)
+        #endif
     }
 }
 

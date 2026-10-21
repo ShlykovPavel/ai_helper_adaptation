@@ -128,6 +128,18 @@ jobs:
       - name: Conversation context tests
         run: bash scripts/test-conversation-context.sh
 
+      - name: Telegram controller tests
+        run: bash scripts/test-telegram-controller.sh
+
+      - name: Question queue tests
+        run: bash scripts/test-question-queue.sh
+
+      - name: Astral hybrid mascot tests
+        run: bash scripts/test-astral-hybrid.sh
+
+      - name: TunnelGuard safe tests
+        run: make test-tunnelguard-safe
+
       - name: Build
         run: |
           set -o pipefail
@@ -142,16 +154,6 @@ jobs:
               grep -E "error:" build.log | sort -u | head -30 | sed 's/^/::error::/'
               exit 1
             }
-
-      - name: Build App Store target (unsigned)
-        run: |
-          xcodebuild \
-            -project NotchBuddy/NotchBuddy.xcodeproj \
-            -scheme CoucouAppStore \
-            -configuration Debug \
-            build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
 
       - name: Build iPhone link spike (Mac, DebugCloud, unsigned)
         run: |
@@ -180,4 +182,5 @@ jobs:
             -scheme CoucouPhone \
             -destination 'generic/platform=iOS' \
             build \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO

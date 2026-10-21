@@ -1104,7 +1104,13 @@ export class Island {
     ctx.setTransform(dpr, 0, 0, dpr, BOT_SIDE * dpr, 0);
     ctx.clearRect(-BOT_SIDE, 0, wCss, hCss);
     ctx.save();
-    if (!renderMascotFacade(ctx, w, hCss, State, this.lastFrame / 1000)) {
+    const geom = {
+      overhang: BOT_OVERHANG,
+      diameter: Math.round(w * 0.6),
+      lookX: this.lookX(),
+      lookY: this.lookY(),
+    };
+    if (!renderMascotFacade(ctx, w, hCss, State, this.lastFrame / 1000, geom)) {
       this.engine.applyDance(ctx, w, hCss);
       this.engine.draw(ctx, w, hCss);
     }

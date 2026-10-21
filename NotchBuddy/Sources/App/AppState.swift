@@ -566,15 +566,25 @@ final class AppState: ObservableObject {
     /// signed in, every appearance of the pill used to spawn `codex app-server` again.
     private static var lastCodexAttempt: Date = .distantPast
     private static var codexFetchInFlight = false
+    nonisolated(unsafe) static var codexFetchOverride: (() async -> CodexPlanUsage?)? = nil
 
-    func refreshCodexPlanUsage() {
-        if let u = codexPlanUsage, Date().timeIntervalSince(u.updatedAt) < 60 { return }
-        guard !Self.codexFetchInFlight, Date().timeIntervalSince(Self.lastCodexAttempt) > 60 else { return }
+    func refreshCodexPlanUsage(force: Bool = false) {
+        if !force, let u = codexPlanUsage, Date().timeIntervalSince(u.updatedAt) < 55 { return }
+        guard !Self.codexFetchInFlight else { return }
+        if !force {
+            guard Date().timeIntervalSince(Self.lastCodexAttempt) > 55 else { return }
+        }
         Self.codexFetchInFlight = true
         Self.lastCodexAttempt = Date()
         codexPlanError = nil
         Task {
-            if let u = await CodexPlanGauge.fetch() {
+            let u: CodexPlanUsage?
+            if let override = Self.codexFetchOverride {
+                u = await override()
+            } else {
+                u = await CodexPlanGauge.fetch()
+            }
+            if let u {
                 codexPlanUsage = u
             } else {
                 codexPlanError = "Limits unavailable · check Codex sign-in"
@@ -601,18 +611,60 @@ final class AppState: ObservableObject {
 
     private static var lastAgyAttempt: Date = .distantPast
     private static var agyFetchInFlight = false
+    nonisolated(unsafe) static var agyFetchOverride: (() async -> AntigravityPlanUsage?)? = nil
 
-    func refreshAntigravityPlanUsage() {
-        if let u = antigravityPlanUsage, Date().timeIntervalSince(u.updatedAt) < 60 { return }
+    @discardableResult
+    func fetchAntigravityPlanUsage(force: Bool = false) async -> AntigravityPlanUsage? {
+        if !force, let u = antigravityPlanUsage, Date().timeIntervalSince(u.updatedAt) < 55 { return u }
+        guard !Self.agyFetchInFlight else { return antigravityPlanUsage }
+        let minGap: TimeInterval = antigravityPlanUsage == nil ? 5 : 55
+        if !force {
+            guard Date().timeIntervalSince(Self.lastAgyAttempt) > minGap else { return antigravityPlanUsage }
+        }
+        Self.agyFetchInFlight = true
+        Self.lastAgyAttempt = Date()
+        defer { Self.agyFetchInFlight = false }
+
+        let u: AntigravityPlanUsage?
+        if let override = Self.agyFetchOverride {
+            u = await override()
+        } else {
+            u = await AntigravityPlanGauge.fetch()
+        }
+        if let u {
+            antigravityPlanUsage = u
+        }
+        return u
+    }
+
+    func refreshAntigravityPlanUsage(force: Bool = false) {
+        if !force, let u = antigravityPlanUsage, Date().timeIntervalSince(u.updatedAt) < 55 { return }
         guard !Self.agyFetchInFlight else { return }
-        let minGap: TimeInterval = antigravityPlanUsage == nil ? 5 : 60
-        guard Date().timeIntervalSince(Self.lastAgyAttempt) > minGap else { return }
+        let minGap: TimeInterval = antigravityPlanUsage == nil ? 5 : 55
+        if !force {
+            guard Date().timeIntervalSince(Self.lastAgyAttempt) > minGap else { return }
+        }
         Self.agyFetchInFlight = true
         Self.lastAgyAttempt = Date()
         Task {
-            if let u = await AntigravityPlanGauge.fetch() { antigravityPlanUsage = u }
+            let u: AntigravityPlanUsage?
+            if let override = Self.agyFetchOverride {
+                u = await override()
+            } else {
+                u = await AntigravityPlanGauge.fetch()
+            }
+            if let u { antigravityPlanUsage = u }
             Self.agyFetchInFlight = false
         }
+    }
+
+    static func resetPlanRateLimitsForTesting() {
+        lastAgyAttempt = .distantPast
+        agyFetchInFlight = false
+        lastCodexAttempt = .distantPast
+        codexFetchInFlight = false
+        agyFetchOverride = nil
+        codexFetchOverride = nil
     }
 
     func refreshPlanRelayState() {

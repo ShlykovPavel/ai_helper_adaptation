@@ -38,23 +38,29 @@ actor MockTelegramTransport: TelegramHTTPTransport {
 final class TestHookServerRecorder: @unchecked Sendable {
     var decisions: [(decision: String, id: UUID?)] = []
     var answers: [[String: Any]] = []
+    var answersWithId: [(answers: [String: Any], id: UUID?)] = []
+    var askedIds: [UUID?] = []
     var askedCount: Int = 0
 
     func recordDecision(_ decision: String, id: UUID?) {
         decisions.append((decision, id))
     }
 
-    func recordAnswers(_ a: [String: Any]) {
+    func recordAnswers(_ a: [String: Any], id: UUID? = nil) {
         answers.append(a)
+        answersWithId.append((a, id))
     }
 
-    func recordAsk() {
+    func recordAsk(id: UUID? = nil) {
+        askedIds.append(id)
         askedCount += 1
     }
 
     func clear() {
         decisions.removeAll()
         answers.removeAll()
+        answersWithId.removeAll()
+        askedIds.removeAll()
         askedCount = 0
     }
 }
@@ -80,6 +86,8 @@ struct TelegramControllerTestRunner {
         await testMultiQuestionHandlingWithoutPartialDispatch()
         await testSettingsChangedResetsAPIWithNewToken()
         await testEditMessageLengthCapping()
+        await testMultipleQuestionsConcurrentResponseTargeting()
+        await testQuestionTimeoutLateAnswerAndReverseOrderResolution()
         print("All TelegramControllerTests PASSED!")
     }
 
@@ -951,5 +959,204 @@ struct TelegramControllerTestRunner {
             assert(text.unicodeScalars.count <= 3500, "editMessage text must be capped to <= 3500 Unicode scalars")
         }
         print("  ✓ editMessage length capping: PASS")
+    }
+
+    // 16. Multiple questions concurrently queued, targeted by UUID
+    static func testMultipleQuestionsConcurrentResponseTargeting() async {
+        let transport = MockTelegramTransport()
+        let api = TelegramBotAPI(transport: transport)
+        let recorder = TestHookServerRecorder()
+        let controller = TelegramBotController(
+            api: api,
+            settings: makeSettings(),
+            onApprovalDecision: { recorder.recordDecision($0, id: $1) },
+            onQuestionAnswers: { recorder.recordAnswers($0, id: $1) },
+            onQuestionAsk: { recorder.recordAsk(id: $0) }
+        )
+
+        let idA = UUID()
+        let itemA = QuestionItemSnapshot(
+            question: "Choose database?",
+            options: [QuestionOptionSnapshot(label: "PostgreSQL"), QuestionOptionSnapshot(label: "SQLite")],
+            multiSelect: false
+        )
+        let eventA = TelegramEvent(
+            sessionId: "sess-A",
+            agentId: "agent_alpha",
+            agentName: "Agent Alpha",
+            kind: .question,
+            question: QuestionSnapshot(id: idA, items: [itemA])
+        )
+
+        let idB = UUID()
+        let itemB = QuestionItemSnapshot(
+            question: "Choose cache?",
+            options: [QuestionOptionSnapshot(label: "Redis"), QuestionOptionSnapshot(label: "Memcached")],
+            multiSelect: false
+        )
+        let eventB = TelegramEvent(
+            sessionId: "sess-B",
+            agentId: "agent_beta",
+            agentName: "Agent Beta",
+            kind: .question,
+            question: QuestionSnapshot(id: idB, items: [itemB])
+        )
+
+        // Question A arrives first, then Question B
+        controller.handle(event: eventA)
+        controller.handle(event: eventB)
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        assert(controller.activeQuestions.count == 2, "Both questions should be active in controller")
+        guard let ctxA = controller.activeQuestions[idA],
+              let ctxB = controller.activeQuestions[idB] else {
+            fatalError("Both contexts must exist for idA and idB")
+        }
+
+        // User answers Question B first ("Redis")
+        let redisRef = ctxB.optionRefs.first { $0.value.optionLabel == "Redis" }!.key
+        let answerBUpdate = TelegramUpdate(
+            updateId: 9201,
+            callbackQuery: TelegramCallbackQuery(
+                id: "cb-b",
+                from: TelegramUser(id: pairedUserId, firstName: "Owner"),
+                message: TelegramMessage(messageId: ctxB.messageId, chat: TelegramMessageChat(id: pairedChatId, type: "private")),
+                data: "c:\(redisRef):select"
+            )
+        )
+        await controller.handle(update: answerBUpdate)
+
+        assert(recorder.answersWithId.count == 1, "Expected 1 answer submitted")
+        assert(recorder.answersWithId[0].id == idB, "Answer must be targeted specifically to idB")
+        assert((recorder.answersWithId[0].answers["Choose cache?"] as? String) == "Redis")
+
+        // Question A must still be active and untouched!
+        assert(controller.activeQuestions[idA] != nil, "Question A must still be active")
+        assert(controller.activeQuestions[idB] == nil, "Question B must be removed after answer")
+
+        // User now clicks "Ответить в терминале" on Question A
+        guard let terminalRefA = ctxA.terminalRef else {
+            fatalError("Terminal ref must exist for Question A")
+        }
+        let termUpdateA = TelegramUpdate(
+            updateId: 9202,
+            callbackQuery: TelegramCallbackQuery(
+                id: "cb-a-term",
+                from: TelegramUser(id: pairedUserId, firstName: "Owner"),
+                message: TelegramMessage(messageId: ctxA.messageId, chat: TelegramMessageChat(id: pairedChatId, type: "private")),
+                data: "c:\(terminalRefA):terminal"
+            )
+        )
+        await controller.handle(update: termUpdateA)
+
+        assert(recorder.askedCount == 1)
+        assert(recorder.askedIds == [idA], "onQuestionAsk must receive idA")
+        assert(controller.activeQuestions.isEmpty, "All questions should now be resolved")
+        print("  ✓ Concurrent questions response targeting: PASS")
+    }
+
+    // 17. Question timeout, late answer rejection, and reverse order resolution
+    static func testQuestionTimeoutLateAnswerAndReverseOrderResolution() async {
+        let transport = MockTelegramTransport()
+        let api = TelegramBotAPI(transport: transport)
+        let recorder = TestHookServerRecorder()
+        let controller = TelegramBotController(
+            api: api,
+            settings: makeSettings(),
+            onApprovalDecision: { recorder.recordDecision($0, id: $1) },
+            onQuestionAnswers: { recorder.recordAnswers($0, id: $1) },
+            onQuestionAsk: { recorder.recordAsk(id: $0) }
+        )
+
+        let idA = UUID()
+        let itemA = QuestionItemSnapshot(
+            question: "Question A?",
+            options: [QuestionOptionSnapshot(label: "OptA1"), QuestionOptionSnapshot(label: "OptA2")],
+            multiSelect: false
+        )
+        let eventA = TelegramEvent(
+            sessionId: "sess-A",
+            agentId: "agent_alpha",
+            agentName: "Agent Alpha",
+            kind: .question,
+            question: QuestionSnapshot(id: idA, items: [itemA])
+        )
+
+        let idB = UUID()
+        let itemB = QuestionItemSnapshot(
+            question: "Question B?",
+            options: [QuestionOptionSnapshot(label: "OptB1"), QuestionOptionSnapshot(label: "OptB2")],
+            multiSelect: false
+        )
+        let eventB = TelegramEvent(
+            sessionId: "sess-B",
+            agentId: "agent_beta",
+            agentName: "Agent Beta",
+            kind: .question,
+            question: QuestionSnapshot(id: idB, items: [itemB])
+        )
+
+        controller.handle(event: eventA)
+        controller.handle(event: eventB)
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        guard let ctxA = controller.activeQuestions[idA],
+              let ctxB = controller.activeQuestions[idB] else {
+            fatalError("Both questions must be active")
+        }
+        let optARef = ctxA.optionRefs.first!.key
+
+        // Question A times out locally: HookServer emits questionResolved for idA
+        let resolveEventA = TelegramEvent(
+            sessionId: "sess-A",
+            agentId: "agent_alpha",
+            agentName: "Agent Alpha",
+            kind: .questionResolved,
+            question: QuestionSnapshot(id: idA, items: [])
+        )
+        controller.handle(event: resolveEventA)
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        // Question A must be removed, Question B must still be active
+        assert(controller.activeQuestions[idA] == nil, "Question A must be removed on resolve")
+        assert(controller.activeQuestions[idB] != nil, "Question B must still be active")
+
+        // A's message must be edited with (Обработано)
+        let editReqs = (await transport.requests).filter { $0.method == "editMessageText" }
+        let aEdit = editReqs.first { ($0.body["message_id"] as? Int64) == ctxA.messageId }
+        assert(aEdit != nil, "Message A should have been edited")
+        let aText = (aEdit?.body["text"] as? String) ?? ""
+        assert(aText.contains("(Обработано)"))
+
+        // Late answer to Question A must be rejected
+        let lateUpdateA = TelegramUpdate(
+            updateId: 9301,
+            callbackQuery: TelegramCallbackQuery(
+                id: "cb-a-late",
+                from: TelegramUser(id: pairedUserId, firstName: "Owner"),
+                message: TelegramMessage(messageId: ctxA.messageId, chat: TelegramMessageChat(id: pairedChatId, type: "private")),
+                data: "c:\(optARef):select"
+            )
+        )
+        await controller.handle(update: lateUpdateA)
+        assert(recorder.answers.isEmpty, "Late callback for resolved question A must be rejected")
+
+        // User can still answer Question B
+        let optBRef = ctxB.optionRefs.first { $0.value.optionLabel == "OptB1" }!.key
+        let updateB = TelegramUpdate(
+            updateId: 9302,
+            callbackQuery: TelegramCallbackQuery(
+                id: "cb-b",
+                from: TelegramUser(id: pairedUserId, firstName: "Owner"),
+                message: TelegramMessage(messageId: ctxB.messageId, chat: TelegramMessageChat(id: pairedChatId, type: "private")),
+                data: "c:\(optBRef):select"
+            )
+        )
+        await controller.handle(update: updateB)
+        assert(recorder.answersWithId.count == 1)
+        assert(recorder.answersWithId[0].id == idB, "Answers must be sent for Question B")
+        assert((recorder.answersWithId[0].answers["Question B?"] as? String) == "OptB1")
+        assert(controller.activeQuestions.isEmpty)
+        print("  ✓ Question timeout, late answer rejection, reverse order resolution: PASS")
     }
 }

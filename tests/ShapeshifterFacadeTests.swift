@@ -13,9 +13,15 @@ enum ShapeshifterFacadeTests {
         check("working maps to .writing", ShapeshifterStateMapper.mapAction(state: "working") == .writing)
         check("searching maps to .reading", ShapeshifterStateMapper.mapAction(state: "searching") == .reading)
         check("thinking maps to .thinking", ShapeshifterStateMapper.mapAction(state: "thinking") == .thinking)
+        check("approval maps to .approval", ShapeshifterStateMapper.mapAction(state: "approval") == .approval)
         check("permission maps to .approval", ShapeshifterStateMapper.mapAction(state: "permission") == .approval)
+        check("question maps to .approval", ShapeshifterStateMapper.mapAction(state: "question") == .approval)
         check("error maps to .error", ShapeshifterStateMapper.mapAction(state: "error") == .error)
+        check("ratelimit maps to .error", ShapeshifterStateMapper.mapAction(state: "ratelimit") == .error)
+        check("dizzy maps to .error", ShapeshifterStateMapper.mapAction(state: "dizzy") == .error)
+        check("sleeping maps to .sleeping", ShapeshifterStateMapper.mapAction(state: "sleeping") == .sleeping)
         check("idle maps to .idle", ShapeshifterStateMapper.mapAction(state: "idle") == .idle)
+        check("finished maps to .idle", ShapeshifterStateMapper.mapAction(state: "finished") == .idle)
 
         print("ShapeshifterHostView — Review Focus 5: Runtime switching stability")
         let active = MascotSettings.selectedMascot

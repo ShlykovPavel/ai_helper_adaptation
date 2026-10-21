@@ -8,6 +8,7 @@ struct AstralHybridIdleView: View {
     var lookX: CGFloat
     var lookY: CGFloat
     var isSleeping: Bool
+    var slapElapsed: TimeInterval?
 
     @State private var clock = AstralIdleClock()
 
@@ -18,7 +19,8 @@ struct AstralHybridIdleView: View {
         isPaused: Bool = false,
         lookX: CGFloat = 0,
         lookY: CGFloat = 0,
-        isSleeping: Bool = false
+        isSleeping: Bool = false,
+        slapElapsed: TimeInterval? = nil
     ) {
         self.size = size
         self.stateName = stateName
@@ -27,6 +29,7 @@ struct AstralHybridIdleView: View {
         self.lookX = lookX
         self.lookY = lookY
         self.isSleeping = isSleeping
+        self.slapElapsed = slapElapsed
     }
 
     var body: some View {
@@ -43,7 +46,8 @@ struct AstralHybridIdleView: View {
                         stateName: stateName,
                         lookX: lookX,
                         lookY: lookY,
-                        isSleeping: isSleeping
+                        isSleeping: isSleeping,
+                        slapElapsed: slapElapsed
                     )
                 }
             }
@@ -68,6 +72,8 @@ struct AstralHybridIdleHostView: View {
     var lookY: CGFloat
     var paused: Bool
     var isMini: Bool
+
+    @State private var slapState = AstralHybridSlapState()
 
     init(
         state: AppState,
@@ -95,6 +101,9 @@ struct AstralHybridIdleHostView: View {
             let isSleeping = state.effectiveState == .sleeping
             let yOffset = ShapeshifterGeometry.verticalOffset(particleOverhang: particleOverhang)
 
+            let now = ProcessInfo.processInfo.systemUptime
+            let currentSlap = slapState.elapsed(at: now)
+
             ZStack(alignment: .center) {
                 AstralHybridIdleView(
                     size: targetSize,
@@ -102,11 +111,26 @@ struct AstralHybridIdleHostView: View {
                     isPaused: paused || state.mode == .hidden,
                     lookX: lookX,
                     lookY: lookY,
-                    isSleeping: isSleeping
+                    isSleeping: isSleeping,
+                    slapElapsed: currentSlap
                 )
             }
             .frame(width: geo.size.width, height: geo.size.height)
             .offset(y: yOffset)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .triggerSlap)) { _ in
+            guard !isMini, !paused, state.mode == .expanded else { return }
+            slapState.trigger(at: ProcessInfo.processInfo.systemUptime)
+        }
+        .onChange(of: state.mode) { _, newMode in
+            if newMode != .expanded {
+                slapState.reset()
+            }
+        }
+        .onChange(of: paused) { _, isPaused in
+            if isPaused {
+                slapState.reset()
+            }
         }
     }
 }

@@ -208,7 +208,9 @@ enum TunnelGuardWatchdogTests {
     @MainActor
     static func testVpnDropBehaviorAndEdgeTriggering() {
         AppState.shared.resetTestCounters()
-        let watchdog = TunnelGuardWatchdog()
+        let context = TunnelGuardTestContext(prefix: "tg-watchdog-edge")
+        defer { context.tearDown() }
+        let watchdog = context.makeWatchdog()
         // Unit test safety: prevent firing live pkill against host development environment
         watchdog.targets = []
         watchdog.alarmSoundEnabled = false

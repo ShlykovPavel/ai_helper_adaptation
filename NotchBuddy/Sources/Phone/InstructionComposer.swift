@@ -246,9 +246,9 @@ final class Dictation: @unchecked Sendable {
         self.request = request
         isRecording = true
         task = recognizer.recognitionTask(with: request) { [weak self] result, error in
-            let words = result?.bestTranscription.formattedString
+            let words: String? = result.map { String(decoding: $0.bestTranscription.formattedString.utf8, as: UTF8.self) }
             let done = error != nil || (result?.isFinal ?? false)
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 guard let self else { return }
                 if let words { self.transcript = words }
                 if done { self.stop() }

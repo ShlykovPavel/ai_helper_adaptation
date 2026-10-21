@@ -182,6 +182,57 @@ final class TunnelGuardAppHunter: Sendable {
         sendCliSignal(signal: "-CONT", targets: targets, pkillExecutableURL: pkillExecutableURL)
     }
 
+    /// Поиск PID процессов для указанных CLI-целей через pgrep
+    nonisolated static func findTargetPIDs(
+        targets: [TunnelGuardTargetApp],
+        pgrepExecutableURL: URL = URL(fileURLWithPath: "/usr/bin/pgrep")
+    ) -> Set<pid_t> {
+        var pids = Set<pid_t>()
+        let currentPid = ProcessInfo.processInfo.processIdentifier
+        let cliTargets = targets.filter { $0.type == .cli }
+        for target in cliTargets {
+            let binName = target.binaryOrBundleId
+            guard isSafeExecutableName(binName), !isProtectedProcess(binName) else { continue }
+            let task = Process()
+            task.executableURL = pgrepExecutableURL
+            task.arguments = ["-x", binName]
+            let pipe = Pipe()
+            task.standardOutput = pipe
+            task.standardError = FileHandle.nullDevice
+            do {
+                try task.run()
+                let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                task.waitUntilExit()
+                if task.terminationStatus == 0, let str = String(data: data, encoding: .utf8) {
+                    for line in str.split(whereSeparator: \.isNewline) {
+                        let trimmed = line.trimmingCharacters(in: .whitespaces)
+                        if let pid = pid_t(trimmed), pid != currentPid && pid > 1 {
+                            pids.insert(pid)
+                        }
+                    }
+                }
+            } catch {}
+        }
+        return pids
+    }
+
+    /// Возобновление процессов по списку PID (SIGCONT)
+    @discardableResult
+    nonisolated static func resumeProcesses(
+        pids: Set<pid_t>,
+        signalSender: (pid_t, Int32) -> Int32 = { kill($0, $1) }
+    ) -> Set<pid_t> {
+        var resumed = Set<pid_t>()
+        for pid in pids {
+            #if canImport(Darwin)
+            if signalSender(pid, SIGCONT) == 0 {
+                resumed.insert(pid)
+            }
+            #endif
+        }
+        return resumed
+    }
+
     private nonisolated static func sendCliSignal(
         signal: String,
         targets: [TunnelGuardTargetApp],

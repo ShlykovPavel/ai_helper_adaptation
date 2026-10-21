@@ -20,8 +20,8 @@ struct ApprovalInfo {
     static let shared = HookServer()
     static let events = PassthroughSubject<TelegramEvent, Never>()
     func sendApprovalDecision(_ decision: String, for id: UUID?) {}
-    func sendQuestionAnswers(_ answers: [String: Any]) {}
-    func sendQuestionAsk() {}
+    func sendQuestionAnswers(_ answers: [String: Any], for id: UUID? = nil) {}
+    func sendQuestionAsk(for id: UUID? = nil) {}
 }
 
 @MainActor final class TelegramSettingsStore {

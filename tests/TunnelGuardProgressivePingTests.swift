@@ -58,6 +58,7 @@ enum TunnelGuardProgressivePingTests {
         try await testProgressiveBackoffTimeouts(tempDir: tempDir, route: route)
         try await testNonProgressiveBackoffMaintainsBaseTimeout(tempDir: tempDir, route: route)
         try await testGracePeriodSuppressesDeadTunnel(route: route, failPing: failPing)
+        try await testPingBindsToSelectedVpnInterface(tempDir: tempDir)
 
         print("✅ TunnelGuard Progressive Ping & Backoff tests: all passed")
     }
@@ -229,6 +230,63 @@ enum TunnelGuardProgressivePingTests {
         precondition(!snap.deadTunnelDetected, "Grace period suppresses dead tunnel")
 
         print("  ✓ grace period suppresses dead tunnel")
+    }
+
+    /// R15: Проверяет, что ping привязывается к интерфейсу выбранного VPN-маршрута (-b <iface>),
+    /// а не пингует через физический адаптер (en0).
+    static func testPingBindsToSelectedVpnInterface(tempDir: URL) async throws {
+        let logFile = tempDir.appendingPathComponent("ping-args-iface.log")
+        let pingSpy = try makeScript(in: tempDir, name: "ping-spy-iface", body: """
+        echo "$@" >> "\(logFile.path)"
+        exit 0
+        """)
+
+        // Маршрут: 1.1.1.1 идет через en0, но 8.8.8.8 идет через utun5
+        let splitRoute = try makeScript(in: tempDir, name: "route-split-vpn", body: """
+        for arg in "$@"; do
+            if [ "$arg" = "1.1.1.1" ]; then
+                echo "interface: en0"
+                exit 0
+            elif [ "$arg" = "8.8.8.8" ]; then
+                echo "interface: utun5"
+                exit 0
+            fi
+        done
+        echo "interface: en0"
+        """)
+
+        let worker = TunnelGuardNetworkWorker(
+            pingExecutableURL: pingSpy,
+            routeExecutableURL: splitRoute,
+            pingInterval: 0,
+            routeTimeout: 2
+        )
+
+        let snap = await worker.checkStatus(enablePing: true, maxPingFails: 2)
+        precondition(snap.isVpn, "Snapshot must detect VPN on utun5")
+        precondition(snap.iface == "utun5", "Selected route interface must be utun5")
+        precondition(snap.pingOk, "Ping should be OK via spy")
+
+        let logContent = try String(contentsOf: logFile, encoding: .utf8)
+        let lines = logContent.split(separator: "\n").map(String.init)
+        precondition(!lines.isEmpty, "Ping must have executed at least once")
+        precondition(lines[0].contains("-b utun5"), "Ping must bind to selected VPN interface (-b utun5), got: \(lines[0])")
+
+        // Прямой вызов executePing с интерфейсом
+        let resWithIface = await worker.executePing(timeoutSeconds: 1.0, interface: "utun9")
+        precondition(resWithIface.ok)
+        let updatedLog = try String(contentsOf: logFile, encoding: .utf8)
+        let updatedLines = updatedLog.split(separator: "\n").map(String.init)
+        precondition(updatedLines.last?.contains("-b utun9") == true, "executePing with interface must pass -b utun9")
+
+        // Прямой вызов executePing без интерфейса (nil)
+        let resNoIface = await worker.executePing(timeoutSeconds: 1.0, interface: nil)
+        precondition(resNoIface.ok)
+        let finalLog = try String(contentsOf: logFile, encoding: .utf8)
+        let finalLines = finalLog.split(separator: "\n").map(String.init)
+        precondition(finalLines.last?.contains("-b") == false, "executePing without interface must not pass -b")
+
+        print("  ✓ R15: ping binds to selected VPN interface with -b <iface>")
     }
 
     private static func makeScript(in directory: URL, name: String, body: String) throws -> URL {

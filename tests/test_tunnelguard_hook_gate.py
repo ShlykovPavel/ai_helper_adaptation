@@ -333,15 +333,71 @@ class TestTunnelGuardAppActiveCheck(unittest.TestCase):
         self.assertTrue(res)
 
     def test_empty_agent_and_empty_targets(self):
-        """Если protected_targets пуст или агент не указан, при активном приложении возвращается True."""
+        """Если protected_targets пуст, шлагбаум НЕАКТИВЕН (False)."""
         self._write_state({
             "running": True,
             "enabled": True,
             "pid": os.getpid(),
             "protected_targets": []
         })
-        self.assertTrue(self.hook_mod.is_tunnelguard_active("", str(self.state_file), str(self.socket_path)))
-        self.assertTrue(self.hook_mod.is_tunnelguard_active("claude", str(self.state_file), str(self.socket_path)))
+        # При пустых protected_targets gate неактивен как для пустого агента, так и для любого агента
+        self.assertFalse(self.hook_mod.is_tunnelguard_active("", str(self.state_file), str(self.socket_path)))
+        self.assertFalse(self.hook_mod.is_tunnelguard_active("claude", str(self.state_file), str(self.socket_path)))
+
+    def test_r02_only_codex_with_unnamed_claude_hook(self):
+        """Если выбран только Codex, стандартный Claude hook без имени (--agent не передан) должен быть НЕАКТИВЕН."""
+        self._write_state({
+            "running": True,
+            "enabled": True,
+            "pid": os.getpid(),
+            "protected_targets": ["codex"]
+        })
+        # Пустое имя нормализуется в 'claude', которое отсутствует в protected_targets -> False
+        self.assertFalse(self.hook_mod.is_tunnelguard_active("", str(self.state_file), str(self.socket_path)))
+        self.assertFalse(self.hook_mod.is_tunnelguard_active("claude", str(self.state_file), str(self.socket_path)))
+        # А для codex — True
+        self.assertTrue(self.hook_mod.is_tunnelguard_active("codex", str(self.state_file), str(self.socket_path)))
+
+    def test_r02_agent_aliases_matching(self):
+        """Проверяет сопоставление алиасов для AGY (antigravity/agy-cli) и Cursor (cursor/cursor-agent)."""
+        self._write_state({
+            "running": True,
+            "enabled": True,
+            "pid": os.getpid(),
+            "protected_targets": ["agy"]
+        })
+        self.assertTrue(self.hook_mod.is_tunnelguard_active("antigravity", str(self.state_file), str(self.socket_path)))
+        self.assertTrue(self.hook_mod.is_tunnelguard_active("agy-cli", str(self.state_file), str(self.socket_path)))
+        self.assertTrue(self.hook_mod.is_tunnelguard_active("agy", str(self.state_file), str(self.socket_path)))
+
+        self._write_state({
+            "running": True,
+            "enabled": True,
+            "pid": os.getpid(),
+            "protected_targets": ["cursor-agent"]
+        })
+        self.assertTrue(self.hook_mod.is_tunnelguard_active("cursor", str(self.state_file), str(self.socket_path)))
+        self.assertTrue(self.hook_mod.is_tunnelguard_active("cursor-agent", str(self.state_file), str(self.socket_path)))
+        self.assertTrue(self.hook_mod.is_tunnelguard_active("cursor-agent-cli", str(self.state_file), str(self.socket_path)))
+
+    def test_r02_exact_matching_no_substring(self):
+        """Проверяет точное сопоставление имен: поиск подстроки 'norm in t' запрещен."""
+        self._write_state({
+            "running": True,
+            "enabled": True,
+            "pid": os.getpid(),
+            "protected_targets": ["claude"]
+        })
+        self.assertFalse(self.hook_mod.is_tunnelguard_active("claudette", str(self.state_file), str(self.socket_path)))
+        self.assertFalse(self.hook_mod.is_tunnelguard_active("not-claude", str(self.state_file), str(self.socket_path)))
+
+        self._write_state({
+            "running": True,
+            "enabled": True,
+            "pid": os.getpid(),
+            "protected_targets": ["gemini"]
+        })
+        self.assertFalse(self.hook_mod.is_tunnelguard_active("gemini-advanced", str(self.state_file), str(self.socket_path)))
 
     def test_environment_variable_overrides(self):
         """Проверяет переопределение путей через TUNNELGUARD_STATE_FILE и NOTCHBUDDY_SOCKET_PATH."""
@@ -822,6 +878,69 @@ class TestSplitTunnelAndExtendedInterfaces(unittest.TestCase):
         with patch.object(self.hook_mod, "_get_route_interface", side_effect=lambda dest: routes.get(dest, "en0")):
             self.assertFalse(self.hook_mod.verify_vpn_route("antigravity"))
             self.assertFalse(self.hook_mod.verify_vpn_route("agy"))
+
+    def test_r01_split_tunnel_check_leak_to_en0_with_vpn_1111_rejected(self):
+        """
+        R01 (P1): При split_tunnel_check=True, если маршрут к целевому домену идет на en0,
+        наличие общего VPN-маршрута (1.1.1.1 -> utun3) НЕ должно разрешать доступ.
+        verify_vpn_route ОБЯЗАН вернуть False (Deny)!
+        """
+        routes = {
+            "generativelanguage.googleapis.com": "en0",
+            "1.1.1.1": "utun3",
+            "default": "utun3"
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_file = Path(tmpdir) / "state.json"
+            state_file.write_text(json.dumps({
+                "split_tunnel_check": True,
+                "target_domains": {
+                    "agy": "generativelanguage.googleapis.com"
+                }
+            }), encoding="utf-8")
+            with patch.object(self.hook_mod, "_get_route_interface", side_effect=lambda dest: routes.get(dest, "en0")):
+                self.assertFalse(self.hook_mod.verify_vpn_route("antigravity", state_file=str(state_file)))
+                self.assertFalse(self.hook_mod.verify_vpn_route("agy", state_file=str(state_file)))
+
+    def test_r01_split_tunnel_check_false_fallback_to_1111_allowed(self):
+        """
+        R01: При split_tunnel_check=False (пользователь выключил контроль раздельного туннелирования),
+        если 1.1.1.1 -> utun3, то общий VPN-маршрут разрешает доступ (True).
+        """
+        routes = {
+            "generativelanguage.googleapis.com": "en0",
+            "1.1.1.1": "utun3",
+            "default": "utun3"
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_file = Path(tmpdir) / "state.json"
+            state_file.write_text(json.dumps({
+                "split_tunnel_check": False,
+                "target_domains": {
+                    "agy": "generativelanguage.googleapis.com"
+                }
+            }), encoding="utf-8")
+            with patch.object(self.hook_mod, "_get_route_interface", side_effect=lambda dest: routes.get(dest, "en0")):
+                self.assertTrue(self.hook_mod.verify_vpn_route("antigravity", state_file=str(state_file)))
+                self.assertTrue(self.hook_mod.verify_vpn_route("agy", state_file=str(state_file)))
+
+    def test_r01_split_tunnel_check_true_domain_on_vpn_allowed(self):
+        """
+        R01: При split_tunnel_check=True, если домен идет через utun3, даже если 1.1.1.1 -> en0,
+        verify_vpn_route возвращает True.
+        """
+        routes = {
+            "generativelanguage.googleapis.com": "utun3",
+            "1.1.1.1": "en0",
+            "default": "en0"
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_file = Path(tmpdir) / "state.json"
+            state_file.write_text(json.dumps({
+                "split_tunnel_check": True
+            }), encoding="utf-8")
+            with patch.object(self.hook_mod, "_get_route_interface", side_effect=lambda dest: routes.get(dest, "en0")):
+                self.assertTrue(self.hook_mod.verify_vpn_route("antigravity", state_file=str(state_file)))
 
     def test_fallback_to_1111_and_default_when_no_agent_domain(self):
         """

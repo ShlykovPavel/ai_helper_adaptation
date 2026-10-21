@@ -130,7 +130,9 @@ enum TunnelGuardSplitLeakSafetyTests {
     @MainActor
     static func testDeadTunnelPromptPersistentOnRepeatedTicksWithSplitCheck() {
         AppState.shared.resetTestCounters()
-        let watchdog = TunnelGuardWatchdog()
+        let context = TunnelGuardTestContext(prefix: "tg-splitleak-repeat")
+        defer { context.tearDown() }
+        let watchdog = context.makeWatchdog()
         watchdog.targets = []
         watchdog.alarmSoundEnabled = false
         watchdog.macNotificationsEnabled = false
@@ -176,7 +178,9 @@ enum TunnelGuardSplitLeakSafetyTests {
     @MainActor
     static func testDeadTunnelPromptEscalatesIfInterfaceActuallyDrops() {
         AppState.shared.resetTestCounters()
-        let watchdog = TunnelGuardWatchdog()
+        let context = TunnelGuardTestContext(prefix: "tg-splitleak-drop")
+        defer { context.tearDown() }
+        let watchdog = context.makeWatchdog()
         watchdog.targets = []
         watchdog.alarmSoundEnabled = false
         watchdog.macNotificationsEnabled = false
@@ -217,7 +221,9 @@ enum TunnelGuardSplitLeakSafetyTests {
     @MainActor
     static func testDeadTunnelPromptEscalatesIfInterfaceDropsWithSplitCheck() {
         AppState.shared.resetTestCounters()
-        let watchdog = TunnelGuardWatchdog()
+        let context = TunnelGuardTestContext(prefix: "tg-splitleak-dropsplit")
+        defer { context.tearDown() }
+        let watchdog = context.makeWatchdog()
         watchdog.targets = []
         watchdog.alarmSoundEnabled = false
         watchdog.macNotificationsEnabled = false

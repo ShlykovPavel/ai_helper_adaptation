@@ -102,39 +102,77 @@ struct AntigravityPlanCardView: View {
             .padding(.leading, 134)
             .padding(.trailing, 44)
 
-            // Gauge rows (clean single column with 2 rows)
-            VStack(alignment: .leading, spacing: 5) {
-                if selectedTab == .gemini {
-                    GaugeRowView(label: "5 hours", window: usage?.geminiFiveHour, now: now, labelWidth: 54)
-                    GaugeRowView(label: "Week", window: usage?.geminiWeekly, now: now, weekly: true, labelWidth: 54)
-                } else {
-                    GaugeRowView(label: "5 hours", window: usage?.thirdPartyFiveHour, now: now, labelWidth: 54)
-                    GaugeRowView(label: "Week", window: usage?.thirdPartyWeekly, now: now, weekly: true, labelWidth: 54)
-                }
+            // Gauge rows (2 columns when both Codex and Claude rows are present)
+            if hasTwoColumns {
+                HStack(alignment: .top, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        if selectedTab == .gemini {
+                            GaugeRowView(label: "5 hours", window: usage?.geminiFiveHour, now: now, labelWidth: 54)
+                            GaugeRowView(label: "Week", window: usage?.geminiWeekly, now: now, weekly: true, labelWidth: 54)
+                        } else {
+                            GaugeRowView(label: "5 hours", window: usage?.thirdPartyFiveHour, now: now, labelWidth: 54)
+                            GaugeRowView(label: "Week", window: usage?.thirdPartyWeekly, now: now, weekly: true, labelWidth: 54)
+                        }
+                    }
 
-                #if !APPSTORE
-                if codexRow, codexUsage != nil {
-                    Button(action: { onCodex?() }) {
-                        let window = codexDominantWindow
-                        GaugeRowView(label: "Codex", window: window, now: now,
-                                     weekly: window != nil && window == codexUsage?.sevenDay, labelWidth: 54)
-                            .contentShape(Rectangle())
+                    #if !APPSTORE
+                    VStack(alignment: .leading, spacing: 5) {
+                        Button(action: { onCodex?() }) {
+                            let window = codexDominantWindow
+                            GaugeRowView(label: "Codex", window: window, now: now,
+                                         weekly: window != nil && window == codexUsage?.sevenDay, labelWidth: 54)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: { onClaude?() }) {
+                            let window = claudeDominantWindow
+                            GaugeRowView(label: "Claude", window: window, now: now,
+                                         weekly: window != nil && window == claudeUsage?.sevenDay, labelWidth: 54)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
-                } else if claudeRow, claudeUsage != nil {
-                    Button(action: { onClaude?() }) {
-                        let window = claudeDominantWindow
-                        GaugeRowView(label: "Claude", window: window, now: now,
-                                     weekly: window != nil && window == claudeUsage?.sevenDay, labelWidth: 54)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
+                    #endif
                 }
-                #endif
+                .padding(.top, 8)
+                .padding(.leading, 134)
+                .padding(.trailing, 16)
+            } else {
+                VStack(alignment: .leading, spacing: 5) {
+                    if selectedTab == .gemini {
+                        GaugeRowView(label: "5 hours", window: usage?.geminiFiveHour, now: now, labelWidth: 54)
+                        GaugeRowView(label: "Week", window: usage?.geminiWeekly, now: now, weekly: true, labelWidth: 54)
+                    } else {
+                        GaugeRowView(label: "5 hours", window: usage?.thirdPartyFiveHour, now: now, labelWidth: 54)
+                        GaugeRowView(label: "Week", window: usage?.thirdPartyWeekly, now: now, weekly: true, labelWidth: 54)
+                    }
+
+                    #if !APPSTORE
+                    if codexRow {
+                        Button(action: { onCodex?() }) {
+                            let window = codexDominantWindow
+                            GaugeRowView(label: "Codex", window: window, now: now,
+                                         weekly: window != nil && window == codexUsage?.sevenDay, labelWidth: 54)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    if claudeRow {
+                        Button(action: { onClaude?() }) {
+                            let window = claudeDominantWindow
+                            GaugeRowView(label: "Claude", window: window, now: now,
+                                         weekly: window != nil && window == claudeUsage?.sevenDay, labelWidth: 54)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    #endif
+                }
+                .padding(.top, 8)
+                .padding(.leading, 134)
+                .padding(.trailing, 16)
             }
-            .padding(.top, 8)
-            .padding(.leading, 134)
-            .padding(.trailing, 16)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .padding(.top, 4)
@@ -144,6 +182,14 @@ struct AntigravityPlanCardView: View {
                 Color.clear.onChange(of: ctx.date) { _, d in now = d }
             }
         )
+    }
+
+    var hasTwoColumns: Bool {
+        #if !APPSTORE
+        return codexRow && claudeRow
+        #else
+        return false
+        #endif
     }
 
     private var subtitleText: String {
@@ -156,7 +202,7 @@ struct AntigravityPlanCardView: View {
     }
 
     #if !APPSTORE
-    private var codexDominantWindow: PlanWindow? {
+    var codexDominantWindow: PlanWindow? {
         guard let u = codexUsage else { return nil }
         switch (u.fiveHour, u.sevenDay) {
         case (nil, nil): return nil
@@ -167,7 +213,7 @@ struct AntigravityPlanCardView: View {
         }
     }
 
-    private var claudeDominantWindow: PlanWindow? {
+    var claudeDominantWindow: PlanWindow? {
         guard let u = claudeUsage else { return nil }
         switch (u.fiveHour, u.sevenDay) {
         case (nil, nil): return nil

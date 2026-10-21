@@ -24,6 +24,29 @@ struct TelegramAction: Equatable, Sendable {
     let chatId: Int64
     let userId: Int64
     let messageId: Int64
+    let requestId: UUID?
+
+    init(
+        ref: String,
+        kind: TelegramActionKind,
+        fingerprint: String,
+        sessionId: String,
+        expiresAt: Date,
+        chatId: Int64,
+        userId: Int64,
+        messageId: Int64,
+        requestId: UUID? = nil
+    ) {
+        self.ref = ref
+        self.kind = kind
+        self.fingerprint = fingerprint
+        self.sessionId = sessionId
+        self.expiresAt = expiresAt
+        self.chatId = chatId
+        self.userId = userId
+        self.messageId = messageId
+        self.requestId = requestId
+    }
 }
 
 enum TelegramActionRejection: Equatable, Sendable { case unauthorized, expired, consumed, unknown, fingerprintMismatch }
@@ -351,17 +374,20 @@ struct QuestionItemSnapshot: Codable, Equatable, Sendable {
 }
 
 struct QuestionSnapshot: Codable, Equatable, Sendable {
+    let id: UUID?
     let items: [QuestionItemSnapshot]
     let fingerprint: String
 
-    init(items: [QuestionItemSnapshot], fingerprint: String? = nil) {
+    init(id: UUID? = nil, items: [QuestionItemSnapshot], fingerprint: String? = nil) {
+        self.id = id
         self.items = items
         if let fingerprint = fingerprint {
             self.fingerprint = fingerprint
         } else {
+            let idPart = id?.uuidString ?? ""
             let raw = items.map { item in
                 ([item.question, item.multiSelect ? "multi" : "single"] + item.options.map(\.label)).joined(separator: "\u{1F}")
-            }.joined(separator: "\u{1E}")
+            }.joined(separator: "\u{1E}") + (idPart.isEmpty ? "" : "\u{1D}" + idPart)
             self.fingerprint = SHA256.hash(data: Data(raw.utf8)).map { String(format: "%02x", $0) }.joined()
         }
     }

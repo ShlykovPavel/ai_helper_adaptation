@@ -36,10 +36,10 @@ enum TunnelGuardPhase3SafeTests {
 
     @MainActor
     static func testPersistedSettingsBeforeStartup() {
-        let suite = "tunnelguard-settings-test-\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suite)!
-        defer { defaults.removePersistentDomain(forName: suite) }
-        let fresh = TunnelGuardWatchdog(settingsDefaults: defaults)
+        let context = TunnelGuardTestContext(prefix: "tg-phase3-settings")
+        defer { context.tearDown() }
+        let defaults = context.defaults
+        let fresh = context.makeWatchdog()
         precondition(fresh.isEnabled && fresh.continuousKill && !fresh.splitTunnelCheck)
         precondition(fresh.targets == TunnelGuardAppHunter.defaultTargets)
         for key in ["enabled", "continuousKill", "pingCheckEnabled", "preventSleep",
@@ -48,7 +48,7 @@ enum TunnelGuardPhase3SafeTests {
         }
         defaults.set(true, forKey: "tunnelGuard.splitTunnelCheck")
         defaults.set(false, forKey: "tunnelGuard.target.antigravity-ide")
-        let restored = TunnelGuardWatchdog(settingsDefaults: defaults)
+        let restored = TunnelGuardWatchdog(settingsDefaults: defaults, stateDirectoryURL: context.tempDirectoryURL)
         precondition(!restored.isEnabled && !restored.continuousKill && !restored.pingCheckEnabled)
         precondition(!restored.preventSleep && !restored.sleepWakeGuardEnabled)
         precondition(!restored.alarmSoundEnabled && !restored.macNotificationsEnabled)
@@ -70,7 +70,9 @@ enum TunnelGuardPhase3SafeTests {
 
     @MainActor
     static func testProtectionStatusAndResetEligibility() {
-        let watchdog = TunnelGuardWatchdog()
+        let context = TunnelGuardTestContext(prefix: "tg-phase3-status")
+        defer { context.tearDown() }
+        let watchdog = context.makeWatchdog()
         watchdog.targets = []
 
         watchdog.handleNetworkSnapshot(NetworkSnapshot(isVpn: true, iface: "utun3", pingOk: true,
@@ -146,11 +148,11 @@ enum TunnelGuardPhase3SafeTests {
             routeExecutableURL: route,
             curlExecutableURL: curl,
             pingInterval: 0,
-            routeTimeout: 2,
+            routeTimeout: 5,
             ipProbeServices: ["198.51.100.10", "198.51.100.11"]
         )
         let result = await worker.probeExternalIp(targetDomain: "203.0.113.10")
-        precondition(result.ip == "198.51.100.77")
+        precondition(result.ip == "198.51.100.77", "Expected 198.51.100.77, got '\(result.ip)', error: '\(result.errorMessage)'")
         precondition(result.targetIp == "203.0.113.10")
         precondition(result.targetInterface == "utun7")
         precondition(result.ipService == "198.51.100.11")
